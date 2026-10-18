@@ -29,7 +29,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - name: Validate HTML and embedded JavaScript
+      - name: Validate site HTML and any embedded JavaScript
         shell: bash
         run: |
           set -euo pipefail
@@ -37,24 +37,38 @@ jobs:
           from html.parser import HTMLParser
           from pathlib import Path
           import re
-
-          text = Path("site/index.html").read_text(encoding="utf-8")
+          import subprocess
+          import tempfile
 
           class Parser(HTMLParser):
               pass
 
-          parser = Parser()
-          parser.feed(text)
-          parser.close()
+          html_files = sorted(Path("site").glob("*.html"))
+          if not html_files:
+              raise SystemExit("no HTML files found under site/")
 
-          matches = re.findall(r"<script>(.*?)</script>", text, flags=re.S | re.I)
-          if len(matches) != 1:
-              raise SystemExit(f"expected exactly one inline script, found {len(matches)}")
+          script_count = 0
+          for page in html_files:
+              text = page.read_text(encoding="utf-8")
+              parser = Parser()
+              parser.feed(text)
+              parser.close()
 
-          Path("/tmp/site.js").write_text(matches[0], encoding="utf-8")
-          print("HTML parser accepted site/index.html; extracted one inline script.")
+              scripts = re.findall(r"<script>(.*?)</script>", text, flags=re.S | re.I)
+              for index, script in enumerate(scripts):
+                  script_count += 1
+                  with tempfile.NamedTemporaryFile(
+                      mode="w", suffix=".js", encoding="utf-8", delete=False
+                  ) as tmp:
+                      tmp.write(script)
+                      path = tmp.name
+                  subprocess.run(["node", "--check", path], check=True)
+
+          print(
+              f"Validated {len(html_files)} HTML file(s) and "
+              f"{script_count} inline JavaScript block(s)."
+          )
           PY
-          node --check /tmp/site.js
 
   deploy:
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
