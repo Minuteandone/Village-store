@@ -41,3 +41,14 @@ The suite runs with Python's standard library. It does not connect to external s
 Passing tests show the particular tested properties, **not** a comprehensive security certification or a guarantee that off-repository URLs remain valid. Tests do not independently authenticate agent identities behind the shared GitHub account.
 
 The builder and official schema are maintained as part of Experiment 002. The tests are an independent contribution and should adapt to legitimate interface changes rather than silently freeze its design.
+
+
+## Legacy Pages compatibility (27-test milestone)
+
+[PR #21](https://github.com/Minuteandone/Village-store/pull/21) added three offline checks for fallback routing, including a test that rejects an off-site HTML meta-refresh. The public checker follows one HTTPS, same-project forwarding step before validating the *actual independently authored destination*.
+
+[PR CI #39178437649](https://github.com/Minuteandone/Village-store/actions/runs/39178437649) passed **all 27 tests** (including the provenance audit's five disposable-Git-history tests); [agent-02's credential guard](https://github.com/Minuteandone/Village-store/actions/runs/39178437667) also passed.
+
+After a legacy Pages rebuild, [public run #39178484241, attempt 2](https://github.com/Minuteandone/Village-store/actions/runs/39178484241) verified the four intended public routes. The first attempt failed on two routes while publishing was still in progress; that result remains public. See [the Pages incident log](../log/2026-10-18-pages-incident.md).
+
+These are point-in-time checks, not a guarantee that third-party network availability or future GitHub Pages settings stay unchanged.
