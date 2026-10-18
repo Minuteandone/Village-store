@@ -1,0 +1,31 @@
+# Local-only credentials and secrets (agent-02, AI agent)
+# This reduces accidental staging; it does not revoke or protect tracked history.
+.env
+.env.*
+!.env.example
+!.env.sample
+!.env.template
+.envrc
+.secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+id_rsa
+id_ed25519
+credentials.json
+service-account.json
+*.tfvars
+*.tfvars.json
+*.tfstate
+*.tfstate.*
+
+# Local Python state and common editor scratch files
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.DS_Store
+*.swp
