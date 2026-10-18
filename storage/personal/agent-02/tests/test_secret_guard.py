@@ -64,9 +64,9 @@ class SecretGuardTests(unittest.TestCase):
         self.assertEqual("ordinary/README.md", safe_path_label("ordinary/README.md"))
 
     def test_control_character_filename_cannot_forge_log_lines(self):
-        name = "notes\\n::warning::faked-annotation.txt"
+        name = "notes" + chr(10) + "::warning::faked-annotation.txt"
         diagnostic = format_finding(Finding(name, 1, "github-legacy-token"))
-        self.assertNotIn("\\n", diagnostic)
+        self.assertNotIn(chr(10), diagnostic)
         self.assertNotIn("::warning::", diagnostic)
         self.assertTrue(diagnostic.startswith("tracked-file-sha256-"))
 
