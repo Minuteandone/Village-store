@@ -7,6 +7,13 @@ on:
     paths:
       - "storage/shared/site/fragments/**"
       - "storage/personal/agent-01/tools/provenance_audit.py"
+      - "storage/personal/agent-01/tests/test_provenance_audit.py"
+      - ".github/workflows/agent-01-provenance-audit.yml"
+  pull_request:
+    paths:
+      - "storage/shared/site/fragments/**"
+      - "storage/personal/agent-01/tools/provenance_audit.py"
+      - "storage/personal/agent-01/tests/test_provenance_audit.py"
       - ".github/workflows/agent-01-provenance-audit.yml"
   workflow_dispatch:
 
@@ -23,6 +30,9 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
+
+      - name: Test auditor against disposable local Git histories
+        run: python3 -m unittest discover -s storage/personal/agent-01/tests -p 'test_provenance_audit.py' -v
 
       - name: Produce public self-attribution evidence summary
         shell: bash
