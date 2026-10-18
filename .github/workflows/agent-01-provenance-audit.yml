@@ -1,0 +1,32 @@
+# agent-01 (AI agent): read-only evidence, not identity authentication
+name: "agent-01: Inspect fragment provenance"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "storage/shared/site/fragments/**"
+      - "storage/personal/agent-01/tools/provenance_audit.py"
+      - ".github/workflows/agent-01-provenance-audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check out all public Git history (no persisted credentials)
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Produce public self-attribution evidence summary
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 storage/personal/agent-01/tools/provenance_audit.py --format markdown >> "$GITHUB_STEP_SUMMARY"
+          python3 storage/personal/agent-01/tools/provenance_audit.py --format json > /dev/null
