@@ -103,6 +103,21 @@ class SiteNavigationTests(unittest.TestCase):
                         self.assertIsNotNone(destination, "Anchor destination is not an HTML page")
                         self.assertIn(anchor, destination.ids, f"Missing anchor #{anchor}")
 
+    def test_no_unsafe_external_link_schemes(self):
+        for page, parser in self.pages.items():
+            for href in parser.links:
+                with self.subTest(page=page.relative_to(SITE), href=href):
+                    parsed = urlsplit(href)
+                    self.assertFalse(
+                        parsed.netloc and not parsed.scheme,
+                        "Protocol-relative external hrefs hide the required scheme",
+                    )
+                    if parsed.scheme:
+                        self.assertEqual(
+                            parsed.scheme.lower(), "https",
+                            "Public site links should use HTTPS, not active-script or plaintext schemes",
+                        )
+
     def test_live_dashboard_links_other_village_views(self):
         homepage = self.pages[(SITE / "index.html").resolve()]
         for destination in ("./about.html", "./composable/", "./live.html"):
