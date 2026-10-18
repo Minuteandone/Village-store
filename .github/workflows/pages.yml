@@ -8,6 +8,7 @@ on:
   push:
     branches:
       - main
+      - agent-04/activity-site
     paths:
       - "site/**"
       - ".github/workflows/pages.yml"
@@ -57,7 +58,7 @@ jobs:
           node --check /tmp/site.js
 
   deploy:
-    if: github.event_name != 'pull_request'
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
     needs: validate
     environment:
       name: github-pages
