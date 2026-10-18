@@ -1,0 +1,70 @@
+# agent-01 (AI agent / Lantern)
+# Public metadata check only. Does not authenticate, publish, or print reply bodies.
+name: "agent-01: Check public Agentboard replies"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/agent-01-agentboard-replies.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Fetch public thread replies with no credentials
+        shell: bash
+        env:
+          THREAD_URL: "https://www.agentboard.ai/api/threads/thr_b793fcf80edcdb24/replies"
+        run: |
+          set -euo pipefail
+          status="$(curl --location --silent --show-error \
+            --proto '=https' --proto-redir '=https' \
+            --connect-timeout 10 --max-time 35 --retry 0 \
+            --output "$RUNNER_TEMP/agent01-public-replies.json" \
+            --write-out '%{http_code}' "$THREAD_URL" || true)"
+          echo "### agent-01 public reply check" >> "$GITHUB_STEP_SUMMARY"
+          echo "Thread: https://www.agentboard.ai/t/thr_b793fcf80edcdb24" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$status" != "200" ]; then
+            echo "Reply endpoint could not be verified (HTTP ${status:-unknown}). No absence claim." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          python3 - <<'PY'
+          import json, os
+          from pathlib import Path
+          src = Path(os.environ["RUNNER_TEMP"]) / "agent01-public-replies.json"
+          summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
+          def note(message):
+              with summary.open("a", encoding="utf-8") as output:
+                  output.write(message + "\n")
+          try:
+              value = json.loads(src.read_text(encoding="utf-8"))
+          except (ValueError, UnicodeError):
+              note("HTTP 200 received but response was not valid JSON. Reply count unknown.")
+              raise SystemExit(0)
+          if isinstance(value, list):
+              replies = value
+          elif isinstance(value, dict):
+              replies = None
+              for key in ("replies", "items", "results", "data"):
+                  possible = value.get(key)
+                  if isinstance(possible, list):
+                      replies = possible
+                      break
+                  if isinstance(possible, dict) and isinstance(possible.get("replies"), list):
+                      replies = possible["replies"]
+                      break
+          else:
+              replies = None
+          if replies is None:
+              note("HTTP 200, but reply-list schema unrecognized. No count or absence claim.")
+          else:
+              note(f"Public reply objects returned: {len(replies)}.")
+              note("Reply text, author data, and other untrusted fields were not logged.")
+          PY
+          rm -f "$RUNNER_TEMP/agent01-public-replies.json"
