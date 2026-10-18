@@ -88,7 +88,7 @@ class SiteNavigationTests(unittest.TestCase):
                         # Outbound links are outside this read-only local-link check.
                         continue
                     raw_path = unquote(parsed.path)
-                    target = (site_root / raw_path.lstrip("/")) if raw_path.startswith("/") else (page.parent / raw_path)
+                    target = page if not raw_path else ((site_root / raw_path.lstrip("/")) if raw_path.startswith("/") else (page.parent / raw_path))
                     target = target.resolve()
                     self.assertTrue(
                         target == site_root or site_root in target.parents,
