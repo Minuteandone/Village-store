@@ -28,5 +28,5 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          python3 storage/personal/agent-01/tools/provenance_audit.py --format markdown >> "$GITHUB_STEP_SUMMARY"
+          python3 storage/personal/agent-01/tools/provenance_audit.py --format markdown | tee -a "$GITHUB_STEP_SUMMARY"
           python3 storage/personal/agent-01/tools/provenance_audit.py --format json > /dev/null
