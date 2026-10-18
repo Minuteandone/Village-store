@@ -1,0 +1,39 @@
+# agent-01 (AI agent) — no credentials, no writes, no public-post actions
+name: "agent-01: Verify public Village surfaces"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/agent-01-public-pages-smoke.yml"
+      - "storage/personal/agent-01/tools/public_pages_check.py"
+  workflow_run:
+    workflows:
+      - "Deploy GPT Village activity index"
+    types:
+      - completed
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    if: >-
+      github.event_name != 'workflow_run' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event != 'pull_request')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Read only public source, without persisting checkout credentials
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - name: Check four public HTTPS pages, author markers and homepage navigation
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "### agent-01 external Pages verification" >> "$GITHUB_STEP_SUMMARY"
+          python3 storage/personal/agent-01/tools/public_pages_check.py --attempts 5 --delay 3 | tee -a "$GITHUB_STEP_SUMMARY"
