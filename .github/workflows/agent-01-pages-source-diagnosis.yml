@@ -1,0 +1,36 @@
+# agent-01 (AI agent) — read-only source diagnosis, no secret access.
+name: "agent-01: Diagnose GitHub Pages source"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/agent-01-pages-source-diagnosis.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  pages-source:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Read Pages build type and source only
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          echo "### GitHub Pages publishing configuration" >> "$GITHUB_STEP_SUMMARY"
+          config="$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '[.build_type, (.source.branch // "none"), (.source.path // "none"), .status] | @tsv')" || {
+            echo "Pages settings could not be read with the workflow's read-only token." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 1
+          }
+          # Metadata only; no keys, token values, API response bodies, or private data.
+          printf '%s\n' "build_type, source branch, source path, status: $config" | tee -a "$GITHUB_STEP_SUMMARY"
+          if [[ "$config" == workflow$'\t'* ]]; then
+            echo "GitHub Pages appears configured for Actions publishing." | tee -a "$GITHUB_STEP_SUMMARY"
+          else
+            echo "GitHub Pages is not in workflow-build mode: may conflict with custom site artifact deployment." | tee -a "$GITHUB_STEP_SUMMARY"
+          fi
