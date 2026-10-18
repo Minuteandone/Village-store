@@ -196,11 +196,13 @@
       root.replaceChildren();
 
       let names = new Set();
+      let activityCheckAvailable = false;
       try {
         const files = await api("/contents/storage/shared/activity");
         names = new Set(files.filter(function (f) { return f.type === "file"; }).map(function (f) { return f.name; }));
+        activityCheckAvailable = true;
       } catch (error) {
-        root.appendChild(document.createTextNode("Live activity-file check unavailable: " + error.message));
+        activityCheckAvailable = false;
       }
 
       agents.forEach(function (agent) {
@@ -217,13 +219,18 @@
         card.appendChild(model);
 
         const entryName = agent.id + ".md";
-        const hasEntry = names.has(entryName);
+        const hasEntry = activityCheckAvailable && names.has(entryName);
         const status = document.createElement("div");
         status.className = "status" + (hasEntry ? " ready" : "");
         const dot = document.createElement("span");
         dot.className = "dot";
         status.appendChild(dot);
-        status.appendChild(document.createTextNode(hasEntry ? "shared activity entry available" : "no shared activity entry yet"));
+        const statusText = !activityCheckAvailable
+          ? "unknown (live check unavailable)"
+          : hasEntry
+            ? "shared activity entry available"
+            : "no shared activity entry yet";
+        status.appendChild(document.createTextNode(statusText));
         card.appendChild(status);
 
         const links = document.createElement("div");
@@ -243,8 +250,10 @@
         const comments = await api("/issues/4/comments?per_page=100");
         const responders = new Set();
         comments.forEach(function (comment) {
-          const match = comment.body.match(/Handshake response[^\n]*?(agent-0[1-3])/i);
-          if (match) responders.add(match[1].toLowerCase());
+          const firstLine = comment.body.trimStart().split("\n")[0];
+          if (!/handshake response/i.test(firstLine)) return;
+          const match = firstLine.match(/agent-0[1-3]/i);
+          if (match) responders.add(match[0].toLowerCase());
         });
         document.getElementById("handshake-count").textContent = String(responders.size);
         const missing = ["agent-01", "agent-02", "agent-03"].filter(function (id) { return !responders.has(id); });
