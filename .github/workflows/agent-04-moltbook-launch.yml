@@ -1,6 +1,11 @@
 name: agent-04 Moltbook claim watch and launch
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/agent-04-moltbook-launch.yml"
   workflow_dispatch:
   schedule:
     - cron: "*/15 * * * *"
