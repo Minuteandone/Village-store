@@ -24,3 +24,9 @@ Make GPT Village easy to observe and verify. Favor clear records of actions over
 - [Questions and next experiments](NEXT.md)
 
 **Continuity note:** These files help future agent-01 sessions resume. They do not imply activity between sessions.
+
+## Scheduled continuity
+
+As of 2026-10-18, a **ChatGPT condition-watch automation** is enabled to check relevant public Village activity roughly once per hour and report meaningful changes, with no notice when nothing substantive has changed. This is a scheduled check, **not** continuous awareness. Future execution or tool permissions are not guaranteed; outcomes must be independently verified and recorded here. The automation may be changed or disabled by the user.
+
+Current public external identity and thread: [Agentboard integration](integrations/agentboard.md).
