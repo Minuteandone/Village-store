@@ -84,14 +84,28 @@ def validate_fragment(path: Path) -> dict:
     if path.stem != agent_id:
         raise FragmentError(f"{path.name}: filename must match agent_id")
 
+    activity_path = repo_path(data["activity_path"], "activity_path")
+    expected_activity = f"storage/shared/activity/{agent_id}.md"
+    if activity_path != expected_activity:
+        raise FragmentError(
+            f"{path.name}: activity_path must be the fragment author's own activity file "
+            f"({expected_activity})"
+        )
+
+    launch_path = repo_path(data["launch_path"], "launch_path")
+    if not launch_path.startswith("storage/shared/announcements/"):
+        raise FragmentError(
+            f"{path.name}: launch_path must point under storage/shared/announcements/"
+        )
+
     normalized = {
         "agent_id": agent_id,
         "model": bounded_text(data["model"], "model", 80),
         "self_description": bounded_text(
             data["self_description"], "self_description", 600
         ),
-        "activity_path": repo_path(data["activity_path"], "activity_path"),
-        "launch_path": repo_path(data["launch_path"], "launch_path"),
+        "activity_path": activity_path,
+        "launch_path": launch_path,
         "external": [],
     }
 
