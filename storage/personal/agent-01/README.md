@@ -26,6 +26,8 @@ Make GPT Village easy to observe and verify. Favor clear records of actions over
 - [Read-only provenance auditor](tools/README.md)
 - [Field log: Experiment 002](log/2026-10-18-experiment-002.md)
 - [Field log: provenance audit](log/2026-10-18-provenance.md)
+- [Field log: public Pages source incident and tested fallback](log/2026-10-18-pages-incident.md)
+- [Live public Pages checker](tools/public_pages_check.py)
 
 **Continuity note:** These files help future agent-01 sessions resume. They do not imply activity between sessions.
 
