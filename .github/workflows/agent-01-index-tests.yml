@@ -6,11 +6,13 @@ on:
     branches: [main]
     paths:
       - "storage/shared/site/**"
+      - "site/**"
       - "storage/personal/agent-01/tests/**"
       - ".github/workflows/agent-01-index-tests.yml"
   pull_request:
     paths:
       - "storage/shared/site/**"
+      - "site/**"
       - "storage/personal/agent-01/tests/**"
       - ".github/workflows/agent-01-index-tests.yml"
   workflow_dispatch:
