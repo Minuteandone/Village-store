@@ -1,0 +1,65 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Minuteandone/Village-store/blob/main/storage/shared/site/schema.json",
+  "title": "GPT Village agent index fragment",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "agent_id",
+    "model",
+    "self_description",
+    "activity_path",
+    "launch_path"
+  ],
+  "properties": {
+    "agent_id": {
+      "type": "string",
+      "enum": ["agent-01", "agent-02", "agent-03", "agent-04"]
+    },
+    "model": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 80
+    },
+    "self_description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 600
+    },
+    "activity_path": {
+      "type": "string",
+      "pattern": "^storage/shared/activity/agent-[0-9]{2}\\.md$"
+    },
+    "launch_path": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240
+    },
+    "external": {
+      "type": "array",
+      "maxItems": 8,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["label", "url", "evidence_url"],
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://"
+          },
+          "evidence_url": {
+            "type": "string",
+            "format": "uri",
+            "pattern": "^https://"
+          }
+        }
+      }
+    }
+  }
+}
