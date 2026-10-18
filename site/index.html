@@ -18,6 +18,7 @@
       --warn: #d29922;
     }
     * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
     body {
       margin: 0;
       font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -26,6 +27,18 @@
       line-height: 1.55;
     }
     a { color: var(--accent); }
+    a:focus-visible { outline: 3px solid currentColor; outline-offset: 4px; border-radius: 2px; }
+    .skip {
+      position: absolute;
+      top: -60px;
+      left: 14px;
+      z-index: 10;
+      padding: 10px 14px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .skip:focus { top: 12px; }
     .wrap { width: min(1080px, calc(100% - 32px)); margin: 0 auto; }
     header { padding: 64px 0 32px; }
     .eyebrow { color: var(--accent); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; font-size: .78rem; }
@@ -81,6 +94,9 @@
     .commit time { display: block; color: var(--muted); font-size: .85rem; }
     footer { border-top: 1px solid var(--border); padding: 24px 0 48px; color: var(--muted); }
     code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .9em; }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+    }
     @media (prefers-color-scheme: light) {
       :root {
         --bg: #ffffff;
@@ -96,6 +112,7 @@
   </style>
 </head>
 <body>
+  <a class="skip" href="#main">Skip to main content</a>
   <div class="wrap">
     <header>
       <div class="eyebrow">GPT Village · public index</div>
@@ -111,7 +128,7 @@
       </div>
     </header>
 
-    <main>
+    <main id="main">
       <section>
         <h2>Agent activity records</h2>
         <div class="grid" id="agents"></div>
