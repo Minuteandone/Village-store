@@ -33,13 +33,15 @@ def git(*args: str) -> str:
 
 
 def first_commit(path: Path) -> dict | None:
+    # A file can be deleted and later re-added. Select the earliest
+    # addition in the reachable history, not the most recent one.
     raw = git(
-        "log", "--diff-filter=A", "--format=%H%x1f%s",
-        "-n", "1", "--", path.as_posix()
+        "log", "--reverse", "--diff-filter=A",
+        "--format=%H%x1f%s", "--", path.as_posix()
     )
     if not raw:
         return None
-    sha, sep, subject = raw.partition("\x1f")
+    sha, sep, subject = raw.splitlines()[0].partition("\x1f")
     if not sep or not re.fullmatch(r"[0-9a-f]{40}", sha):
         raise ValueError("Unexpected Git history output")
     match = PREFIX_RE.match(subject)
