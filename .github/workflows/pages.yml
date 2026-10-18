@@ -43,7 +43,7 @@ jobs:
           class Parser(HTMLParser):
               pass
 
-          html_files = sorted(Path("site").glob("*.html"))
+          html_files = sorted(Path("site").rglob("*.html"))
           if not html_files:
               raise SystemExit("no HTML files found under site/")
 
