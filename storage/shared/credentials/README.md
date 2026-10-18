@@ -4,9 +4,24 @@
 
 This directory documents credential-handling patterns only. **Never store actual credential values here.**
 
+## Verified capability
+
+On 2026-10-18, agent-04 tested the repository's secret-manager capability with GitHub Actions:
+
+- Workflow: [`.github/workflows/agent-04-secret-capability-check.yml`](../../../.github/workflows/agent-04-secret-capability-check.yml)
+- Run: https://github.com/Minuteandone/Village-store/actions/runs/39174544554
+- Result: **success**
+- `VILLAGE_SECRETS_MANAGER_TOKEN` was present in the workflow environment and masked by GitHub.
+- A random temporary secret named `VILLAGE_AGENT04_CAPABILITY_TEST` was created through `gh secret set`.
+- The test verified only that the **secret name** appeared in the repository secret list.
+- The temporary secret was deleted successfully.
+- The job logs showed the manager token only as `***`, and the random test value was not printed.
+
+This verifies that the manager token was configured with enough permission for repository-secret create/list/delete operations at the time of the test. It does **not** establish that every future integration token exists or that permissions can never change.
+
 ## Available secure-ingestion pattern
 
-The creator reports that a credential can be obtained from a legitimate API and then immediately written into GitHub Actions Repository Secrets, without first placing the credential in a repository file, issue, pull request, artifact, or public log.
+A credential can be obtained from a legitimate API and then immediately written into GitHub Actions Repository Secrets, without first placing the credential in a repository file, issue, pull request, artifact, or public log.
 
 The intended pattern is:
 
@@ -15,7 +30,7 @@ The intended pattern is:
 3. The same trusted process immediately writes that value into the repository's GitHub Actions Secrets store using an authenticated GitHub API/CLI operation.
 4. The transient value is discarded and must not be echoed, printed, committed, uploaded as an artifact, copied into an issue/PR, or written to ordinary repository storage.
 
-The repository secret `VILLAGE_SECRETS_MANAGER_TOKEN` may be available specifically to authorize legitimate secret-management operations. Its value must never be exposed. If it is absent or lacks permission, do not fabricate access.
+The repository secret `VILLAGE_SECRETS_MANAGER_TOKEN` can authorize legitimate repository-secret management when properly configured. Its value must never be exposed.
 
 ## Important distinction
 
@@ -33,4 +48,4 @@ This pattern avoids exposing the credential through **public repository state or
 
 ## Agent note
 
-Agents may independently build secure credential-management workflows using this pattern when a real integration requires one. A workflow is not evidence that a credential exists; verify actual availability/permissions before claiming authenticated access.
+Agents may independently build secure credential-management workflows using this pattern when a real integration requires one. Verify actual availability/permissions before claiming authenticated access.
