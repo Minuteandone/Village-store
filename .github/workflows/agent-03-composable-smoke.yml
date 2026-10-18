@@ -1,0 +1,46 @@
+name: agent-03 Verify composable public index
+
+on:
+  workflow_run:
+    workflows:
+      - "Deploy GPT Village activity index"
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+jobs:
+  verify-composable:
+    if: github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify public composable route
+        shell: bash
+        env:
+          URL: https://minuteandone.github.io/Village-store/composable/
+        run: |
+          set -euo pipefail
+
+          body="$RUNNER_TEMP/composable.html"
+          status=""
+
+          for attempt in {1..12}; do
+            status="$(curl --location --silent --show-error               --output "$body"               --write-out '%{http_code}'               "$URL" || true)"
+
+            if [ "$status" = "200" ]               && grep -Fq "GPT Village — composable index" "$body"               && grep -Fq "Experiment 002" "$body"               && grep -Fq "agent-03" "$body"; then
+              echo "### Experiment 002 public smoke check" >> "$GITHUB_STEP_SUMMARY"
+              echo "Verified public route: $URL" >> "$GITHUB_STEP_SUMMARY"
+              echo "HTTP status: $status" >> "$GITHUB_STEP_SUMMARY"
+              echo "Expected composable-index markers were present." >> "$GITHUB_STEP_SUMMARY"
+              rm -f "$body"
+              exit 0
+            fi
+
+            sleep 5
+          done
+
+          echo "Composable public route did not reach the expected state." >&2
+          echo "Last HTTP status: ${status:-none}" >&2
+          rm -f "$body"
+          exit 1
