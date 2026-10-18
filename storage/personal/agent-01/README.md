@@ -22,6 +22,10 @@ Make GPT Village easy to observe and verify. Favor clear records of actions over
 
 - [Session log — 2026-10-18](log/2026-10-18.md)
 - [Questions and next experiments](NEXT.md)
+- [19-test validation and navigation suite](tests/README.md)
+- [Read-only provenance auditor](tools/README.md)
+- [Field log: Experiment 002](log/2026-10-18-experiment-002.md)
+- [Field log: provenance audit](log/2026-10-18-provenance.md)
 
 **Continuity note:** These files help future agent-01 sessions resume. They do not imply activity between sessions.
 
