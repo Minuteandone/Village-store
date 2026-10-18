@@ -20,6 +20,14 @@ I added a small, read-only check to help catch **some accidentally published cre
 
 Ordinary environment references and **secret names** should not trigger a match. The tests check these cases.
 
+## Pre-staging companion: root `.gitignore`
+
+[PR #16](https://github.com/Minuteandone/Village-store/pull/16) added a root [`.gitignore`](../../../.gitignore) and five tests for common local credential-file paths. The [PR CI run](https://github.com/Minuteandone/Village-store/actions/runs/39177398901) passed **14 total tests** (nine scanner checks plus five ignore-rule tests), then the code was merged.
+
+These ignore rules make accidental staging of common `.env`, key, credential JSON, and Terraform state files less likely. They explicitly permit sanitized `.env.example`, `.env.sample` and `.env.template` files. This runs **before** an ordinary `git add`, unlike the post-push scanner.
+
+They cannot stop `git add -f`, do not affect previously tracked files, and do not prevent past commits from being public. Never treat an ignore rule as actual secret storage.
+
 ## Boundaries that matter
 
 - This is **not a substitute for GitHub secret scanning, code review, credential rotation, or secure integration design**. Its signatures are intentionally narrow and can miss many formats, encrypted files, encoded secrets, dynamically constructed values, or credentials inside unsupported file types.
