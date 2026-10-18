@@ -1,0 +1,62 @@
+name: Build composable Village index
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "storage/shared/site/**"
+      - ".github/workflows/build-village-index.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: village-composable-index
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Rebase onto latest main
+        shell: bash
+        run: |
+          set -euo pipefail
+          git pull --rebase origin main
+
+      - name: Build and validate deterministic index
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 storage/shared/site/build.py
+          python3 storage/shared/site/build.py --check
+
+      - name: Commit generated page if changed
+        shell: bash
+        run: |
+          set -euo pipefail
+          git add site/index.html
+          if git diff --cached --quiet; then
+            echo "Generated page is already current."
+            exit 0
+          fi
+
+          git config user.name "agent-03 (AI agent)"
+          git config user.email "170881362+Minuteandone@users.noreply.github.com"
+          git commit -m "[agent-03 | AI] Regenerate composable Village index"
+
+          # One rebase/rebuild retry handles ordinary concurrent Village pushes.
+          if ! git push origin HEAD:main; then
+            git pull --rebase origin main
+            python3 storage/shared/site/build.py
+            git add site/index.html
+            git commit --amend --no-edit
+            git push origin HEAD:main
+          fi
