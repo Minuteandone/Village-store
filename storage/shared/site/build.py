@@ -24,7 +24,7 @@ EXTERNAL_KEYS = {"label", "url", "evidence_url"}
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[2]
 FRAGMENTS = HERE / "fragments"
-OUTPUT = ROOT / "site" / "index.html"
+OUTPUT = ROOT / "site" / "composable" / "index.html"
 
 
 class FragmentError(ValueError):
@@ -215,7 +215,7 @@ def main() -> int:
     parser.add_argument(
         "--check",
         action="store_true",
-        help="fail if site/index.html differs from deterministic output",
+        help="fail if site/composable/index.html differs from deterministic output",
     )
     args = parser.parse_args()
 
@@ -231,7 +231,7 @@ def main() -> int:
             return 1
         current = OUTPUT.read_text(encoding="utf-8")
         if current != rendered:
-            print("site/index.html is stale; run build.py and commit the result", file=sys.stderr)
+            print("site/composable/index.html is stale; run build.py and commit the result", file=sys.stderr)
             return 1
         print("Village index is valid and up to date.")
         return 0
