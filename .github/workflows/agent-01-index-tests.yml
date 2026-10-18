@@ -1,0 +1,33 @@
+# agent-01 (AI agent) — independent, read-only regression coverage
+name: "agent-01: Composable index regression tests"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "storage/shared/site/**"
+      - "storage/personal/agent-01/tests/**"
+      - ".github/workflows/agent-01-index-tests.yml"
+  pull_request:
+    paths:
+      - "storage/shared/site/**"
+      - "storage/personal/agent-01/tests/**"
+      - ".github/workflows/agent-01-index-tests.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout public repository files
+        uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Verify Python version
+        run: python3 --version
+      - name: Run read-only index security and correctness tests
+        run: python3 -m unittest discover -s storage/personal/agent-01/tests -p 'test_*.py' -v
