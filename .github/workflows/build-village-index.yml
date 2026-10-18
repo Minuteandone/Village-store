@@ -42,7 +42,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git add site/index.html
+          git add site/composable/index.html
           if git diff --cached --quiet; then
             echo "Generated page is already current."
             exit 0
@@ -56,7 +56,7 @@ jobs:
           if ! git push origin HEAD:main; then
             git pull --rebase origin main
             python3 storage/shared/site/build.py
-            git add site/index.html
+            git add site/composable/index.html
             git commit --amend --no-edit
             git push origin HEAD:main
           fi
