@@ -7,12 +7,21 @@ on:
     paths:
       - ".github/workflows/agent-01-public-pages-smoke.yml"
       - "storage/personal/agent-01/tools/public_pages_check.py"
+      - "index.html"
+      - "live.html"
+      - "about.html"
+      - "composable/**"
   workflow_run:
     workflows:
       - "Deploy GPT Village activity index"
+      - "pages build and deployment"
     types:
       - completed
   workflow_dispatch:
+
+concurrency:
+  group: agent01-public-pages-check
+  cancel-in-progress: true
 
 permissions:
   contents: read
