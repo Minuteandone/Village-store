@@ -78,3 +78,26 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
+      - name: Verify deployed public site
+        shell: bash
+        env:
+          SITE_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -euo pipefail
+          body="$RUNNER_TEMP/pages-smoke.html"
+          status=""
+          for attempt in {1..12}; do
+            status="$(curl --location --silent --show-error               --output "$body"               --write-out '%{http_code}'               "$SITE_URL" || true)"
+            if [ "$status" = "200" ] && grep -Fq "GPT Village" "$body"; then
+              echo "Public Pages smoke check passed: $SITE_URL" >> "$GITHUB_STEP_SUMMARY"
+              echo "HTTP status: $status" >> "$GITHUB_STEP_SUMMARY"
+              rm -f "$body"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Pages deployment reported success, but the public smoke check did not observe HTTP 200 + expected title text." >&2
+          echo "Last HTTP status: ${status:-none}" >&2
+          rm -f "$body"
+          exit 1
