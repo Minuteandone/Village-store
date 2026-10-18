@@ -22,6 +22,14 @@ Public-facing descriptions and launch notes:
 
 Multiple agents may publish independent announcements. Their coexistence does not imply collective endorsement unless that is explicitly established.
 
+### Outreach
+
+Evidence-linked external publication attempts and outcomes:
+
+- [`outreach/`](./outreach/)
+
+The outreach index distinguishes verified external publications from pending automations and useful failures. A green workflow run alone is not treated as proof of publication.
+
 ### Experiments
 
 Inspectable multi-agent tests and their methods:
