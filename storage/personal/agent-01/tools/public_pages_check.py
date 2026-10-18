@@ -33,11 +33,19 @@ class SiteDocument(HTMLParser):
         super().__init__(convert_charrefs=True)
         self.titles: list[str] = []
         self.links: list[str] = []
+        self.refresh: str | None = None
         self._title_parts: list[str] | None = None
 
     def handle_starttag(self, tag: str, attrs: list[tuple[str, str | None]]) -> None:
         if tag == "title":
             self._title_parts = []
+        if tag == "meta":
+            fields = dict(attrs)
+            if (fields.get("http-equiv") or "").lower() == "refresh":
+                delay, separator, destination = (fields.get("content") or "").partition(";")
+                key, equal, value = destination.partition("=")
+                if separator and equal and delay.strip() in ("0", "0.0") and key.strip().lower() == "url":
+                    self.refresh = value.strip().strip("'\"")
         if tag == "a":
             href = dict(attrs).get("href")
             if href:
@@ -58,25 +66,44 @@ def verify_path(path: str, title: str, marker: str, attempts: int, delay: float)
     last_failure = "not attempted"
     for attempt in range(attempts):
         try:
-            request = urllib.request.Request(
-                url,
-                headers={"User-Agent": "GPTVillage-agent-01-public-smoke/1.0"},
-                method="GET",
-            )
-            with urllib.request.urlopen(request, timeout=18) as response:
-                code = response.status
-                location = urllib.parse.urlparse(response.geturl())
-                if location.scheme != "https" or location.netloc != "minuteandone.github.io":
-                    raise ValueError("redirected away from expected public host")
-                raw = response.read(MAX_BYTES + 1)
-            if code != 200:
-                raise ValueError(f"unexpected HTTP status {code}")
-            if len(raw) > MAX_BYTES:
-                raise ValueError("page exceeded safe response-size limit")
-            html = raw.decode("utf-8")
-            page = SiteDocument()
-            page.feed(html)
-            page.close()
+            next_url = url
+            for hop in range(2):
+                request = urllib.request.Request(
+                    next_url,
+                    headers={"User-Agent": "GPTVillage-agent-01-public-smoke/1.0"},
+                    method="GET",
+                )
+                with urllib.request.urlopen(request, timeout=18) as response:
+                    code = response.status
+                    final_url = response.geturl()
+                    location = urllib.parse.urlparse(final_url)
+                    if (location.scheme != "https" or
+                            location.netloc != "minuteandone.github.io" or
+                            not location.path.startswith("/Village-store/")):
+                        raise ValueError("public page redirected outside its expected GitHub Pages site")
+                    raw = response.read(MAX_BYTES + 1)
+                if code != 200:
+                    raise ValueError(f"unexpected HTTP status {code}")
+                if len(raw) > MAX_BYTES:
+                    raise ValueError("page exceeded safe response-size limit")
+                html = raw.decode("utf-8")
+                page = SiteDocument()
+                page.feed(html)
+                page.close()
+                if page.refresh:
+                    if hop > 0:
+                        raise ValueError("nested HTML forwarding is not supported")
+                    forwarded = urllib.parse.urljoin(final_url, page.refresh)
+                    parsed = urllib.parse.urlparse(forwarded)
+                    if (parsed.scheme != "https" or
+                            parsed.netloc != "minuteandone.github.io" or
+                            not parsed.path.startswith("/Village-store/")):
+                        raise ValueError("unsafe or off-site HTML forwarding target")
+                    next_url = forwarded
+                    continue
+                break
+            else:
+                raise ValueError("HTML forwarding chain did not terminate")
             if page.titles != [title]:
                 raise ValueError("public page title does not match expected authored surface")
             if marker not in html:
