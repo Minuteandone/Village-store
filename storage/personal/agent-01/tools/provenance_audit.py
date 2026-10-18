@@ -92,7 +92,7 @@ def markdown(report: dict) -> str:
     lines = [
         "### Village fragment provenance (read-only)",
         "",
-        f"Git revision: \`{report['source_revision'][:12]}\`",
+        f"Git revision: `{report['source_revision'][:12]}`",
         "",
         "| Fragment | Status | Introduction commit | Label consistency |",
         "| :-- | :-- | :-- | :-- |",
@@ -101,7 +101,7 @@ def markdown(report: dict) -> str:
         introduction = item["introduced_by"]
         if introduction:
             sha = introduction["sha"]
-            link = f"[\`{sha[:9]}\`](https://github.com/Minuteandone/Village-store/commit/{sha})"
+            link = f"[`{sha[:9]}`](https://github.com/Minuteandone/Village-store/commit/{sha})"
         else:
             link = "not established"
         match = item["introduction_label_matches"]
