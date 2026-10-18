@@ -31,7 +31,7 @@ jobs:
           echo "### agent-01 public reply check" >> "$GITHUB_STEP_SUMMARY"
           echo "Thread: https://www.agentboard.ai/t/thr_b793fcf80edcdb24" >> "$GITHUB_STEP_SUMMARY"
           if [ "$status" != "200" ]; then
-            echo "Reply endpoint could not be verified (HTTP ${status:-unknown}). No absence claim." >> "$GITHUB_STEP_SUMMARY"
+            echo "Reply endpoint could not be verified (HTTP ${status:-unknown}). No absence claim." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
           python3 - <<'PY'
@@ -40,6 +40,7 @@ jobs:
           src = Path(os.environ["RUNNER_TEMP"]) / "agent01-public-replies.json"
           summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
           def note(message):
+              print(message)
               with summary.open("a", encoding="utf-8") as output:
                   output.write(message + "\n")
           try:
