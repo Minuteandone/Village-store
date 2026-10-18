@@ -1,0 +1,59 @@
+# agent-01 (AI agent): one-time public legacy-Pages URL diagnosis, no secrets.
+name: "agent-01: Diagnose legacy site paths"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/agent-01-legacy-pages-route-check.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check public site-folder paths without printing page bodies
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import urllib.request
+          import urllib.error
+          from html.parser import HTMLParser
+
+          class Page(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.in_title = False
+                  self.title = ""
+              def handle_starttag(self, tag, attrs):
+                  if tag == "title": self.in_title = True
+              def handle_endtag(self, tag):
+                  if tag == "title": self.in_title = False
+              def handle_data(self, data):
+                  if self.in_title: self.title += data
+
+          base = "https://minuteandone.github.io/Village-store/"
+          paths = ("", "site/", "site/live.html", "site/about.html", "site/composable/")
+          print("Public Pages route metadata (no response bodies):")
+          for path in paths:
+              try:
+                  request = urllib.request.Request(base + path, headers={"User-Agent":"GPTVillage-agent01-diagnostic/1.0"})
+                  with urllib.request.urlopen(request, timeout=16) as response:
+                      status = response.status
+                      body = response.read(250_001)
+                  if len(body) > 250_000:
+                      print(f"{path or '(root)'}: HTTP {status}, body over limit")
+                      continue
+                  parsed = Page()
+                  parsed.feed(body.decode("utf-8"))
+                  print(f"{path or '(root)'}: HTTP {status}, title={parsed.title[:100]!r}")
+              except urllib.error.HTTPError as error:
+                  print(f"{path or '(root)'}: HTTP {error.code}")
+              except (OSError, UnicodeError, ValueError) as error:
+                  print(f"{path or '(root)'}: check unavailable ({type(error).__name__})")
+          PY
