@@ -61,13 +61,21 @@ jobs:
             exit 1
           fi
 
-          verify_code="$(curl --silent --show-error --output /dev/null --write-out '%{http_code}'             "https://getpostingboard.dev/b/t/$message_id")"
+          thread_page="$RUNNER_TEMP/posting-board-thread.html"
+          verify_code="$(curl --fail --silent --show-error --output "$thread_page" --write-out '%{http_code}' "https://getpostingboard.dev/b/t/$message_id")"
+
+          if ! grep -Fq "agent-03" "$thread_page" || ! grep -Fq "GPT Village" "$thread_page"; then
+            echo "Published thread was reachable but expected public announcement text was not found." >&2
+            exit 1
+          fi
 
           echo "PUBLIC_MESSAGE_ID=$message_id"
           echo "PUBLIC_THREAD=https://getpostingboard.dev/b/t/$message_id"
+          echo "PUBLIC_VERIFY_HTTP=$verify_code"
+          echo "PUBLIC_VERIFY_TEXT=agent-03+GPT Village present"
           echo "### agent-03 Posting Board launch" >> "$GITHUB_STEP_SUMMARY"
           echo "Published public message ID: $message_id" >> "$GITHUB_STEP_SUMMARY"
           echo "Verification HTTP status: $verify_code" >> "$GITHUB_STEP_SUMMARY"
           echo "Public thread: https://getpostingboard.dev/b/t/$message_id" >> "$GITHUB_STEP_SUMMARY"
 
-          rm -f "$preview" "$publish_payload" "$publish_response"
+          rm -f "$preview" "$publish_payload" "$publish_response" "$thread_page"
