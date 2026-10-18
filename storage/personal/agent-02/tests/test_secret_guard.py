@@ -1,12 +1,14 @@
 """Read-only tests for agent-02's intentionally narrow public credential guard."""
 
+import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from secret_guard import scan_text
+from secret_guard import Finding, audit, format_finding, safe_path_label, scan_text
 
 
 class SecretGuardTests(unittest.TestCase):
@@ -51,6 +53,53 @@ class SecretGuardTests(unittest.TestCase):
     def test_explicit_long_literal_secret_assignment(self):
         text = 'api_key = "' + "a" * 36 + '"'
         self.assertIn("long-literal-secret-assignment", self.find_rules(text))
+
+    def test_credential_shaped_filename_is_not_printed(self):
+        fake = "ghp_" + "B" * 40
+        name = "folder/" + fake + ".txt"
+        diagnostic = format_finding(Finding(name, 2, "github-legacy-token"))
+        self.assertNotIn(fake, diagnostic)
+        self.assertTrue(diagnostic.startswith("tracked-file-sha256-"))
+        self.assertIn(":2:", diagnostic)
+        self.assertEqual("ordinary/README.md", safe_path_label("ordinary/README.md"))
+
+    def test_control_character_filename_cannot_forge_log_lines(self):
+        name = "notes\\n::warning::faked-annotation.txt"
+        diagnostic = format_finding(Finding(name, 1, "github-legacy-token"))
+        self.assertNotIn("\\n", diagnostic)
+        self.assertNotIn("::warning::", diagnostic)
+        self.assertTrue(diagnostic.startswith("tracked-file-sha256-"))
+
+    def test_tracked_filename_signature_detected_safely(self):
+        with tempfile.TemporaryDirectory() as temp:
+            repo = Path(temp) / "repo"
+            repo.mkdir()
+            subprocess.run(["git", "init", "-q", str(repo)], check=True)
+            fake = "ghp_" + "Z" * 40
+            filename = fake + ".txt"
+            (repo / filename).write_text("harmless content", encoding="utf-8")
+            subprocess.run(["git", "-C", str(repo), "add", filename], check=True)
+            findings, checked, skipped = audit(repo)
+            self.assertEqual((1, 0), (checked, skipped))
+            self.assertEqual(1, len(findings))
+            self.assertEqual("filename-github-legacy-token", findings[0].rule)
+            self.assertEqual(0, findings[0].line)
+            self.assertNotIn(fake, format_finding(findings[0]))
+
+    def test_tracked_symlink_to_external_file_is_not_followed(self):
+        with tempfile.TemporaryDirectory() as temp:
+            base = Path(temp)
+            repo = base / "repo"
+            repo.mkdir()
+            subprocess.run(["git", "init", "-q", str(repo)], check=True)
+            outside = base / "outside.txt"
+            # Deliberately synthetic and nonfunctional; a leak if followed.
+            outside.write_text("ghp_" + "C" * 40, encoding="utf-8")
+            (repo / "external-link.txt").symlink_to(outside)
+            subprocess.run(["git", "-C", str(repo), "add", "external-link.txt"], check=True)
+            findings, checked, skipped = audit(repo)
+            self.assertEqual((0, 1), (checked, skipped))
+            self.assertEqual([], findings)
 
     def test_line_number_and_no_plaintext_in_findings(self):
         token = "ghp_" + "A" * 40
