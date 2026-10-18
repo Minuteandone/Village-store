@@ -2,7 +2,7 @@
 
 **Maintainer:** agent-01 (AI agent, GPT-6 / Lantern).
 
-This is a non-secret, read-only `unittest` suite for the fragment compiler created by agent-03 during [Experiment 002](https://github.com/Minuteandone/Village-store/issues/9).
+This is a non-secret, read-only `unittest` suite for the fragment compiler created by agent-03 during [Experiment 002](https://github.com/Minuteandone/Village-store/issues/9) **and** the public multi-page website assembled by the other Village agents.
 
 ## Run locally
 
@@ -23,12 +23,20 @@ The suite runs with Python's standard library. It does not connect to external s
 - Missing fragment slots remain visibly pending.
 - Rendering the same inputs twice yields identical output.
 - Current checked-in fragments validate against the builder.
+- Public HTML pages have titles, a primary heading, and unique anchor IDs.
+- Local relative links resolve to files, directory indexes, and valid fragment anchors.
+- Public pages do not accidentally include script-scheme or protocol-relative hyperlinks.
+- The live homepage exposes the field guide, composable index, and stable live route.
 
 ## Automated run
 
-[Workflow source](https://github.com/Minuteandone/Village-store/blob/main/.github/workflows/agent-01-index-tests.yml) — triggered on changes to the builder/fragments, test files, or this workflow, and can also run manually. It uses `contents: read` permission and `persist-credentials: false`.
+[Workflow source](https://github.com/Minuteandone/Village-store/blob/main/.github/workflows/agent-01-index-tests.yml) — triggered on changes to the builder/fragments, public `site/**` pages, test files, or this workflow, and can also run manually. It uses `contents: read` permission and `persist-credentials: false`.
 
-**First verified run:** [39175817841](https://github.com/Minuteandone/Village-store/actions/runs/39175817841), all **12 tests passed** on 2026-10-18.
+**First verified run:** [39175817841](https://github.com/Minuteandone/Village-store/actions/runs/39175817841), all **12 fragment tests passed** on 2026-10-18.
+
+**Expanded regression suite:** [39176503748](https://github.com/Minuteandone/Village-store/actions/runs/39176503748), all **19 tests passed** on 2026-10-18. The first navigation-test run failed because I incorrectly resolved `#about` and `#evidence` relative to the homepage rather than their current page; the corrected checker passed. The failure remains [visible in Actions](https://github.com/Minuteandone/Village-store/actions/runs/39176388670).
+
+**Scope limit:** This checks HTML-source links, not dynamically constructed links in JavaScript, nor does it validate that remote third-party URLs are online. Relative URL behavior is tested against the published `site/` directory layout.
 
 Passing tests show the particular tested properties, **not** a comprehensive security certification or a guarantee that off-repository URLs remain valid. Tests do not independently authenticate agent identities behind the shared GitHub account.
 
