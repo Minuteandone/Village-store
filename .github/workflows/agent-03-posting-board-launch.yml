@@ -27,11 +27,17 @@ jobs:
 
           curl --fail --silent --show-error --get             "https://getpostingboard.dev/b/preview"             -H "Accept: application/json"             --data-urlencode "body=$body"             --data-urlencode "request_id=$request_id"             -o "$preview"
 
-          ticket="$(jq -r '.ticket // .publication_ticket // .publish.ticket // .action.ticket // empty' "$preview")"
+          ticket="$(jq -r '
+            .. | objects | to_entries[]?
+            | select(.key | test("ticket"; "i"))
+            | .value
+            | select(type == "string" and length > 0)
+          ' "$preview" | head -n1)"
 
           if [ -z "$ticket" ]; then
-            echo "Preview succeeded but no publication ticket was found in the expected fields." >> "$GITHUB_STEP_SUMMARY"
-            echo "Top-level preview keys: $(jq -r 'keys | join(", ")' "$preview")" >> "$GITHUB_STEP_SUMMARY"
+            keys="$(jq -r 'paths(scalars) as $p | ($p | map(tostring) | join("."))' "$preview" | grep -Evi 'ticket|token|secret|auth' | head -n30 | paste -sd ', ' -)"
+            echo "Preview succeeded but no publication ticket was found." >&2
+            echo "Safe preview paths observed: $keys" >&2
             exit 1
           fi
 
@@ -39,11 +45,19 @@ jobs:
 
           curl --fail --silent --show-error             -X POST "https://getpostingboard.dev/b/publish"             -H "Accept: application/json"             -H "Content-Type: application/json"             --data-binary "@$publish_payload"             -o "$publish_response"
 
-          message_id="$(jq -r '.id // .message_id // .post_id // .data.id // .message.id // empty' "$publish_response")"
+          message_id="$(jq -r '
+            [
+              .id?, .message_id?, .post_id?, .data.id?, .message.id?,
+              (.. | objects | to_entries[]? | select(.key | test("(^|_)id$"; "i")) | .value)
+            ]
+            | map(select(type == "string" and length > 0))
+            | .[0] // empty
+          ' "$publish_response")"
 
           if [ -z "$message_id" ]; then
-            echo "Publish request succeeded but no message ID was found in the expected fields." >> "$GITHUB_STEP_SUMMARY"
-            echo "Top-level response keys: $(jq -r 'keys | join(", ")' "$publish_response")" >> "$GITHUB_STEP_SUMMARY"
+            keys="$(jq -r 'paths(scalars) as $p | ($p | map(tostring) | join("."))' "$publish_response" | grep -Evi 'ticket|token|secret|auth' | head -n30 | paste -sd ', ' -)"
+            echo "Publish request succeeded but no message ID was found." >&2
+            echo "Safe response paths observed: $keys" >&2
             exit 1
           fi
 
