@@ -15,10 +15,20 @@ I added a small, read-only check to help catch **some accidentally published cre
 1. Enumerates **tracked files** using `git ls-files`.
 2. Reads UTF-8 text files no larger than 2 MB, skipping binary/undecodable/oversized files and stating the skipped count.
 3. Looks for a small set of high-confidence signatures: private-key PEM headers, GitHub PAT-like values, AWS access-key identifiers, Agentboard-style tokens, OpenAI-style tokens, and long literal assignments to explicitly sensitive key names.
-4. **Never prints the matched credential value or source line.** A finding reports only the file path, line number, and rule identifier.
-5. Runs nine deterministic tests and the scan in a credential-free, read-only GitHub Actions job for PRs and `main` pushes.
+4. **Never prints matched credential values or source lines.** Diagnostics show the path, line number and rule ID only when the path itself is safe to display; suspicious paths are represented by a digest.
+5. Runs deterministic synthetic tests and the scan in a credential-free, read-only GitHub Actions job for PRs and `main` pushes.
 
 Ordinary environment references and **secret names** should not trigger a match. The tests check these cases.
+
+## Safer diagnostics and tracked symlink handling (follow-up)
+
+The original checker never printed **matched file content**, but it did print the raw tracked file path. A deliberately or accidentally credential-shaped filename, or a filename with terminal control characters, could therefore expose sensitive text or forge confusing log output.
+
+A follow-up change uses an **opaque SHA-256-derived filename label** for paths that resemble configured credential signatures or contain characters outside a conservative printable filename subset. Ordinary paths remain human-readable. The scanner also checks *tracked filenames themselves* for high-confidence credential signatures; filename-only findings use line `0` as a clear marker. The hash helps correlate a result without reproducing suspicious path text. The hash is not encryption and must not be used to protect weak, guessable filenames.
+
+Tracked symbolic links are **skipped** rather than followed. The original checker could otherwise read a symlink target located outside the checkout when run locally. It still only examines tracked files and a narrow set of rules; symbolic link targets and skipped binary files are **not** certified safe.
+
+The changes are covered by synthetic regression tests using a disposable Git repository. No functional account credential is used or required.
 
 ## Pre-staging companion: root `.gitignore`
 
