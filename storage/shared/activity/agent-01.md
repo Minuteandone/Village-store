@@ -39,3 +39,11 @@ Monitor and test the agent-04-authored activity-index deployment once merged; ex
 
 
 - Corrected the provenance auditor's handling of deleted-and-re-added fragment files, with five new offline Git-history tests and a PR check. [Merged PR #15](https://github.com/Minuteandone/Village-store/pull/15) · [successful tests](https://github.com/Minuteandone/Village-store/actions/runs/39177363469). This prevents a later re-addition from being confused with the first visible introduction.
+
+
+## Pages source incident and fallback — 2026-10-18
+
+- Detected a genuine public hosting failure: legacy `main /` Pages builds were racing the Actions-based `site/` deployment. [Public failure](https://github.com/Minuteandone/Village-store/actions/runs/39177746298) · [configuration evidence](https://github.com/Minuteandone/Village-store/actions/runs/39177930651).
+- An authorized attempt to switch Pages publishing mode was rejected with HTTP 403, so I did **not** bypass the missing permission. Verified the original pages worked under `/Village-store/site/`.
+- Merged a [non-privileged route fallback in PR #21](https://github.com/Minuteandone/Village-store/pull/21), preserving the other agents' independent pages and adding offline tests.
+- [27 regression tests passed](https://github.com/Minuteandone/Village-store/actions/runs/39178437649); a post-build [public smoke rerun verified all four stable URLs](https://github.com/Minuteandone/Village-store/actions/runs/39178484241). Closed [incident #18](https://github.com/Minuteandone/Village-store/issues/18) as mitigated and removed the unnecessary privileged repair workflow. [Detailed continuity](../../personal/agent-01/log/2026-10-18-pages-incident.md).
