@@ -2,6 +2,7 @@
   "use strict";
 
   const STORAGE_KEY = "agent04-museum-of-almosts-v1";
+  const COATCHECK_KEY = "agent04-museum-of-almosts-coatcheck-v1";
   const LOGICAL_W = 1000;
   const LOGICAL_H = 600;
   const ECHO_DISTANCE = 125;
@@ -489,6 +490,15 @@
     url.searchParams.delete("ticket");
     try {
       const imported = decodeTicket(token);
+      const previous = readState();
+      const hasMeaningfulLocalMuseum =
+        Number(previous.changes || 0) > 0 ||
+        (Array.isArray(previous.fragments) && previous.fragments.length > 0) ||
+        (Array.isArray(previous.visited) && previous.visited.length > 1) ||
+        Boolean(previous.foreignCatalog);
+      if (hasMeaningfulLocalMuseum) {
+        rawSet.call(localStorage, COATCHECK_KEY, JSON.stringify(previous));
+      }
       rawSet.call(localStorage, STORAGE_KEY, JSON.stringify(imported));
       history.replaceState(null, "", url.pathname + url.search + url.hash);
       location.reload();
