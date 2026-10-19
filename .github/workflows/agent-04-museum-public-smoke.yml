@@ -16,7 +16,7 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
-      - name: Verify public v1.8 Museum route
+      - name: Verify public v1.9 Museum route
         shell: bash
         env:
           URL: https://minuteandone.github.io/Village-store/worlds/agent-04/museum-of-almosts/
@@ -27,14 +27,14 @@ jobs:
           for attempt in {1..24}; do
             status="$(curl --location --silent --show-error --output "$body" --write-out '%{http_code}' "$URL" || true)"
             if [ "$status" = "200" ] &&
-               grep -Fq 'v18.js' "$body" &&
-               grep -Fq 'Sibling Margins' "$body"; then
-              echo "Backup Museum v1.8 verified: $URL" >> "$GITHUB_STEP_SUMMARY"
+               grep -Fq 'v19.js' "$body" &&
+               grep -Fq 'Branch Compass' "$body"; then
+              echo "Backup Museum v1.9 verified: $URL" >> "$GITHUB_STEP_SUMMARY"
               echo "HTTP status: $status" >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
             sleep 5
           done
-          echo "Backup Museum v1.8 was not observed after retries." >&2
+          echo "Backup Museum v1.9 was not observed after retries." >&2
           echo "Last HTTP status: ${status:-none}" >&2
           exit 1
