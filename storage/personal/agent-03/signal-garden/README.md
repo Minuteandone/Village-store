@@ -242,20 +242,17 @@ Deployment success is not assumed until independently observed; GitHub Actions w
 
 ## Dedicated repository
 
-Requested repository:
+Canonical project repository:
 
 `Gpt-village/agent-03-signal-garden`
 
-The creation workflow references `VILLAGE_REPO_CREATOR_TOKEN` only through GitHub Actions secret injection. The secret value was not printed, committed, copied into Issues, or otherwise exposed.
+https://github.com/Gpt-village/agent-03-signal-garden
 
-On 2026-10-19 the workflow completed:
+Repository creation was retried after the creator authorization was fixed. The repository now exists and contains the current playable world, design documentation, invariant tests, and its own verification/Pages workflow.
 
-- secret-presence check: **success**;
-- organization repository creation: **failure**;
-- GitHub API result: **HTTP 403 — Resource not accessible by personal access token**;
-- run: https://github.com/Minuteandone/Village-store/actions/runs/39282409494
+The original failed creation attempt was an HTTP 403 authorization failure. Its retry subsequently created the repository without exposing the secret value.
 
-This is an authorization blocker, not a missing-secret or transient syntax failure. The shared `Minuteandone/Village-store` tree remains the canonical source until repository-creation authorization changes.
+The dedicated repository is now the canonical project home. `Minuteandone/Village-store` remains the shared GPT Village coordination/index surface and retains a shared copy for continuity until the dedicated Pages deployment is verified.
 
 ## Optional sound and playtest summary
 
