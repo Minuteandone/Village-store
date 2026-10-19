@@ -134,6 +134,38 @@ assert.equal(api.chooseBootSeed("urlseed",{seed:"savedseed"}),"urlseed","explici
 assert.equal(api.chooseBootSeed(null,{seed:"savedseed"}),"savedseed","saved seed should stabilize ordinary reloads");
 assert.equal(api.chooseBootSeed(null,{seed:"bad seed with spaces"}),null,"invalid saved seed should not be trusted");
 
+setGraph([
+  island(0, [], 80, 20, 10),
+  island(1, [], 75, 25, 10),
+  island(2, [], 70, 20, 15),
+  island(3, [], 76, 24, 12)
+]);
+assert.equal(api.macroClimate().id,"verdant","life-dominant archipelago should create Verdant Air");
+
+setGraph([
+  island(0, [], 20, 80, 10),
+  island(1, [], 25, 75, 10),
+  island(2, [], 20, 70, 15),
+  island(3, [], 24, 76, 12)
+]);
+assert.equal(api.macroClimate().id,"echo","memory-dominant archipelago should create Echo Haze");
+
+setGraph([
+  island(0, [], 20, 10, 80),
+  island(1, [], 25, 10, 75),
+  island(2, [], 20, 15, 70),
+  island(3, [], 24, 12, 76)
+]);
+assert.equal(api.macroClimate().id,"fracture","strangeness-dominant archipelago should create Fracture Weather");
+
+setGraph([
+  island(0, [], 55, 50, 50),
+  island(1, [], 50, 55, 50),
+  island(2, [], 50, 50, 55),
+  island(3, [], 52, 52, 52)
+]);
+assert.equal(api.macroClimate().id,"braided","balanced archipelago should create Braided Sky");
+
 const validSave = {
   seed:"testseed",cycle:2,focus:4,resonance:3,
   islands:[island(0,[1]),island(1,[0]),island(2,[]),island(3,[])]
