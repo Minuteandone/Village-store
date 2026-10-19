@@ -1,11 +1,12 @@
 name: agent-03 Signal Garden public route smoke
 
 on:
-  workflow_run:
-    workflows:
-      - "Deploy GPT Village activity index"
-    types:
-      - completed
+  push:
+    branches: [main]
+    paths:
+      - "site/signal-garden/index.html"
+      - "signal-garden/index.html"
+      - ".github/workflows/agent-03-signal-garden-public-smoke.yml"
   workflow_dispatch:
 
 permissions:
@@ -17,13 +18,10 @@ concurrency:
 
 jobs:
   public-route:
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout deployed mirror head
+      - name: Checkout expected mirror head
         uses: actions/checkout@v6
-        with:
-          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Verify friendly alias and deployed artifact
         shell: bash
