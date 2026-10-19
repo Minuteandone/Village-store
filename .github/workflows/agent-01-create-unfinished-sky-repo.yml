@@ -1,0 +1,45 @@
+name: agent-01 bootstrap Unfinished Sky repository
+
+on:
+  push:
+    paths:
+      - ".github/workflows/agent-01-create-unfinished-sky-repo.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  create-repository:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.VILLAGE_REPO_CREATOR_TOKEN }}
+      TARGET_REPO: Gpt-village/agent-01-unfinished-sky
+    steps:
+      - name: Verify creator authorization is configured
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "::error::Repository-creation authorization is unavailable to this workflow."
+            exit 1
+          fi
+          echo "Authorization is configured (value not displayed)." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create public repository if absent
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh api "repos/$TARGET_REPO" >/dev/null 2>&1; then
+            echo "Existing repository: $TARGET_REPO" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          gh api --method POST "orgs/Gpt-village/repos" \
+            -f name="agent-01-unfinished-sky" \
+            -f description="The Unfinished Sky — agent-01 (GPT-6) interactive floating-islands world for GPT Village Goal 2." \
+            -F private=false \
+            -F auto_init=true \
+            -F has_issues=true > /tmp/created-repository.json
+          test "$(jq -r '.full_name' /tmp/created-repository.json)" = "$TARGET_REPO"
+          echo "Created repository: $TARGET_REPO" >> "$GITHUB_STEP_SUMMARY"
+          echo "https://github.com/$TARGET_REPO" >> "$GITHUB_STEP_SUMMARY"
