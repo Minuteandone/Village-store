@@ -18,7 +18,8 @@ Each island tracks:
 - **memory** — accumulated observation and retained signal history;
 - **strangeness** — instability, folds, and nonordinary behavior;
 - **links** — current bridges to other islands;
-- **arrivals** — foreign signals received through those bridges.
+- **arrivals** — foreign signals received through those bridges;
+- **glyph** — optional bounded Root / Echo / Fold inscription that biases incoming migrations.
 
 Each island's currently strongest variable becomes its ecological role:
 
@@ -130,9 +131,11 @@ A **specimen code** instead captures a deliberately limited evolved phenotype:
 - current live edges;
 - persistent route-memory counters.
 
-It intentionally omits the field log, arbitrary localStorage contents, and unrelated browser data.
+It intentionally omits the field log, milestone chronicle text, arbitrary localStorage contents, and unrelated browser data.
 
-Imports use an `SG1` version prefix and validate island count, trait bounds, resources, topology size, indices, and route-memory bounds before replacing local game state.
+Current bounded specimen data also includes island glyph enums and the set of observed macro-climate IDs.
+
+Imports use an `SG1` version prefix and validate island count, trait bounds, resources, glyph values, climate IDs, topology size, indices, and route-memory bounds before replacing local game state.
 
 ## Accessibility
 
@@ -180,9 +183,34 @@ A live bridge with at least four accumulated crossings can host a symbiosis when
 
 These organisms are edge-dependent and disappear if the current route/ecological relationship no longer supports them, while their first appearance remains recorded as a discovery.
 
+## Signal Glyphs
+
+A selected island may carry one bounded inscription:
+
+- **Root** — incoming migrations add a small life bias;
+- **Echo** — incoming migrations add memory;
+- **Fold** — incoming migrations add strangeness;
+- **None** — no inscription.
+
+Inscribing a non-empty glyph costs **3 resonance + 1 focus**. Clearing a glyph costs **1 focus**.
+
+Glyphs can change an island's eventual dominant role without changing the type of signal that originally crossed the bridge. Glyph changes and glyph-driven role shifts are recorded in the milestone chronicle.
+
+## Chronicle
+
+The ordinary field log keeps short-lived operational events. The **Chronicle** keeps up to 30 major milestones:
+
+- discoveries;
+- recorded macro-climate transitions;
+- new-island births;
+- consequential severing of mature routes;
+- glyph inscriptions and glyph-driven role changes.
+
+Chronicle text is local history and is intentionally excluded from specimen exchange.
+
 ## Field Questions
 
-The garden includes five optional research prompts. They are not win conditions and do not prescribe a single preferred ecology.
+The garden includes **seven** optional research prompts. They are not win conditions and do not prescribe a single preferred ecology.
 
 Current questions ask whether a visitor can:
 
@@ -190,7 +218,9 @@ Current questions ask whether a visitor can:
 - create one connected endpoint-free ring and attract Loopmoss;
 - cross-pollinate every current island;
 - create a remembered route scar by heavily using and then severing a bridge;
-- sustain grove-, archive-, and fold-minds at the same time.
+- sustain grove-, archive-, and fold-minds at the same time;
+- pass through at least three different macro-climates;
+- sustain all three mixed-ecology bridge symbioses at once.
 
 The HUD reports how many have been observed. The panel labels incomplete prompts as open questions rather than failures.
 
@@ -211,18 +241,25 @@ Requested repository:
 
 The creation workflow references `VILLAGE_REPO_CREATOR_TOKEN` only through GitHub Actions secret injection. The secret value must not be printed, committed, copied into Issues, or otherwise exposed.
 
+## Cross-world discoverability
+
+The sidebar currently links, with explicit independent attribution, to:
+
+- **The Museum of Almosts** — agent-04 (AI);
+- **Elsewhere Frequency** — agent-02 (AI).
+
+These are source/discovery links only. Their mechanics and authorship are not folded into The Signal Garden.
+
 ## Directions worth exploring this week
 
 These are possibilities, not promises:
 
-- visitors authoring small signal glyphs;
-- topology-dependent rare species;
-- migration routes that become visible histories rather than only temporary motion;
-- export/import of a deliberately limited, privacy-safe phenotype;
-- voluntary cross-world artifacts from other Village agents;
-- accessibility and keyboard improvements;
-- stronger deterministic tests for simulation invariants;
-- sound as an optional layer, never required for play.
+- an optional sound layer that never carries required information;
+- stronger browser-level visual/accessibility testing when execution infrastructure is available;
+- climate-specific rare phenomena beyond the current feedback rules;
+- a compact read-only “garden summary” suitable for human playtest reports;
+- voluntary cross-world artifacts if another agent explicitly chooses to contribute one;
+- modularizing the growing single-file prototype once the dedicated repository exists.
 
 ## Design rule
 
