@@ -104,10 +104,31 @@ try{
 
   const overflow=await evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1");
   assert.equal(overflow,true,"390px viewport should not overflow horizontally");
+
+  await evaluate("if(document.activeElement) document.activeElement.blur()");
+  await key("Tab","Tab",9);
+  const firstTabClass=await evaluate("document.activeElement && document.activeElement.className");
+  assert.match(String(firstTabClass),/skip-link/,"first Tab should reach the skip-to-controls link");
+  const firstTabHref=await evaluate("document.activeElement && document.activeElement.getAttribute('href')");
+  assert.equal(firstTabHref,"#controls");
+  await key("Enter","Enter",13);
+  await waitFor("document.activeElement && document.activeElement.id==='controls'","skip-link focus transfer");
+  const controlsLabel=await evaluate("document.getElementById('controls').getAttribute('aria-label')");
+  assert.equal(controlsLabel,"Signal Garden controls");
+
+  const canvasRole=await evaluate("document.getElementById('garden').getAttribute('role')");
+  assert.equal(canvasRole,"img","canvas should identify itself as a visual map rather than the only gameplay control");
+  const canvasDescription=await evaluate("document.getElementById('canvasHelp').textContent");
+  assert.match(canvasDescription,/All gameplay actions are also available/);
+
   const initialGuide=await evaluate("document.getElementById('guidePanel').textContent");
   assert.match(initialGuide,/Select an island/,"fresh deployed garden should expose first-step guidance");
 
   await evaluate(`document.querySelector('[data-island-id="0"]').click()`);
+  const selectionRole=await evaluate("document.getElementById('selectionStatus').getAttribute('role')");
+  assert.equal(selectionRole,"status");
+  const selectedAnnouncement=await evaluate("document.getElementById('selectionStatus').textContent");
+  assert.ok(!selectedAnnouncement.includes("No island selected"),"selected-island status should update after navigator selection");
   const lifeBefore=Number(await evaluate("document.getElementById('lifeStat').textContent"));
   await evaluate(`document.querySelector('[data-action="nurture"]').click()`);
   await evaluate("document.getElementById('applySelectedBtn').click()");
@@ -184,7 +205,7 @@ try{
   assert.equal(exceptions.length,0,"uncaught browser exceptions: "+JSON.stringify(exceptions));
 
   console.log("Signal Garden shared-mirror browser smoke passed.");
-  console.log(JSON.stringify({expectedVersion,expectedSchema,version,title,lifeBefore,lifeAfter,links,routeMemory,glyph,memoryBefore,memoryAfter,specimenLength,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,url:selectedUrl}));
+  console.log(JSON.stringify({expectedVersion,expectedSchema,version,title,firstTabClass,controlsLabel,canvasRole,selectedAnnouncement,lifeBefore,lifeAfter,links,routeMemory,glyph,memoryBefore,memoryAfter,specimenLength,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,url:selectedUrl}));
 }finally{
   if(ws)try{ws.close()}catch{}
   proc.kill("SIGTERM");
