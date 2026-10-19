@@ -21,12 +21,17 @@ source = source.replace(
     recordClimate:recordClimate,
     phenomenonForClimate:phenomenonForClimate,
     advanceClimatePhenomenon:advanceClimatePhenomenon,
+    nextCycle:nextCycle,
+    getLastCycleReport:function(){return lastCycleReport},
     inscribeGlyph:inscribeGlyph,
     gardenSummary:gardenSummary,
     researchPrompts:researchPrompts,
     specimenCode:specimenCode,
     decodeSpecimen:decodeSpecimen,
     migrateSignals:migrateSignals,
+    globalImprints:globalImprints,
+    ancestralSignal:ancestralSignal,
+    spawnIsland:spawnIsland,
     getState:function(){return state},
     setState:function(next){state=next;motes=[]}
   };`
@@ -65,7 +70,7 @@ ids.set("garden", canvas);
 [
   "seasonChip","focusChip","resChip","transitChip","historyChip","researchChip","climateChip","germinateBtn",
   "islandNav","applySelectedBtn","selectedName","selectedLore","lifeStat",
-  "memoryStat","strangeStat","linksStat","arrivalsStat","trafficStat","glyphStat","lifeMeter",
+  "memoryStat","strangeStat","linksStat","arrivalsStat","trafficStat","glyphStat","lineageStat","lifeMeter",
   "research","species","discoveries","chronicle","log","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
 ].forEach(id => ids.set(id, element()));
 
@@ -109,7 +114,7 @@ const api = sandbox.__gardenTest;
 assert.ok(api, "test API should be exposed");
 
 function island(id, links = [], life = 50, memory = 20, strange = 10) {
-  return { id, links: [...links], life, memory, strange, arrivals: 0, glyph: "none" };
+  return { id, links: [...links], life, memory, strange, arrivals: 0, glyph: "none", imprints:{life:0,memory:0,strange:0}, lineage:"none" };
 }
 function setGraph(islands, edgeMemory = {}) {
   api.setState({
@@ -139,6 +144,22 @@ assert.equal(api.edgeKey(1, 4), "1-4");
 assert.equal(api.chooseBootSeed("urlseed",{seed:"savedseed"}),"urlseed","explicit URL seed should win");
 assert.equal(api.chooseBootSeed(null,{seed:"savedseed"}),"savedseed","saved seed should stabilize ordinary reloads");
 assert.equal(api.chooseBootSeed(null,{seed:"bad seed with spaces"}),null,"invalid saved seed should not be trusted");
+
+setGraph([island(0),island(1),island(2),island(3)]);
+api.getState().islands[0].imprints={life:3,memory:1,strange:0};
+api.getState().islands[1].imprints={life:3,memory:0,strange:1};
+{
+  const im=api.globalImprints();
+  assert.equal(im.life,6);
+  assert.equal(im.memory,1);
+  assert.equal(im.strange,1);
+  assert.equal(im.total,8);
+}
+assert.equal(api.ancestralSignal(),"life","strong migration ancestry should resolve to its dominant signal");
+
+api.getState().islands[0].imprints={life:4,memory:4,strange:0};
+api.getState().islands[1].imprints={life:0,memory:0,strange:0};
+assert.equal(api.ancestralSignal(),"none","tied ancestry should not invent a lineage");
 
 setGraph([
   island(0, [], 80, 20, 10),
@@ -289,12 +310,31 @@ setGraph([
   island(1, [0], 10, 80, 5)
 ]);
 api.getState().islands[1].glyph = "memory";
+api.getState().islands[1].lineage = "life";
 const memoryBeforeGlyphMigration = api.getState().islands[1].memory;
-api.migrateSignals();
+const lineageTransfers=api.migrateSignals();
+const lineageArrival=lineageTransfers.find(x=>x.to===1&&x.type==="life");
+assert.ok(lineageArrival,"life migration should reach the lineage test receiver");
+assert.equal(lineageArrival.lineageBonus,1,"matching echo lineage should add exactly one migration strength");
 assert.equal(api.getState().edgeMemory["0-1"], 2, "two linked islands should each record one crossing in a cycle");
 assert.equal(api.getState().islands[0].arrivals, 1);
 assert.equal(api.getState().islands[1].arrivals, 1);
+assert.equal(api.getState().islands[0].imprints.memory,1,"receiving a memory migration should increment memory ancestry");
+assert.equal(api.getState().islands[1].imprints.life,1,"receiving a life migration should increment life ancestry");
 assert.ok(api.getState().islands[1].memory >= memoryBeforeGlyphMigration + 2, "Echo glyph should add memory on incoming migration");
+
+setGraph([
+  island(0, [1], 80, 10, 5),
+  island(1, [0], 10, 80, 5),
+  island(2, [], 50, 20, 10),
+  island(3, [], 50, 20, 10)
+]);
+api.nextCycle();
+const cycleReport=api.getLastCycleReport();
+assert.ok(cycleReport,"advancing a cycle should produce a Last Cycle Report");
+assert.equal(cycleReport.cycle,3);
+assert.ok(Array.isArray(cycleReport.transfers)&&cycleReport.transfers.length===2,"report should include exact migration transfers");
+assert.ok(Array.isArray(cycleReport.roleChanges),"report should include a role-change list");
 
 setGraph([
   island(0, [1], 85, 10, 5),
@@ -306,6 +346,18 @@ const islandZeroMemoryBefore = api.getState().islands[0].memory;
 api.migrateSignals();
 assert.ok(api.getState().islands[1].life > api.getState().islands[1].memory, "incoming life should flip island 1 after receiving");
 assert.ok(api.getState().islands[0].memory > islandZeroMemoryBefore, "island 1 must still emit its pre-cycle memory signal despite flipping during the pulse");
+
+setGraph([island(0),island(1),island(2),island(3)]);
+api.getState().resonance=10;
+api.getState().focus=4;
+api.getState().islands[0].imprints={life:3,memory:0,strange:0};
+api.getState().islands[1].imprints={life:3,memory:1,strange:0};
+api.getState().islands[2].imprints={life:0,memory:0,strange:1};
+api.spawnIsland();
+assert.equal(api.getState().islands.length,5,"germination should add a fifth island");
+assert.equal(api.getState().islands[4].lineage,"life","new land should inherit dominant migration ancestry");
+assert.ok(api.getState().chronicle.some(x=>x.kind==="lineage"),"inherited lineage should enter the Chronicle");
+assert.equal(api.researchPrompts().find(x=>x.id==="lineage").done,true,"lineage inheritance should complete its Field Question");
 
 setGraph([
   island(0, [1], 70, 20, 10),
@@ -320,6 +372,8 @@ api.getState().phenomenaSeen = { "seed-rain": true };
 api.getState().streakClimate = "verdant";
 api.getState().climateStreak = 4;
 api.getState().activePhenomenon = "seed-rain";
+api.getState().islands[0].imprints={life:8,memory:2,strange:1};
+api.getState().islands[0].lineage="life";
 const code = api.specimenCode();
 assert.ok(code.startsWith("SG1."));
 const decoded = api.decodeSpecimen(code);
@@ -331,8 +385,10 @@ assert.equal(decoded.glyphs[0], "life");
 assert.deepEqual(Array.from(decoded.climates).sort(), ["braided","verdant"]);
 assert.deepEqual(Array.from(decoded.phenomena), ["seed-rain"]);
 assert.deepEqual(Array.from(decoded.streak), ["verdant",4,"seed-rain"]);
+assert.deepEqual(Array.from(decoded.ancestry[0]), [8,2,1,"life"]);
 assert.ok(!("log" in decoded), "specimen must not contain field-log text");
 assert.ok(!("chronicle" in decoded), "specimen must not contain chronicle text");
+assert.ok(!("lastCycleReport" in decoded), "specimen must not contain session-local cycle-report state");
 assert.throws(() => api.decodeSpecimen("SG1.not-valid-base64!"));
 
 setGraph([

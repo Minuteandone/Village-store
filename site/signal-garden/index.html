@@ -74,10 +74,10 @@
         <span class="chip" id="resChip">Resonance 0</span>
         <span class="chip" id="transitChip">Transit quiet</span>
         <span class="chip" id="historyChip">Route memory 0</span>
-        <span class="chip" id="researchChip">Research 0/8</span>
+        <span class="chip" id="researchChip">Research 0/9</span>
         <span class="chip" id="climateChip">Climate · Braided Sky</span>
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
-        <span class="chip" id="versionChip">v0.16 · save 3</span>
+        <span class="chip" id="versionChip">v0.18 · save 4</span>
       </div>
     </section>
 
@@ -114,6 +114,7 @@
           <div><b id="arrivalsStat">—</b>arrivals</div>
           <div><b id="trafficStat">—</b>route memory</div>
           <div><b id="glyphStat">—</b>glyph</div>
+          <div><b id="lineageStat">—</b>echo lineage</div>
         </div>
         <div class="meter"><span id="lifeMeter"></span></div>
         <div class="small" style="margin-top:10px">Inscribe a glyph · costs 3 resonance + 1 focus. Glyphs add +2 of their trait whenever this island receives a migration.</div>
@@ -135,6 +136,11 @@
       <details open>
         <summary>Sky phenomenon</summary>
         <div class="discoveries" id="phenomenonPanel"></div>
+      </details>
+
+      <details open>
+        <summary>Last cycle report</summary>
+        <div class="discoveries" id="cycleReport"></div>
       </details>
 
       <details open>
@@ -181,7 +187,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.16",SAVE_SCHEMA=3;
+  var APP_VERSION="0.18",SAVE_SCHEMA=4;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -203,7 +209,7 @@
   var spawnSlots=[{x:.16,y:.72,r:39},{x:.88,y:.46,r:41},{x:.44,y:.14,r:37}];
   function makeIsland(i,x,y,r){
     var n=baseNames[Math.floor(rand()*baseNames.length)]+" "+(i+1);
-    return {id:i,name:n,x:x,y:y,r:r,life:35+Math.floor(rand()*35),memory:10+Math.floor(rand()*20),strange:5+Math.floor(rand()*18),links:[],arrivals:0,glyph:"none",phase:rand()*6.28,color:palettes[Math.floor(rand()*palettes.length)]};
+    return {id:i,name:n,x:x,y:y,r:r,life:35+Math.floor(rand()*35),memory:10+Math.floor(rand()*20),strange:5+Math.floor(rand()*18),links:[],arrivals:0,glyph:"none",imprints:{life:0,memory:0,strange:0},lineage:"none",phase:rand()*6.28,color:palettes[Math.floor(rand()*palettes.length)]};
   }
   function fresh(){
     randState=hash(seed);
@@ -245,6 +251,12 @@
     a.life=clampEarly(a.life);a.memory=clampEarly(a.memory);a.strange=clampEarly(a.strange);
     if(typeof a.arrivals!=="number"||a.arrivals<0)a.arrivals=0;
     if(["none","life","memory","strange"].indexOf(a.glyph)<0)a.glyph="none";
+    if(!a.imprints||typeof a.imprints!=="object")a.imprints={life:0,memory:0,strange:0};
+    ["life","memory","strange"].forEach(function(k){
+      var v=Number(a.imprints[k]);
+      a.imprints[k]=Number.isFinite(v)&&v>=0?Math.min(10000,Math.floor(v)):0;
+    });
+    if(["none","life","memory","strange"].indexOf(a.lineage)<0)a.lineage="none";
     a.links=Array.from(new Set(a.links)).filter(function(id){return Number.isInteger(id)&&id>=0&&id<state.islands.length&&id!==a.id});
   });
   state.islands.forEach(function(a){
@@ -277,6 +289,7 @@
   function clampEarly(v){return Math.max(0,Math.min(100,Number(v)||0))}
   var mouse={x:0,y:0};
   var motes=[];
+  var lastCycleReport=null;
   var audioOn=false,audioCtx=null;
   var reducedMotion=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var stars=[];
@@ -318,7 +331,7 @@
       "Islands:"
     ];
     state.islands.forEach(function(a){
-      lines.push("- "+a.name+": "+dominantTrait(a)+" · L"+Math.round(a.life)+" M"+Math.round(a.memory)+" S"+Math.round(a.strange)+" · glyph "+glyphName(a.glyph)+" · arrivals "+a.arrivals);
+      lines.push("- "+a.name+": "+dominantTrait(a)+" · L"+Math.round(a.life)+" M"+Math.round(a.memory)+" S"+Math.round(a.strange)+" · glyph "+glyphName(a.glyph)+" · lineage "+(a.lineage||"none")+" · arrivals "+a.arrivals);
     });
     lines.push("Discoveries: "+(state.discoveries.length?state.discoveries.map(function(x){return x.title}).join(", "):"none"));
     return lines.join("\n");
@@ -333,6 +346,7 @@
       v:1,seed:state.seed,cycle:state.cycle,focus:state.focus,resonance:state.resonance,mode:state.mode,climates:Object.keys(state.climateSeen).filter(function(k){return state.climateSeen[k]}),phenomena:Object.keys(state.phenomenaSeen).filter(function(k){return state.phenomenaSeen[k]}),streak:[state.streakClimate,state.climateStreak,state.activePhenomenon],
       traits:state.islands.map(function(a){return [Math.round(a.life),Math.round(a.memory),Math.round(a.strange),Math.round(a.arrivals||0)]}),
       glyphs:state.islands.map(function(a){return a.glyph||"none"}),
+      ancestry:state.islands.map(function(a){var im=a.imprints||{};return [Math.round(im.life||0),Math.round(im.memory||0),Math.round(im.strange||0),a.lineage||"none"]}),
       edges:edges,memory:memory
     };
     return "SG1."+btoa(JSON.stringify(payload)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
@@ -357,6 +371,9 @@
     if(p.phenomena!==undefined&&(!Array.isArray(p.phenomena)||p.phenomena.length>4||p.phenomena.some(function(k){return ["seed-rain","memory-dew","parallax-bloom","confluence-pulse"].indexOf(k)<0})))throw new Error("Specimen phenomenon history is invalid.");
     if(p.streak!==undefined&&(!Array.isArray(p.streak)||p.streak.length!==3||p.streak[0]!==null&&["verdant","echo","fracture","braided"].indexOf(p.streak[0])<0||!Number.isInteger(p.streak[1])||p.streak[1]<0||p.streak[1]>10000||p.streak[2]!==null&&["seed-rain","memory-dew","parallax-bloom","confluence-pulse"].indexOf(p.streak[2])<0))throw new Error("Specimen climate streak is invalid.");
     if(p.glyphs!==undefined&&(!Array.isArray(p.glyphs)||p.glyphs.length!==p.traits.length||p.glyphs.some(function(k){return ["none","life","memory","strange"].indexOf(k)<0})))throw new Error("Specimen glyph data is invalid.");
+    if(p.ancestry!==undefined&&(!Array.isArray(p.ancestry)||p.ancestry.length!==p.traits.length||p.ancestry.some(function(row){
+      return !Array.isArray(row)||row.length!==4||!row.slice(0,3).every(function(v){return Number.isInteger(v)&&v>=0&&v<=10000})||["none","life","memory","strange"].indexOf(row[3])<0;
+    })))throw new Error("Specimen ancestry data is invalid.");
     var n=p.traits.length,seen={};
     p.edges.forEach(function(e){
       if(!Array.isArray(e)||e.length!==2||!e.every(Number.isInteger)||e[0]<0||e[1]<0||e[0]>=n||e[1]>=n||e[0]===e[1])throw new Error("Specimen edge is invalid.");
@@ -380,6 +397,9 @@
     next.islands.forEach(function(a,i){
       var row=p.traits[i];a.life=row[0];a.memory=row[1];a.strange=row[2];a.arrivals=row[3];a.links=[];
       a.glyph=Array.isArray(p.glyphs)?p.glyphs[i]:"none";
+      var anc=Array.isArray(p.ancestry)?p.ancestry[i]:null;
+      a.imprints=anc?{life:anc[0],memory:anc[1],strange:anc[2]}:{life:0,memory:0,strange:0};
+      a.lineage=anc?anc[3]:"none";
     });
     p.edges.forEach(function(e){next.islands[e[0]].links.push(e[1]);next.islands[e[1]].links.push(e[0])});
     next.edgeMemory={};p.memory.forEach(function(e){next.edgeMemory[edgeKey(e[0],e[1])]=e[2]});
@@ -429,6 +449,21 @@
       if(p[0]===id||p[1]===id)total+=state.edgeMemory[k]||0;
     });
     return total;
+  }
+  function globalImprints(){
+    var out={life:0,memory:0,strange:0,total:0};
+    state.islands.forEach(function(a){
+      ["life","memory","strange"].forEach(function(k){out[k]+=a.imprints&&Number(a.imprints[k])||0});
+    });
+    out.total=out.life+out.memory+out.strange;
+    return out;
+  }
+  function ancestralSignal(){
+    var g=globalImprints();
+    if(g.total<8)return "none";
+    var ranked=["life","memory","strange"].sort(function(a,b){return g[b]-g[a]});
+    if(g[ranked[0]]<6||g[ranked[0]]===g[ranked[1]])return "none";
+    return ranked[0];
   }
   function macroClimate(){
     var n=state.islands.length||1;
@@ -491,7 +526,8 @@
       {id:"ecologies",done:traits.life&&traits.memory&&traits.strange,text:"Can grove-, archive-, and fold-minds coexist in one archipelago?"},
       {id:"climate",done:Object.keys(state.climateSeen).filter(function(k){return state.climateSeen[k]}).length>=3,text:"Can the garden pass through at least three different archipelago-scale climates?"},
       {id:"symbiosis",done:["scribevine","glassmycelium","dreamwire"].every(function(kind){return residents.some(function(x){return x.kind===kind})}),text:"Can all three mixed-ecology bridge symbioses coexist at once?"},
-      {id:"phenomenon",done:Object.keys(state.phenomenaSeen).some(function(k){return state.phenomenaSeen[k]}),text:"Can one macro-climate persist long enough to trigger an archipelago-wide sky phenomenon?"}
+      {id:"phenomenon",done:Object.keys(state.phenomenaSeen).some(function(k){return state.phenomenaSeen[k]}),text:"Can one macro-climate persist long enough to trigger an archipelago-wide sky phenomenon?"},
+      {id:"lineage",done:state.islands.some(function(a){return a.lineage&&a.lineage!=="none"}),text:"Can enough migration history accumulate for a newborn island to inherit an echo lineage?"}
     ];
   }
   function symbiosisSpecies(){
@@ -561,8 +597,13 @@
     var id=state.islands.length;
     var oldRand=randState;
     randState=hash(state.seed+":spawn:"+id);
+    var inherited=ancestralSignal();
     var a=makeIsland(id,slot.x,slot.y,slot.r);
     randState=oldRand;
+    a.lineage=inherited;
+    if(inherited==="life")a.life=clamp(a.life+6);
+    if(inherited==="memory")a.memory=clamp(a.memory+6);
+    if(inherited==="strange")a.strange=clamp(a.strange+6);
     a.life=clamp(a.life+(state.mode==="Bloom"?10:0));
     a.memory=clamp(a.memory+(state.mode==="Static"?10:0));
     a.strange=clamp(a.strange+(state.mode==="Storm"?10:0));
@@ -572,8 +613,12 @@
     if(climate.trait==="strange")a.strange=clamp(a.strange+7);
     state.islands.push(a);
     state.selected=a.id;cue("birth");
-    addChronicle("birth","New land germinated: "+a.name+" during "+state.mode+" under "+macroClimate().name+".");
-    log("A new island germinated: "+a.name+". It begins unlinked and remembers the season of its birth.");
+    addChronicle("birth","New land germinated: "+a.name+" during "+state.mode+" under "+macroClimate().name+"."+(a.lineage!=="none"?" It inherited a "+a.lineage+" echo lineage.":""));
+    if(a.lineage!=="none"){
+      addChronicle("lineage",a.name+" inherited the archipelago's accumulated "+a.lineage+" migration ancestry.");
+      d("echo-lineage","Echo Lineage","A newly germinated island inherited a trait from migration history that existed before its birth.");
+    }
+    log("A new island germinated: "+a.name+". It begins unlinked and remembers the season of its birth"+(a.lineage!=="none"?" plus a "+a.lineage+" echo lineage.":"."));
     d("new-land","New Land","Resonance condensed into a new island. The map is no longer a fixed starting condition.");
     if(state.islands.length===7)d("seven-islands","Seven-Island Sky","The archipelago has filled every stable germination site in the current field.");
     save();renderUI();
@@ -590,18 +635,22 @@
       var amount=3;
       if((state.mode==="Bloom"&&type==="life")||(state.mode==="Static"&&type==="memory")||(state.mode==="Storm"&&type==="strange"))amount=5;
       if(cycleClimate.trait===type)amount+=1;
+      var lineageBonus=b.lineage===type?1:0;
+      var receivedAmount=amount+lineageBonus;
       var beforeTrait=dominantTrait(b);
-      if(type==="life")b.life=clamp(b.life+amount);
-      if(type==="memory")b.memory=clamp(b.memory+amount);
-      if(type==="strange"){b.strange=clamp(b.strange+amount);b.life=clamp(b.life-1)}
+      if(type==="life")b.life=clamp(b.life+receivedAmount);
+      if(type==="memory")b.memory=clamp(b.memory+receivedAmount);
+      if(type==="strange"){b.strange=clamp(b.strange+receivedAmount);b.life=clamp(b.life-1)}
       if(b.glyph==="life")b.life=clamp(b.life+2);
       if(b.glyph==="memory")b.memory=clamp(b.memory+2);
       if(b.glyph==="strange")b.strange=clamp(b.strange+2);
       var afterTrait=dominantTrait(b);
       if(b.glyph!=="none"&&beforeTrait!==afterTrait)addChronicle("glyph-turn",b.name+"'s "+glyphName(b.glyph)+" glyph shifted it toward "+afterTrait+".");
       b.arrivals=(b.arrivals||0)+1;
+      if(!b.imprints)b.imprints={life:0,memory:0,strange:0};
+      b.imprints[type]=Math.min(10000,(b.imprints[type]||0)+1);
       var ek=edgeKey(a.id,b.id);state.edgeMemory[ek]=(state.edgeMemory[ek]||0)+1;
-      transfers.push({from:a.id,to:b.id,type:type,amount:amount});
+      transfers.push({from:a.id,to:b.id,type:type,amount:receivedAmount,lineageBonus:lineageBonus});
       motes.push({from:a.id,to:b.id,type:type,start:performance.now(),duration:reducedMotion?1:1300+a.id*120});
     });
     if(transfers.length){
@@ -616,6 +665,7 @@
       state.log=state.log.slice(0,20);
       if(state.islands.every(function(x){return x.arrivals>0}))d("cross-pollinated","Cross-Pollinated Archipelago","Every island has received a signal born somewhere else. The garden no longer has truly isolated histories.");
     }
+    return transfers;
   }
   function evolve(){
     state.islands.forEach(function(a){
@@ -644,12 +694,32 @@
     });
   }
   function nextCycle(){
+    var beforeRoles={};
+    state.islands.forEach(function(a){beforeRoles[a.id]=dominantTrait(a)});
+    var beforeClimate=macroClimate();
     state.cycle++;
     state.focus=Math.min(8,state.focus+3);
     var n=state.cycle%8;
     state.mode=n===0?"Storm":n===4?"Bloom":n===6?"Static":"Quiet";
-    migrateSignals();
-    evolve();recordClimate();advanceClimatePhenomenon();cue("cycle");save();renderUI();
+    var transfers=migrateSignals();
+    evolve();
+    var afterClimate=recordClimate();
+    var phenomenon=advanceClimatePhenomenon();
+    var roleChanges=[];
+    state.islands.forEach(function(a){
+      var after=dominantTrait(a),before=beforeRoles[a.id];
+      if(before&&before!==after)roleChanges.push({id:a.id,name:a.name,from:before,to:after});
+    });
+    lastCycleReport={
+      cycle:state.cycle,
+      mode:state.mode,
+      transfers:transfers,
+      climateBefore:beforeClimate.name,
+      climateAfter:afterClimate.name,
+      phenomenon:phenomenon&&state.climateStreak%3===0?phenomenon.name:null,
+      roleChanges:roleChanges
+    };
+    cue("cycle");save();renderUI();
   }
   function pickIsland(px,py){
     var rect=canvas.getBoundingClientRect(),sx=canvas.width/rect.width,sy=canvas.height/rect.height;
@@ -718,7 +788,7 @@
     var nav=document.getElementById("islandNav");
     nav.innerHTML=state.islands.map(function(x,i){
       var role=dominantTrait(x)==="life"?"grove":dominantTrait(x)==="memory"?"archive":"fold";
-      return '<button type="button" data-island-id="'+x.id+'" aria-pressed="'+(state.selected===x.id?'true':'false')+'">'+(i+1)+' · '+esc(x.name)+' · '+role+'</button>';
+      return '<button type="button" data-island-id="'+x.id+'" aria-pressed="'+(state.selected===x.id?'true':'false')+'">'+(i+1)+' · '+esc(x.name)+' · '+role+(x.lineage&&x.lineage!=="none"?' · echo '+x.lineage:'')+'</button>';
     }).join("");
     var a=state.islands.find(function(x){return x.id===state.selected});
     var applyBtn=document.getElementById("applySelectedBtn");
@@ -733,6 +803,7 @@
     document.getElementById("arrivalsStat").textContent=a?a.arrivals:"—";
     document.getElementById("trafficStat").textContent=a?incidentTraffic(a.id):"—";
     document.getElementById("glyphStat").textContent=a?glyphName(a.glyph):"—";
+    document.getElementById("lineageStat").textContent=a?(a.lineage==="none"?"none":a.lineage):"—";
     document.querySelectorAll("[data-glyph]").forEach(function(b){
       b.disabled=!a||(b.dataset.glyph!=="none"&&(state.resonance<3||state.focus<1))||(b.dataset.glyph==="none"&&state.focus<1);
       b.classList.toggle("active",!!a&&a.glyph===b.dataset.glyph);
@@ -742,6 +813,19 @@
     var seenPhenomena=Object.keys(state.phenomenaSeen).filter(function(k){return state.phenomenaSeen[k]}).map(function(k){return phenomenonForClimate(k==="seed-rain"?"verdant":k==="memory-dew"?"echo":k==="parallax-bloom"?"fracture":"braided").name});
     pp.innerHTML=activePhenomenon?'<div class="discovery"><b>'+esc(activePhenomenon.name)+'</b><br>'+esc(activePhenomenon.text)+' <span class="small">streak '+state.climateStreak+'</span></div>':'<p class="small">No sustained-climate phenomenon is active. Hold one macro-climate for three cycles.</p>';
     if(seenPhenomena.length)pp.innerHTML+='<div class="discovery"><b>Observed</b><br>'+esc(seenPhenomena.join(" · "))+'</div>';
+    var cr=document.getElementById("cycleReport");
+    if(!lastCycleReport)cr.innerHTML='<p class="small">Advance one cycle to generate a causal report.</p>';
+    else{
+      var transferText=lastCycleReport.transfers.length?lastCycleReport.transfers.map(function(x){
+        var from=state.islands[x.from],to=state.islands[x.to];
+        return (from?from.name:"island "+x.from)+" → "+(to?to.name:"island "+x.to)+": "+x.type+" +"+x.amount+(x.lineageBonus?" (echo lineage +1)":"");
+      }).join("<br>"):"No migrations crossed live routes.";
+      var roleText=lastCycleReport.roleChanges.length?lastCycleReport.roleChanges.map(function(x){return esc(x.name)+": "+x.from+" → "+x.to}).join("<br>"):"No island changed dominant role.";
+      var climateText=lastCycleReport.climateBefore===lastCycleReport.climateAfter?lastCycleReport.climateAfter:lastCycleReport.climateBefore+" → "+lastCycleReport.climateAfter;
+      cr.innerHTML='<div class="discovery"><b>Cycle '+lastCycleReport.cycle+' · '+esc(lastCycleReport.mode)+'</b><br><b>Climate:</b> '+esc(climateText)+(lastCycleReport.phenomenon?'<br><b>Phenomenon:</b> '+esc(lastCycleReport.phenomenon):'')+'</div>'+
+        '<div class="discovery"><b>Migrations</b><br>'+transferText+'</div>'+
+        '<div class="discovery"><b>Role changes</b><br>'+roleText+'</div>';
+    }
     var rq=document.getElementById("research");
     rq.innerHTML=questions.map(function(q){return '<div class="discovery"><b>'+(q.done?'✓ observed':'◇ open')+'</b><br>'+esc(q.text)+'</div>'}).join("");
     var sp=document.getElementById("species"), residents=topologySpecies();
@@ -787,6 +871,7 @@
   function lore(a){
     var trait=dominantTrait(a);
     var role=trait==="life"?"grove-mind":trait==="memory"?"archive-mind":"fold-mind";
+    if(a.lineage&&a.lineage!=="none")return "A "+role+" born with a "+a.lineage+" echo lineage inherited from migrations that happened before it existed.";
     if(a.arrivals>5)return "A "+role+" carrying traces of "+a.arrivals+" foreign arrivals; its ecology is becoming a record of the whole archipelago.";
     if(a.strange>60)return "A fold-mind whose shoreline disagrees with itself. "+a.links.length+" bridge(s) still hold.";
     if(a.life>70)return "A grove-mind under dense signal-fern; every frond points toward a remembered interaction.";
