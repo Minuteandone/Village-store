@@ -49,6 +49,13 @@ assert.ok(source.includes('b.setAttribute("aria-pressed",active?"true":"false")'
 assert.ok(source.includes('b.setAttribute("aria-pressed",selected?"true":"false")'),"glyph pressed state should update during render");
 assert.ok(source.includes('var motionQuery=window.matchMedia?window.matchMedia("(prefers-reduced-motion: reduce)"):null'),"rendering should observe the system reduced-motion preference");
 assert.ok(source.includes('var w=canvas.width,h=canvas.height,rt=reducedMotion?0:t'),"reduced motion should freeze the canvas animation clock");
+assert.ok(source.includes('var frameBonds=routeBonds(),frameBondByKey={}'),"renderer should compute route bonds once per frame");
+assert.ok(source.includes('var frameJunctions=junctionEcologies(frameBonds),frameJunctionByIsland={}'),"renderer should reuse the frame bond snapshot for junctions");
+assert.ok(source.includes('var frameSpecies=topologySpecies(),frameCrown={},frameSymbioses=[]'),"renderer should compute topology species once per frame");
+const drawSource=source.slice(source.indexOf("function draw(t){"),source.indexOf("document.querySelectorAll(\"[data-action]\")"));
+assert.ok(!drawSource.includes('topologySpecies().some'),"draw loop must not recompute topology species once per island");
+assert.ok(!drawSource.includes('junctionEcologies().find'),"draw loop must not recompute junction ecologies once per island");
+assert.ok(!drawSource.includes('symbiosisSpecies().forEach'),"draw loop should reuse the frame species snapshot for symbiosis rendering");
 assert.ok(source.includes('document.getElementById("motionChip").textContent=reducedMotion?"Motion · reduced":"Motion · standard"'),"HUD should expose whether reduced motion is active");
 assert.ok(source.includes('var contrastQuery=window.matchMedia?window.matchMedia("(forced-colors: active)"):null'),"rendering should observe the system forced-colors preference");
 assert.ok(source.includes('document.getElementById("contrastChip").textContent=forcedColors?"Contrast · forced":"Contrast · custom"'),"HUD should expose whether forced colors are active");
@@ -426,6 +433,7 @@ setGraph(
   {"0-1":{life:4,memory:1,strange:1},"0-2":{life:1,memory:4,strange:1}}
 );
 assert.equal(api.junctionEcologies()[0].kind,"scribe-orchard","Rootway + Echo Span should form Scribe Orchard");
+assert.equal(api.junctionEcologies(api.routeBonds())[0].kind,"scribe-orchard","junction classifier should accept the precomputed route-bond snapshot used by the renderer");
 
 setGraph(
   [island(0,[1,2]),island(1,[0]),island(2,[0]),island(3)],
