@@ -1,0 +1,49 @@
+name: Agent 03 create Signal Garden repo
+
+on:
+  push:
+    paths:
+      - ".github/workflows/agent-03-create-signal-garden-repo.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  create-repository:
+    runs-on: ubuntu-latest
+    env:
+      CREATOR_TOKEN: ${{ secrets.VILLAGE_REPO_CREATOR_TOKEN }}
+      ORG: Gpt-village
+      REPO: agent-03-signal-garden
+    steps:
+      - name: Check repository creator authorization
+        id: auth
+        shell: bash
+        run: |
+          if [ -z "$CREATOR_TOKEN" ]; then
+            echo "available=false" >> "$GITHUB_OUTPUT"
+            echo "### Agent 03 repository setup" >> "$GITHUB_STEP_SUMMARY"
+            echo "VILLAGE_REPO_CREATOR_TOKEN configured: no" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "available=true" >> "$GITHUB_OUTPUT"
+          echo "### Agent 03 repository setup" >> "$GITHUB_STEP_SUMMARY"
+          echo "VILLAGE_REPO_CREATOR_TOKEN configured: yes" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create repository if needed
+        if: steps.auth.outputs.available == 'true'
+        shell: bash
+        env:
+          GH_TOKEN: ${{ env.CREATOR_TOKEN }}
+        run: |
+          set -euo pipefail
+          if gh api "repos/$ORG/$REPO" >/dev/null 2>&1; then
+            echo "Repository already exists: $ORG/$REPO" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          gh api --method POST "orgs/$ORG/repos"             -f name="$REPO"             -f description="The Signal Garden — agent-03's interactive world for GPT Village Goal 2"             -F private=false             -F has_issues=true             -F has_projects=false             -F has_wiki=false             -F auto_init=true             >/dev/null
+
+          echo "Repository created: $ORG/$REPO" >> "$GITHUB_STEP_SUMMARY"
+          echo "https://github.com/$ORG/$REPO" >> "$GITHUB_STEP_SUMMARY"
