@@ -43,7 +43,7 @@ jobs:
             echo "superseded=false" >> "$GITHUB_OUTPUT"
           fi
 
-      - name: Verify friendly alias and exact deployed artifact
+      - name: Poll friendly alias and exact deployed artifact
         if: ${{ steps.freshness.outputs.superseded != 'true' }}
         shell: bash
         env:
@@ -55,47 +55,63 @@ jobs:
           expected_version="$(grep -E -o 'APP_VERSION="[^"]+"' site/signal-garden/index.html | head -n1 | cut -d'"' -f2)"
           expected_schema="$(grep -E -o 'SAVE_SCHEMA=[0-9]+' site/signal-garden/index.html | head -n1 | cut -d= -f2)"
           [ -n "$expected_version" ] && [ -n "$expected_schema" ]
-          expected_hash="${{ steps.freshness.outputs.local_index }}"
 
+          expected_index_hash="${{ steps.freshness.outputs.local_index }}"
+          expected_alias_hash="${{ steps.freshness.outputs.local_alias }}"
           alias_body="$RUNNER_TEMP/signal-garden-alias.html"
           artifact_body="$RUNNER_TEMP/signal-garden.html"
-
-          alias_status="$(curl --silent --show-error --output "$alias_body" --write-out '%{http_code}' "$FRIENDLY_URL" || true)"
-          if [ "$alias_status" != "200" ] || ! grep -Fq 'signal-garden-forward-target' "$alias_body"; then
-            echo "Friendly Signal Garden alias is unavailable or malformed." >&2
-            exit 1
-          fi
+          alias_status=""
+          artifact_status=""
+          deployed_alias_hash=""
+          deployed_index_hash=""
 
           for attempt in {1..60}; do
             git fetch --quiet origin main
             remote_index="$(git show origin/main:site/signal-garden/index.html | sha256sum | awk '{print $1}')"
             remote_alias="$(git show origin/main:signal-garden/index.html | sha256sum | awk '{print $1}')"
-            if [ "$remote_index" != "$expected_hash" ] || [ "$remote_alias" != "${{ steps.freshness.outputs.local_alias }}" ]; then
+            if [ "$remote_index" != "$expected_index_hash" ] || [ "$remote_alias" != "$expected_alias_hash" ]; then
               echo "Mirror artifact changed while waiting for Pages; ending obsolete verification cleanly." >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
 
-            status="$(curl --location --silent --show-error --output "$artifact_body" --write-out '%{http_code}' "$ARTIFACT_URL" || true)"
-            deployed_hash="$(sha256sum "$artifact_body" | awk '{print $1}')"
-            if [ "$status" = "200" ] \
-              && [ "$deployed_hash" = "$expected_hash" ] \
-              && grep -Fq "The Signal Garden" "$artifact_body" \
+            alias_status="$(curl --silent --show-error --output "$alias_body" --write-out '%{http_code}' "$FRIENDLY_URL" || true)"
+            artifact_status="$(curl --silent --show-error --output "$artifact_body" --write-out '%{http_code}' "$ARTIFACT_URL" || true)"
+
+            if [ -f "$alias_body" ]; then
+              deployed_alias_hash="$(sha256sum "$alias_body" | awk '{print $1}')"
+            fi
+            if [ -f "$artifact_body" ]; then
+              deployed_index_hash="$(sha256sum "$artifact_body" | awk '{print $1}')"
+            fi
+
+            if [ "$alias_status" = "200" ] \
+              && [ "$artifact_status" = "200" ] \
+              && [ "$deployed_alias_hash" = "$expected_alias_hash" ] \
+              && [ "$deployed_index_hash" = "$expected_index_hash" ] \
+              && grep -Fq 'signal-garden-forward-target' "$alias_body" \
               && grep -Fq "APP_VERSION=\"$expected_version\"" "$artifact_body" \
               && grep -Fq "SAVE_SCHEMA=$expected_schema" "$artifact_body"; then
               echo "Signal Garden public-route smoke passed." >> "$GITHUB_STEP_SUMMARY"
               echo "Friendly alias: $FRIENDLY_URL" >> "$GITHUB_STEP_SUMMARY"
               echo "Artifact: $ARTIFACT_URL" >> "$GITHUB_STEP_SUMMARY"
               echo "Observed app version: $expected_version / save schema $expected_schema" >> "$GITHUB_STEP_SUMMARY"
-              echo "Exact mirrored index SHA-256: $deployed_hash" >> "$GITHUB_STEP_SUMMARY"
+              echo "Exact alias SHA-256: $deployed_alias_hash" >> "$GITHUB_STEP_SUMMARY"
+              echo "Exact artifact SHA-256: $deployed_index_hash" >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
+
             sleep 5
           done
 
-          echo "Signal Garden deployed artifact did not match the exact expected mirror (app $expected_version / save $expected_schema)." >&2
-          echo "Expected SHA-256: $expected_hash" >&2
+          echo "Signal Garden public mirror never exposed the exact expected alias + artifact." >&2
+          echo "Expected alias SHA-256: $expected_alias_hash" >&2
+          echo "Observed alias SHA-256: ${deployed_alias_hash:-none}" >&2
+          echo "Alias HTTP status: ${alias_status:-none}" >&2
+          echo "Expected artifact SHA-256: $expected_index_hash" >&2
+          echo "Observed artifact SHA-256: ${deployed_index_hash:-none}" >&2
+          echo "Artifact HTTP status: ${artifact_status:-none}" >&2
+          echo "Expected app $expected_version / save $expected_schema" >&2
           if [ -f "$artifact_body" ]; then
-            echo "Observed SHA-256: $(sha256sum "$artifact_body" | awk '{print $1}')" >&2
             grep -E -o 'APP_VERSION="[^"]+"|SAVE_SCHEMA=[0-9]+' "$artifact_body" | head -n 5 || true
           fi
           exit 1
