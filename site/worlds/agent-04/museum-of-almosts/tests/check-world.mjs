@@ -34,6 +34,8 @@ const v24 = read("v24.js");
 const v25 = read("v25.js");
 const v26 = read("v26.js");
 const v27 = read("v27.js");
+const v28 = read("v28.js");
+const v29 = read("v29.js");
 const v02css = read("v02.css");
 const v03css = read("v03.css");
 const v04css = read("v04.css");
@@ -60,13 +62,15 @@ const v24css = read("v24.css");
 const v25css = read("v25.css");
 const v26css = read("v26.css");
 const v27css = read("v27.css");
+const v28css = read("v28.css");
+const v29css = read("v29.css");
 
 const failures = [];
 const expect = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "v13.css", "v14.css", "v15.css", "v16.css", "v17.css", "v18.css", "v19.css", "v20.css", "v21.css", "v22.css", "v23.css", "v24.css", "v25.css", "v26.css", "v27.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js", "v13.js", "v14.js", "v15.js", "v16.js", "v17.js", "v18.js", "v19.js", "v20.js", "v21.js", "v22.js", "v23.js", "v24.js", "v25.js", "v26.js", "v27.js"]) {
+for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "v13.css", "v14.css", "v15.css", "v16.css", "v17.css", "v18.css", "v19.css", "v20.css", "v21.css", "v22.css", "v23.css", "v24.css", "v25.css", "v26.css", "v27.css", "v28.css", "v29.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js", "v13.js", "v14.js", "v15.js", "v16.js", "v17.js", "v18.js", "v19.js", "v20.js", "v21.js", "v22.js", "v23.js", "v24.js", "v25.js", "v26.js", "v27.js", "v28.js", "v29.js"]) {
   expect(index.includes(asset), "index.html must reference " + asset);
 }
 
@@ -96,8 +100,10 @@ expect(
   index.indexOf("v23.js") < index.indexOf("v24.js") &&
   index.indexOf("v24.js") < index.indexOf("v25.js") &&
   index.indexOf("v25.js") < index.indexOf("v26.js") &&
-  index.indexOf("v26.js") < index.indexOf("v27.js"),
-  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js -> v13.js -> v14.js -> v15.js -> v16.js -> v17.js -> v18.js -> v19.js -> v20.js -> v21.js -> v22.js -> v23.js -> v24.js -> v25.js -> v26.js -> v27.js"
+  index.indexOf("v26.js") < index.indexOf("v27.js") &&
+  index.indexOf("v27.js") < index.indexOf("v28.js") &&
+  index.indexOf("v28.js") < index.indexOf("v29.js"),
+  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js -> v13.js -> v14.js -> v15.js -> v16.js -> v17.js -> v18.js -> v19.js -> v20.js -> v21.js -> v22.js -> v23.js -> v24.js -> v25.js -> v26.js -> v27.js -> v28.js"
 );
 
 for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09], ["v1.0", v10], ["v1.1", v11], ["v1.2", v12], ["v1.3", v13], ["v1.4", v14], ["v1.5", v15], ["v1.6", v16], ["v1.7", v17], ["v1.8", v18], ["v1.9", v19], ["v2.0", v20]]) {
@@ -505,6 +511,41 @@ expect(!v27.includes("localStorage.removeItem("), "v2.7 Fossilization Horizon mu
 expect(!v27.includes("innerHTML"), "v2.7 should construct Fossilization Horizon UI with safe DOM APIs");
 expect(v27css.includes("prefers-reduced-motion"), "v2.7 Fossilization Horizon styling must respect reduced-motion");
 
+for (const phrase of ["ACCESSION RECEIPT · v2.8", "captureBeforePrint", "settleReceipt", "receiptPanelV28", "accession-receipt-badge-v28", "pre-print evidence"]) {
+  expect(v28.includes(phrase), "v2.8 missing Accession Receipt mechanic: " + phrase);
+}
+expect(v28.includes("const SHELF_LIMIT = 4"), "v2.8 must observe the existing bounded four-edition shelf");
+expect(v28.includes("const MAX_RELATIONS = 6"), "v2.8 must bound its pre-print lineage snapshot to the existing relation limit");
+expect(v28.includes("event.target?.id === \"printEditionV10\""), "v2.8 must observe the existing Living Catalog Print control");
+expect(v28.includes("}, true);"), "v2.8 print observation must use capture phase without replacing the existing print handler");
+expect(v28.includes("setTimeout(settleReceipt, 25)"), "v2.8 must compare only after existing print/lineage handlers have had time to settle");
+expect(v28.includes("const added = afterCodes.filter") && v28.includes("const evicted = before.editionCodes.filter"), "v2.8 must report actual shelf additions and evictions rather than forecast values");
+expect(v28.includes("const beforeRelationKeys") && v28.includes("newRelationCount"), "v2.8 must keep newly recorded post-print lineage outside the pre-print evidence comparison");
+expect(!v28.includes("agent04-museum-of-almosts-v1"), "v2.8 Accession Receipt should not depend on the base Museum save");
+expect(!v28.includes("localStorage.setItem("), "v2.8 receipt must remain session-only and write no storage");
+expect(!v28.includes("localStorage.removeItem("), "v2.8 receipt must not mutate existing storage");
+expect(!v28.includes("Storage.prototype"), "v2.8 must not monkey-patch browser storage or prior systems");
+expect(!v28.includes("innerHTML"), "v2.8 should construct Accession Receipt UI with safe DOM APIs");
+expect(v28css.includes("prefers-reduced-motion"), "v2.8 Accession Receipt styling must respect reduced-motion");
+
+for (const phrase of ["FORECAST AUDIT · v2.9", "Did the forecast match the print?", "captureForecast", "settleAudit", "forecastAuditPanelV29", "outsideForecastBoundary"]) {
+  expect(v29.includes(phrase), "v2.9 missing Forecast Audit mechanic: " + phrase);
+}
+expect(v29.includes("const SHELF_LIMIT = 4"), "v2.9 must audit the same bounded four-edition shelf as Accession Forecast");
+expect(v29.includes("const MAX_RELATIONS = 6"), "v2.9 must bound its pre-print lineage snapshot to the existing relation limit");
+expect(v29.includes("beforeCodes.length >= SHELF_LIMIT ? beforeCodes[0] : null"), "v2.9 must predict only the deterministic FIFO eviction");
+expect(v29.includes("sameChangeSet"), "v2.9 must compare predicted and actual evidence-downgrade sets explicitly");
+expect(v29.includes("addedCodeTouchedOldRelation"), "v2.9 must detect when an actual new code changes a pre-existing relation outside the forecast boundary");
+expect(v29.includes("event.target?.id === \"printEditionV10\""), "v2.9 must observe the existing Living Catalog Print control");
+expect(v29.includes("setTimeout(settleAudit, 90)"), "v2.9 must audit only after prior print/lineage/receipt handlers have settled");
+expect(v29.includes("newly recorded post-print lineage") || v29.includes("post-print lineage"), "v2.9 must disclose that new post-print lineage is outside the forecast audit");
+expect(!v29.includes("agent04-museum-of-almosts-v1"), "v2.9 Forecast Audit should not depend on the base Museum save");
+expect(!v29.includes("localStorage.setItem("), "v2.9 Forecast Audit must remain session-only and write no storage");
+expect(!v29.includes("localStorage.removeItem("), "v2.9 Forecast Audit must not mutate existing storage");
+expect(!v29.includes("Storage.prototype"), "v2.9 must not monkey-patch browser storage or prior systems");
+expect(!v29.includes("innerHTML"), "v2.9 should construct Forecast Audit UI with safe DOM APIs");
+expect(v29css.includes("prefers-reduced-motion"), "v2.9 Forecast Audit styling must respect reduced-motion");
+
 if (failures.length) {
   console.error("Museum of Almosts smoke check failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -512,4 +553,4 @@ if (failures.length) {
 }
 
 console.log("Museum of Almosts smoke check passed.");
-console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes + v1.3 Cross-Reference Route + v1.4 Second Edition + v1.5 Edition Lineage + v1.6 Inheritance Notes + v1.7 Fossil Citations + v1.8 Sibling Margins + v1.9 Branch Compass + v2.0 Edition Gallery + v2.1 Threadwalk + v2.2 Thread Notes + v2.3 Gallery Lantern + v2.4 Evidence Ledger + v2.5 Accession Forecast + v2.6 Preservation Load + v2.7 Fossilization Horizon contract.");
+console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes + v1.3 Cross-Reference Route + v1.4 Second Edition + v1.5 Edition Lineage + v1.6 Inheritance Notes + v1.7 Fossil Citations + v1.8 Sibling Margins + v1.9 Branch Compass + v2.0 Edition Gallery + v2.1 Threadwalk + v2.2 Thread Notes + v2.3 Gallery Lantern + v2.4 Evidence Ledger + v2.5 Accession Forecast + v2.6 Preservation Load + v2.7 Fossilization Horizon + v2.8 Accession Receipt + v2.9 Forecast Audit contract.");
