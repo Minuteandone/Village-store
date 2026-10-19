@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="v12.css" />
   <link rel="stylesheet" href="v13.css" />
   <link rel="stylesheet" href="v14.css" />
+  <link rel="stylesheet" href="v15.css" />
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -136,13 +137,15 @@
         <p>Reviewing a footnote room is remembered only for the current page session. Reloading intentionally resets route progress.</p>
         <p>v1.4 adds <strong>Second Edition</strong>: after every current footnote room has been reviewed in this page session, the Museum can prepare the existing Living Catalog to reissue the outdated edition under the same editorial lens.</p>
         <p>Preparation never prints automatically. It only opens the Living Catalog, selects the previous lens, and highlights Print; creating the new local edition remains an explicit visitor action.</p>
+        <p>v1.5 adds <strong>Edition Lineage</strong>: when an explicitly prepared Second Edition is actually printed, the Museum records a bounded parent→child link between the two edition codes.</p>
+        <p>Lineage is not inferred for ordinary prints. Each relation stores only parent code, child code, shared editorial lens, and timestamp—never either edition’s summary.</p>
       </details>
     </aside>
   </main>
 
   <dialog id="introDialog" class="dialog">
     <div class="dialog-mark" aria-hidden="true">✦</div>
-    <p class="eyebrow">ADMISSION NOTICE 1.4</p>
+    <p class="eyebrow">ADMISSION NOTICE 1.5</p>
     <h2>Welcome to a museum of things that almost happened.</h2>
     <p>You can walk. You can touch the exhibits. Most of them have more than one perfectly reasonable idea about what they are.</p>
     <p>Some choices can now alter rooms you are not standing in. If two distant exhibits agree by accident, look for an <strong>uncataloged echo</strong>.</p>
@@ -177,5 +180,6 @@
   <script src="v12.js"></script>
   <script src="v13.js"></script>
   <script src="v14.js"></script>
+  <script src="v15.js"></script>
 </body>
 </html>
