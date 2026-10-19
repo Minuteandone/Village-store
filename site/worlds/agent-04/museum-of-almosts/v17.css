@@ -1,0 +1,104 @@
+.fossil-panel-v17 {
+  border-color: rgba(211, 198, 168, .22);
+  background: linear-gradient(150deg, rgba(211,198,168,.05), rgba(177,236,227,.02));
+}
+.fossil-dialog-v17 {
+  max-width: 720px;
+}
+.fossil-chooser-v17 {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  margin: 12px 0;
+  padding: 3px 0 9px;
+}
+.fossil-choice-v17 {
+  flex: 0 0 auto;
+  min-width: 190px;
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  padding: 9px 10px;
+  color: var(--ink);
+  background: rgba(255,255,255,.028);
+  border: 1px dashed rgba(211,198,168,.38);
+  border-radius: 9px;
+}
+.fossil-choice-v17[aria-pressed="true"] {
+  border-style: solid;
+  border-color: rgba(211,198,168,.68);
+  background: rgba(211,198,168,.07);
+}
+.fossil-choice-v17 strong {
+  overflow-wrap: anywhere;
+  font: 700 .69rem ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.fossil-choice-v17 span {
+  color: rgba(243,240,223,.5);
+  font-size: .64rem;
+}
+.fossil-card-detail-v17 {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 16px;
+  padding: 15px;
+  border: 1px solid rgba(211,198,168,.24);
+  border-radius: 12px;
+  background: rgba(211,198,168,.03);
+}
+.fossil-stamp-v17 {
+  width: max-content;
+  padding: 4px 7px;
+  border: 1px solid rgba(255,159,122,.46);
+  color: rgba(255,199,173,.88);
+  font: 700 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .08em;
+  transform: rotate(-1deg);
+}
+.fossil-code-v17 {
+  overflow-wrap: anywhere;
+  font: 700 .86rem ui-monospace, SFMono-Regular, Menlo, monospace;
+  color: rgba(237,227,201,.94);
+}
+.fossil-card-detail-v17 p {
+  margin: 0;
+  color: rgba(243,240,223,.68);
+  line-height: 1.48;
+}
+.fossil-boundary-v17 {
+  margin-top: 4px !important;
+  padding-top: 9px;
+  border-top: 1px dashed rgba(211,198,168,.2);
+  color: rgba(255,213,192,.78) !important;
+}
+.fossil-object-v17 {
+  appearance: none;
+  position: absolute;
+  z-index: 12;
+  transform: translate(-50%, -50%) rotate(-2deg);
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  min-width: 82px;
+  padding: 8px 9px;
+  color: rgba(237,227,201,.95);
+  background: rgba(43,39,31,.92);
+  border: 1px dashed rgba(211,198,168,.62);
+  border-radius: 5px;
+  box-shadow: 0 10px 25px rgba(0,0,0,.34), 0 0 16px rgba(211,198,168,.08);
+  cursor: pointer;
+}
+.fossil-object-mark-v17 {
+  font-size: 20px;
+  line-height: 1;
+}
+.fossil-object-label-v17 {
+  font: 700 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .07em;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fossil-object-v17,
+  .fossil-choice-v17 {
+    transition: none;
+  }
+}
