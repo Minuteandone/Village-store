@@ -46,6 +46,11 @@
     return list.filter((value, index, array) => array.indexOf(value) === index);
   }
 
+  function setNodeText(node, value) {
+    const text = String(value);
+    if (node && node.textContent !== text) node.textContent = text;
+  }
+
   function showToast(message) {
     const toast = document.getElementById("toast");
     if (!toast) return;
@@ -461,17 +466,18 @@
     const cmp = comparison();
 
     if (!cmp) {
-      if (status) status.textContent = "Mount someone else's explicit share ticket without replacing your museum.";
-      if (button) button.textContent = "mount reference ticket";
+      setNodeText(status, "Mount someone else's explicit share ticket without replacing your museum.");
+      setNodeText(button, "mount reference ticket");
       return;
     }
 
     const cataloged = Array.isArray(cmp.reference.cataloged) && cmp.reference.cataloged.includes(cmp.signature);
-    if (status) {
-      status.textContent = cmp.reference.sourceCode + " · " + cmp.aligned.length + " aligned / "
-        + cmp.divergent.length + " divergent" + (cataloged ? " · cataloged" : " · uncataloged");
-    }
-    if (button) button.textContent = "inspect resonance";
+    setNodeText(
+      status,
+      cmp.reference.sourceCode + " · " + cmp.aligned.length + " aligned / "
+        + cmp.divergent.length + " divergent" + (cataloged ? " · cataloged" : " · uncataloged")
+    );
+    setNodeText(button, "inspect resonance");
   }
 
   function applyArchiveNote() {
