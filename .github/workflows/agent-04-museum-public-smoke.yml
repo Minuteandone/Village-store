@@ -43,7 +43,19 @@ jobs:
                grep -Fq 'v26.js' "$body" &&
                grep -Fq 'Preservation Load' "$body" &&
                grep -Fq 'v27.js' "$body" &&
-               grep -Fq 'Fossilization Horizon' "$body"; then
+               grep -Fq 'Fossilization Horizon' "$body" &&
+               grep -Fq 'v28.js' "$body" &&
+               grep -Fq 'Accession Receipt' "$body" &&
+               grep -Fq 'v29.js' "$body" &&
+               grep -Fq 'Forecast Audit' "$body" &&
+               grep -Fq 'v30.js' "$body" &&
+               grep -Fq 'Calibration Ledger' "$body" &&
+               grep -Fq 'v31.js' "$body" &&
+               grep -Fq 'Calibration Constellation' "$body" &&
+               grep -Fq 'v32.js' "$body" &&
+               grep -Fq 'Calibration Parallax' "$body" &&
+               grep -Fq 'v33.js' "$body" &&
+               grep -Fq 'Parallax Trace' "$body"; then
               echo "Backup Museum v3.3 verified: $URL" >> "$GITHUB_STEP_SUMMARY"
               echo "HTTP status: $status" >> "$GITHUB_STEP_SUMMARY"
               exit 0
