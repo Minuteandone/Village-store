@@ -359,19 +359,118 @@
     }
   }, true);
 
+  function encodeTicket() {
+    const s = readState();
+    const payload = {
+      v: 1,
+      room: roomTitles[s.room] ? s.room : "vestibule",
+      exhibitStates: Object.fromEntries(
+        Object.entries(s.exhibitStates || {})
+          .filter(([, value]) => Number.isInteger(value) && value >= 0 && value <= 6)
+      ),
+      fragments: Array.isArray(s.fragments) ? s.fragments.filter(value => typeof value === "string").slice(0, 24) : [],
+      visited: Array.isArray(s.visited) ? unique(s.visited.filter(id => roomTitles[id])).slice(0, 12) : ["vestibule"],
+      weather: typeof s.weather === "string" ? s.weather.slice(0, 20) : "drizzle",
+      seed: Number.isFinite(Number(s.seed)) ? Number(s.seed) : 0,
+      changes: Math.max(0, Math.min(99999, Number(s.changes || 0))),
+      echoes: overlay.echoes.filter(id => echoes.some(echo => echo.id === id)),
+      path: overlay.path.filter(id => roomTitles[id]).slice(-80)
+    };
+    const json = JSON.stringify(payload);
+    const bytes = new TextEncoder().encode(json);
+    let binary = "";
+    bytes.forEach(byte => { binary += String.fromCharCode(byte); });
+    return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+  }
+
+  function decodeTicket(token) {
+    if (typeof token !== "string" || !/^[A-Za-z0-9_-]{8,4096}$/.test(token)) throw new Error("invalid ticket shape");
+    const padded = token.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((token.length + 3) % 4);
+    const binary = atob(padded);
+    const bytes = Uint8Array.from(binary, ch => ch.charCodeAt(0));
+    const payload = JSON.parse(new TextDecoder().decode(bytes));
+    if (!payload || payload.v !== 1) throw new Error("unsupported ticket version");
+
+    const safeStates = {};
+    if (payload.exhibitStates && typeof payload.exhibitStates === "object") {
+      Object.entries(payload.exhibitStates).slice(0, 40).forEach(([key, value]) => {
+        if (/^[A-Za-z0-9_-]{1,40}$/.test(key) && Number.isInteger(value) && value >= 0 && value <= 6) safeStates[key] = value;
+      });
+    }
+    const safeVisited = Array.isArray(payload.visited) ? unique(payload.visited.filter(id => roomTitles[id])).slice(0, 12) : ["vestibule"];
+    const safePath = Array.isArray(payload.path) ? payload.path.filter(id => roomTitles[id]).slice(-80) : safeVisited.slice();
+    const safeEchoes = Array.isArray(payload.echoes)
+      ? unique(payload.echoes.filter(id => echoes.some(echo => echo.id === id))).slice(0, echoes.length)
+      : [];
+
+    return {
+      room: roomTitles[payload.room] ? payload.room : "vestibule",
+      player: { x: 500, y: 445 },
+      exhibitStates: safeStates,
+      fragments: Array.isArray(payload.fragments) ? payload.fragments.filter(value => typeof value === "string" && value.length <= 40).slice(0, 24) : [],
+      visited: safeVisited.length ? safeVisited : ["vestibule"],
+      steps: 0,
+      changes: Math.max(0, Math.min(99999, Number(payload.changes || 0))),
+      weather: typeof payload.weather === "string" ? payload.weather.slice(0, 20) : "drizzle",
+      seed: Number.isFinite(Number(payload.seed)) ? Number(payload.seed) : 0,
+      sound: true,
+      introSeen: true,
+      archiveSeen: false,
+      schema: 2,
+      echoes: safeEchoes,
+      path: safePath.length ? safePath : ["vestibule"],
+      ticketImported: true
+    };
+  }
+
+  function importTicketFromURL() {
+    const url = new URL(location.href);
+    const token = url.searchParams.get("ticket");
+    if (!token) return false;
+    url.searchParams.delete("ticket");
+    try {
+      const imported = decodeTicket(token);
+      rawSet.call(localStorage, STORAGE_KEY, JSON.stringify(imported));
+      history.replaceState(null, "", url.pathname + url.search + url.hash);
+      location.reload();
+      return true;
+    } catch {
+      history.replaceState(null, "", url.pathname + url.search + url.hash);
+      showToast("That admission ticket was not recognized.");
+      return false;
+    }
+  }
+
+  function shareTicketURL() {
+    const url = new URL(location.href);
+    url.searchParams.delete("reset");
+    url.searchParams.set("ticket", encodeTicket());
+    return url.toString();
+  }
+
   document.getElementById("copyCode")?.addEventListener("click", async event => {
     event.preventDefault();
     event.stopImmediatePropagation();
-    const code = enhancedVisitCode();
+    const url = shareTicketURL();
     try {
-      await navigator.clipboard.writeText(code);
-      showToast("v0.2 visit code copied.");
+      await navigator.clipboard.writeText(url);
+      showToast("Admission ticket URL copied.");
     } catch {
-      showToast("Visit code: " + code);
+      window.prompt("Copy this admission ticket URL:", url);
     }
   }, true);
 
+  if (importTicketFromURL()) return;
+
   initializeOverlay();
+  const importedState = readState();
+  if (importedState.ticketImported) {
+    delete importedState.ticketImported;
+    rawSet.call(localStorage, STORAGE_KEY, JSON.stringify(importedState));
+    showToast("Loaded an alternate Museum of Almosts ticket.");
+  }
+  const copyButton = document.getElementById("copyCode");
+  if (copyButton) copyButton.textContent = "copy share ticket";
   persistOverlay();
 
   const observer = new MutationObserver(() => {
