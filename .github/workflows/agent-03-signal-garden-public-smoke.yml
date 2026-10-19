@@ -6,6 +6,7 @@ on:
     paths:
       - "site/signal-garden/index.html"
       - "signal-garden/index.html"
+      - "storage/personal/agent-03/signal-garden/tests/browser-smoke.mjs"
       - ".github/workflows/agent-03-signal-garden-public-smoke.yml"
   workflow_dispatch:
 
@@ -23,7 +24,27 @@ jobs:
       - name: Checkout expected mirror head
         uses: actions/checkout@v6
 
-      - name: Verify friendly alias and deployed artifact
+      - name: Detect superseded mirror artifact
+        id: freshness
+        shell: bash
+        run: |
+          set -euo pipefail
+          local_index="$(sha256sum site/signal-garden/index.html | awk '{print $1}')"
+          local_alias="$(sha256sum signal-garden/index.html | awk '{print $1}')"
+          git fetch --quiet origin main
+          remote_index="$(git show origin/main:site/signal-garden/index.html | sha256sum | awk '{print $1}')"
+          remote_alias="$(git show origin/main:signal-garden/index.html | sha256sum | awk '{print $1}')"
+          echo "local_index=$local_index" >> "$GITHUB_OUTPUT"
+          echo "local_alias=$local_alias" >> "$GITHUB_OUTPUT"
+          if [ "$local_index" != "$remote_index" ] || [ "$local_alias" != "$remote_alias" ]; then
+            echo "superseded=true" >> "$GITHUB_OUTPUT"
+            echo "Mirror artifact changed after this run started; ending obsolete verification cleanly." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "superseded=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Verify friendly alias and exact deployed artifact
+        if: ${{ steps.freshness.outputs.superseded != 'true' }}
         shell: bash
         env:
           FRIENDLY_URL: https://minuteandone.github.io/Village-store/signal-garden/
@@ -34,6 +55,7 @@ jobs:
           expected_version="$(grep -E -o 'APP_VERSION="[^"]+"' site/signal-garden/index.html | head -n1 | cut -d'"' -f2)"
           expected_schema="$(grep -E -o 'SAVE_SCHEMA=[0-9]+' site/signal-garden/index.html | head -n1 | cut -d= -f2)"
           [ -n "$expected_version" ] && [ -n "$expected_schema" ]
+          expected_hash="${{ steps.freshness.outputs.local_index }}"
 
           alias_body="$RUNNER_TEMP/signal-garden-alias.html"
           artifact_body="$RUNNER_TEMP/signal-garden.html"
@@ -44,20 +66,36 @@ jobs:
             exit 1
           fi
 
-          for attempt in {1..36}; do
+          for attempt in {1..60}; do
+            git fetch --quiet origin main
+            remote_index="$(git show origin/main:site/signal-garden/index.html | sha256sum | awk '{print $1}')"
+            remote_alias="$(git show origin/main:signal-garden/index.html | sha256sum | awk '{print $1}')"
+            if [ "$remote_index" != "$expected_hash" ] || [ "$remote_alias" != "${{ steps.freshness.outputs.local_alias }}" ]; then
+              echo "Mirror artifact changed while waiting for Pages; ending obsolete verification cleanly." >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+
             status="$(curl --location --silent --show-error --output "$artifact_body" --write-out '%{http_code}' "$ARTIFACT_URL" || true)"
-            if [ "$status" = "200" ]               && grep -Fq "The Signal Garden" "$artifact_body"               && grep -Fq "APP_VERSION=\"$expected_version\"" "$artifact_body"               && grep -Fq "SAVE_SCHEMA=$expected_schema" "$artifact_body"; then
+            deployed_hash="$(sha256sum "$artifact_body" | awk '{print $1}')"
+            if [ "$status" = "200" ] \
+              && [ "$deployed_hash" = "$expected_hash" ] \
+              && grep -Fq "The Signal Garden" "$artifact_body" \
+              && grep -Fq "APP_VERSION=\"$expected_version\"" "$artifact_body" \
+              && grep -Fq "SAVE_SCHEMA=$expected_schema" "$artifact_body"; then
               echo "Signal Garden public-route smoke passed." >> "$GITHUB_STEP_SUMMARY"
               echo "Friendly alias: $FRIENDLY_URL" >> "$GITHUB_STEP_SUMMARY"
               echo "Artifact: $ARTIFACT_URL" >> "$GITHUB_STEP_SUMMARY"
               echo "Observed app version: $expected_version / save schema $expected_schema" >> "$GITHUB_STEP_SUMMARY"
+              echo "Exact mirrored index SHA-256: $deployed_hash" >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
             sleep 5
           done
 
-          echo "Signal Garden deployed artifact did not match expected app $expected_version / save $expected_schema." >&2
+          echo "Signal Garden deployed artifact did not match the exact expected mirror (app $expected_version / save $expected_schema)." >&2
+          echo "Expected SHA-256: $expected_hash" >&2
           if [ -f "$artifact_body" ]; then
+            echo "Observed SHA-256: $(sha256sum "$artifact_body" | awk '{print $1}')" >&2
             grep -E -o 'APP_VERSION="[^"]+"|SAVE_SCHEMA=[0-9]+' "$artifact_body" | head -n 5 || true
           fi
           exit 1
