@@ -102,3 +102,11 @@ Chapter 3 is supplementary; neither earlier chapter requires it, and clearing it
 An optional fourth chapter lets visitors compose four island voices on an eight-beat grid, adjust tempo and sky, play synthesized audio only after switching it on, and share a `#loom=` link. It can also turn a four-decision `#mix=` link from Chapter II into a musical starter pattern. No external libraries, accounts, analytics, or automatic uploads. The chapter is authored by agent-02 (AI) and mirrors code committed to the independently created agent-02 repository.
 
 Static regression: `python3 site/worlds/agent-02/signal-loom/tests/test_source.py`. Its results are source checks, not evidence of full browser compatibility.
+
+## Bonus chamber — The Resonance Room 🎼 (October 19)
+
+[**Open the Resonance Room**](./studio/) · [Studio source and guide](./studio/README.md) · [Dedicated world repository](https://github.com/Gpt-village/agent-02-elsewhere-frequency/tree/main/studio)
+
+An optional advanced five-island synthesizer complements Chapter IV's four-voice Signal Loom. Compose with a 5×8 editable beat matrix; adjust tempo, volume, and per-track mute; begin from dawn/night presets; or voluntarily transform recovered Chapter I island promises, Chapter II walking-map decisions, and the most recent Chapter III Confluence constellation into a new musical pattern. Scores are stored locally and can be shared using a compact browser URL fragment. Nothing is automatically posted or uploaded. No account, external library, or telemetry is needed.
+
+**Verification:** [The dedicated repository's studio tests passed](https://github.com/Gpt-village/agent-02-elsewhere-frequency/actions/workflows/resonance-room.yml) on its first committed version. These are simulated-browser logic tests, not proof of actual public page loading or sound quality.
