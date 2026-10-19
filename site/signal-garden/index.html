@@ -66,6 +66,7 @@
         <span class="chip" id="focusChip">Focus 8/8</span>
         <span class="chip" id="resChip">Resonance 0</span>
         <span class="chip" id="transitChip">Transit quiet</span>
+        <span class="chip" id="historyChip">Route memory 0</span>
       </div>
     </section>
 
@@ -93,8 +94,14 @@
           <div><b id="strangeStat">—</b>strangeness</div>
           <div><b id="linksStat">—</b>links</div>
           <div><b id="arrivalsStat">—</b>arrivals</div>
+          <div><b id="trafficStat">—</b>route memory</div>
         </div>
         <div class="meter"><span id="lifeMeter"></span></div>
+      </div>
+
+      <div>
+        <h3>Resident anomalies</h3>
+        <div class="discoveries" id="species"></div>
       </div>
 
       <div>
@@ -136,7 +143,7 @@
   }
   function fresh(){
     randState=hash(seed);
-    return {seed:seed,cycle:1,focus:8,resonance:0,mode:"Quiet",selected:null,action:"nurture",discoveries:[],log:[],islands:[
+    return {seed:seed,cycle:1,focus:8,resonance:0,mode:"Quiet",selected:null,action:"nurture",discoveries:[],log:[],edgeMemory:{},islands:[
       makeIsland(0,.24,.31,58),makeIsland(1,.67,.27,48),makeIsland(2,.50,.62,66),makeIsland(3,.79,.69,42)
     ]};
   }
@@ -145,6 +152,7 @@
     var saved=JSON.parse(localStorage.getItem(KEY));
     if(saved&&saved.seed===seed&&Array.isArray(saved.islands))state=saved;
   }catch(e){}
+  if(!state.edgeMemory||typeof state.edgeMemory!=="object")state.edgeMemory={};
   state.islands.forEach(function(a){if(typeof a.arrivals!=="number")a.arrivals=0});
   var mouse={x:0,y:0};
   var motes=[];
@@ -166,6 +174,37 @@
     if(a.strange>=a.life&&a.strange>=a.memory)return "strange";
     if(a.memory>=a.life)return "memory";
     return "life";
+  }
+  function edgeKey(a,b){return a<b?a+"-"+b:b+"-"+a}
+  function hasEdge(a,b){
+    var x=state.islands.find(function(i){return i.id===a});
+    return !!x&&x.links.indexOf(b)>=0;
+  }
+  function incidentTraffic(id){
+    var total=0;
+    Object.keys(state.edgeMemory).forEach(function(k){
+      var p=k.split("-").map(Number);
+      if(p[0]===id||p[1]===id)total+=state.edgeMemory[k]||0;
+    });
+    return total;
+  }
+  function topologySpecies(){
+    var active=state.islands.filter(function(a){return a.links.length>0});
+    var species=[];
+    var hub=state.islands.slice().sort(function(a,b){return b.links.length-a.links.length})[0];
+    if(hub&&hub.links.length>=3)species.push({id:"crown",name:"Relay Crown",text:"A many-armed crown organism nests on "+hub.name+", where "+hub.links.length+" live routes converge.",island:hub.id});
+    if(active.length>=3&&active.every(function(a){return a.links.length===2}))species.push({id:"loopmoss",name:"Loopmoss",text:"The active network closes into a ring. Loopmoss appears only where signals can circulate without an endpoint."});
+    if(active.length>=4){
+      var ends=active.filter(function(a){return a.links.length===1}).length;
+      var middles=active.filter(function(a){return a.links.length===2}).length;
+      if(ends===2&&ends+middles===active.length)species.push({id:"threadfin",name:"Threadfin",text:"A long unbranched migration corridor attracts Threadfin, which rides repeated directional pulses."});
+    }
+    var old=Object.keys(state.edgeMemory).filter(function(k){
+      var p=k.split("-").map(Number);
+      return (state.edgeMemory[k]||0)>=6&&!hasEdge(p[0],p[1]);
+    });
+    if(old.length)species.push({id:"ghostreed",name:"Ghost Reed",text:"A severed high-traffic route still carries enough memory for pale Ghost Reed to grow along the scar."});
+    return species;
   }
   function spawnIsland(){
     if(state.islands.length>=7){log("The current sky can support only seven islands.");return}
@@ -202,6 +241,7 @@
       if(type==="memory")b.memory=clamp(b.memory+amount);
       if(type==="strange"){b.strange=clamp(b.strange+amount);b.life=clamp(b.life-1)}
       b.arrivals=(b.arrivals||0)+1;
+      var ek=edgeKey(a.id,b.id);state.edgeMemory[ek]=(state.edgeMemory[ek]||0)+1;
       transfers.push({from:a.id,to:b.id,type:type,amount:amount});
       motes.push({from:a.id,to:b.id,type:type,start:performance.now(),duration:reducedMotion?1:1300+a.id*120});
     });
@@ -234,6 +274,12 @@
     var traits={life:false,memory:false,strange:false};
     state.islands.forEach(function(a){traits[dominantTrait(a)]=true});
     if(traits.life&&traits.memory&&traits.strange)d("three-ecologies","Three Ecologies","The archipelago sustains a grove-mind, an archive-mind, and a fold-mind at the same time. Their migrations now form a living argument.");
+    topologySpecies().forEach(function(sp){
+      if(sp.id==="crown")d("species-crown","Relay Crown","A rare organism appeared where at least three live routes meet.");
+      if(sp.id==="loopmoss")d("species-loopmoss","Loopmoss","A closed signal ring produced a species that depends on circulation without endpoints.");
+      if(sp.id==="threadfin")d("species-threadfin","Threadfin","A long chain topology produced a migratory species specialized for corridor networks.");
+      if(sp.id==="ghostreed")d("species-ghostreed","Ghost Reed","A heavily used bridge was cut, but its accumulated traffic remained as habitat.");
+    });
   }
   function nextCycle(){
     state.cycle++;
@@ -292,6 +338,8 @@
     document.getElementById("focusChip").textContent="Focus "+state.focus+"/8";
     document.getElementById("resChip").textContent="Resonance "+state.resonance;
     document.getElementById("transitChip").textContent=motes.length?"Transit "+motes.length:"Transit quiet";
+    var routeTotal=Object.keys(state.edgeMemory).reduce(function(n,k){return n+(state.edgeMemory[k]||0)},0);
+    document.getElementById("historyChip").textContent="Route memory "+routeTotal;
     var gb=document.getElementById("germinateBtn");
     gb.disabled=state.resonance<6||state.focus<2||state.islands.length>=7;
     gb.textContent=state.islands.length>=7?"🌿 Germination sites full":"🌿 Germinate island · 6 resonance + 2 focus";
@@ -304,7 +352,10 @@
     document.getElementById("strangeStat").textContent=a?Math.round(a.strange):"—";
     document.getElementById("linksStat").textContent=a?a.links.length:"—";
     document.getElementById("arrivalsStat").textContent=a?a.arrivals:"—";
+    document.getElementById("trafficStat").textContent=a?incidentTraffic(a.id):"—";
     document.getElementById("lifeMeter").style.width=(a?a.life:0)+"%";
+    var sp=document.getElementById("species"), residents=topologySpecies();
+    sp.innerHTML=residents.length?residents.map(function(x){return '<div class="discovery"><b>'+esc(x.name)+'</b><br>'+esc(x.text)+'</div>'}).join(""):'<p class="small">No topology-dependent species currently resident.</p>';
     var ds=document.getElementById("discoveries");
     ds.innerHTML=state.discoveries.length?state.discoveries.map(function(x){return '<div class="discovery"><b>'+esc(x.title)+'</b><br>'+esc(x.text)+' <span class="small">cycle '+x.cycle+'</span></div>'}).join(""):'<p class="small">Nothing catalogued yet. The garden is being suspiciously normal.</p>';
     var lg=document.getElementById("log");
@@ -326,8 +377,21 @@
     var g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,"#0a1b18");g.addColorStop(1,"#04100d");ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
     stars.forEach(function(s){ctx.globalAlpha=s.a*(.8+.2*Math.sin(t*.001+s.x*8));ctx.fillStyle="#b8e9d0";ctx.fillRect(s.x*w,s.y*h,s.s,s.s)});ctx.globalAlpha=1;
     if(state.mode==="Storm"){ctx.fillStyle="rgba(110,160,190,.06)";for(var q=0;q<7;q++)ctx.fillRect(0,(q*103+t*.03)%h,w,1)}
+    Object.keys(state.edgeMemory).forEach(function(k){
+      var ids=k.split("-").map(Number),a=state.islands[ids[0]],b=state.islands[ids[1]],mem=state.edgeMemory[k]||0;
+      if(!a||!b||mem<=0||hasEdge(a.id,b.id))return;
+      ctx.strokeStyle="rgba(190,205,198,"+Math.min(.22,.04+mem*.012)+")";
+      ctx.lineWidth=Math.min(3,.5+mem*.12);ctx.setLineDash([2,10]);
+      ctx.beginPath();ctx.moveTo(a.x*w,a.y*h);ctx.quadraticCurveTo((a.x+b.x)*w/2,h*.42,b.x*w,b.y*h);ctx.stroke();ctx.setLineDash([]);
+    });
     state.islands.forEach(function(a){
-      a.links.forEach(function(id){if(id<a.id)return;var b=state.islands[id];ctx.strokeStyle="rgba(145,229,183,.34)";ctx.lineWidth=1.5;ctx.setLineDash([5,7]);ctx.beginPath();ctx.moveTo(a.x*w,a.y*h);ctx.quadraticCurveTo((a.x+b.x)*w/2,h*.42,(b.x*w),(b.y*h));ctx.stroke();ctx.setLineDash([])});
+      a.links.forEach(function(id){
+        if(id<a.id)return;
+        var b=state.islands[id],mem=state.edgeMemory[edgeKey(a.id,id)]||0;
+        ctx.strokeStyle="rgba(145,229,183,"+Math.min(.78,.30+mem*.035)+")";
+        ctx.lineWidth=Math.min(5,1.4+mem*.22);ctx.setLineDash(mem>=8?[]:[5,7]);
+        ctx.beginPath();ctx.moveTo(a.x*w,a.y*h);ctx.quadraticCurveTo((a.x+b.x)*w/2,h*.42,b.x*w,b.y*h);ctx.stroke();ctx.setLineDash([]);
+      });
     });
     motes=motes.filter(function(m){return t-m.start<m.duration});
     motes.forEach(function(m){
@@ -356,6 +420,9 @@
       var sprouts=Math.floor(a.life/14);ctx.strokeStyle="#d9f6b0";ctx.lineWidth=1;
       for(var j=0;j<sprouts;j++){var aa=(j*2.399+a.phase),len=7+(j%3)*3;ctx.beginPath();ctx.moveTo(x+Math.cos(aa)*r*.35,y+Math.sin(aa)*r*.25);ctx.lineTo(x+Math.cos(aa)*r*.35+Math.cos(aa-1.2)*len,y+Math.sin(aa)*r*.25-Math.sin(aa+.2)*len);ctx.stroke()}
       if(a.strange>45){ctx.strokeStyle="rgba(225,183,255,.55)";ctx.beginPath();ctx.ellipse(x+5*Math.sin(t*.001),y-4,r+8,r*.72,Math.sin(t*.0003+a.phase)*.18,0,Math.PI*2);ctx.stroke()}
+      if(topologySpecies().some(function(sp){return sp.id==="crown"&&sp.island===a.id})){
+        ctx.fillStyle="#ffe09a";ctx.font="20px system-ui,sans-serif";ctx.textAlign="center";ctx.fillText("✦",x,y-r-16);
+      }
       ctx.fillStyle="#b8d9c2";ctx.font="10px ui-monospace,monospace";ctx.textAlign="center";ctx.fillText(dominantTrait(a).toUpperCase(),x,y+r+20);
       ctx.fillStyle="#eaf8ee";ctx.font="12px ui-monospace,monospace";ctx.fillText(a.name,x,y+r+36);
     });
