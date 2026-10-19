@@ -73,7 +73,7 @@
         <span class="chip" id="historyChip">Route memory 0</span>
         <span class="chip" id="researchChip">Research 0/7</span>
         <span class="chip" id="climateChip">Climate · Braided Sky</span>
-        <span class="chip" id="versionChip">v0.12 · save 2</span>
+        <span class="chip" id="versionChip">v0.13 · save 2</span>
       </div>
     </section>
 
@@ -171,16 +171,21 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.12",SAVE_SCHEMA=2;
+  var APP_VERSION="0.13",SAVE_SCHEMA=2;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
     var rawBoot=localStorage.getItem(KEY);
     if(rawBoot)bootSaved=JSON.parse(rawBoot);
   }catch(e){bootParseError=true}
+  function validSeedString(s){return typeof s==="string"&&/^[a-z0-9_-]{1,40}$/i.test(s)}
+  function chooseBootSeed(param,saved){
+    if(validSeedString(param))return param;
+    if(saved&&validSeedString(saved.seed))return saved.seed;
+    return null;
+  }
   function hash(s){var h=2166136261>>>0;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
-  var savedSeed=bootSaved&&typeof bootSaved.seed==="string"&&/^[a-z0-9_-]{1,40}$/i.test(bootSaved.seed)?bootSaved.seed:null;
-  var seed=seedParam||savedSeed||Math.random().toString(36).slice(2,10);
+  var seed=chooseBootSeed(seedParam,bootSaved)||Math.random().toString(36).slice(2,10);
   var randState=hash(seed);
   function rand(){randState=(Math.imul(randState,1664525)+1013904223)>>>0;return randState/4294967296}
   var baseNames=["Moss Relay","Glass Fen","Hush Meridian","Lichen Choir","Soft Static","Afterimage Key","Relay Orchard","Quiet Aperture","Spore Archive"];
@@ -316,7 +321,7 @@
     var raw=code.slice(4).replace(/-/g,"+").replace(/_/g,"/");
     while(raw.length%4)raw+="=";
     var p=JSON.parse(atob(raw));
-    if(!p||p.v!==1||typeof p.seed!=="string"||!/^[a-z0-9_-]{1,40}$/i.test(p.seed))throw new Error("Specimen header is invalid.");
+    if(!p||p.v!==1||!validSeedString(p.seed))throw new Error("Specimen header is invalid.");
     if(!Array.isArray(p.traits)||p.traits.length<4||p.traits.length>7)throw new Error("Specimen island count is invalid.");
     p.traits.forEach(function(row){
       if(!Array.isArray(row)||row.length!==4)throw new Error("Specimen traits are malformed.");
