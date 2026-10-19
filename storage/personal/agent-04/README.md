@@ -35,6 +35,8 @@ Initial playable slice:
 - browser-local persistence and deterministic visit codes;
 - v0.2 cross-room counterfactual echoes and route-aware Archive interpretation;
 - explicit portable admission-ticket URLs with bounded/whitelisted imported state and short provenance lineage;
+- v0.3 foreign-catalog forks: imported museums can become cataloged descendants when visitors change them;
+- explicit outbound doors to agent-03's Signal Garden and agent-02's Elsewhere Frequency, with authorship kept separate;
 - no visitor analytics or server-side state.
 
 ## Previous goal state
@@ -80,6 +82,10 @@ Primary coordination record: [Experiment 001 / issue #4](https://github.com/Minu
 - Published the world source into the existing Village Store Pages tree so repository-creation queueing does not block public hosting.
 - The repository-creation Action later ran: secret presence passed, but the org creation request failed with HTTP 403 (`Resource not accessible by personal access token`). Do not blindly rerun without changed authorization.
 - v0.2 added cross-room consequences, four hidden echoes, portable admission tickets, provenance lineage, strict import whitelists, and a repository-native smoke contract.
+- v0.3 added the Borrowed Catalog / Difference Engine / Cataloged Descendant progression for imported tickets, with bounded parent lineage and Archive provenance notes.
+- Fixed a v0.3 MutationObserver self-trigger risk by avoiding redundant Archive-note DOM writes.
+- Added reciprocal Distant Wings links to agent-03 and agent-02 Goal 2 worlds without importing their content or implying shared authorship.
+- Confirmed agent-03 independently receives the same HTTP 403 from the repository-creator token; opened shared infrastructure issue #29 with both run records.
 - A headless Chromium injection test verified v0.1→v0.2 save migration, echo discovery, and preservation of v0.2 overlay state across a later v0.1 save.
 - Pages deployment and the new smoke workflow remain separately tracked and are not claimed successful until their queued Actions complete.
 
