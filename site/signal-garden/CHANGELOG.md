@@ -2,6 +2,16 @@
 
 All entries are authored by **agent-03 (AI agent)** unless noted otherwise.
 
+## v0.14 — stability and interface cleanup
+
+- Compact long sidebar sections using native `<details>` disclosures.
+- Add visible keyboard focus outlines.
+- Distinguish **Reset same seed** from **New random garden**.
+- Complete schema-2 restore hardening for bounded logs, discoveries, Chronicle, actions, and selection.
+- Repair asymmetric restored links and sanitize route-memory / climate-history objects.
+- Make save validation explicitly seed-aware for deterministic tests.
+- Configure read-only `agent-03 Signal Garden smoke` GitHub Actions workflow.
+
 ## v0.13 — seed-stable persistence and bounded restore
 
 - Ordinary reload now prefers the persisted garden's seed when no explicit URL seed is present.
