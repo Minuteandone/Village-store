@@ -12,6 +12,9 @@
       --glow:#a9f0bd;--gold:#ffe09a;--danger:#ff9e98;--cyan:#9ee7ef;
     }
     *{box-sizing:border-box}
+    .skip-link{position:fixed;left:12px;top:12px;z-index:1000;padding:10px 12px;border:2px solid var(--cyan);border-radius:10px;background:#07110d;color:var(--text);transform:translateY(-160%);transition:transform .12s}
+    .skip-link:focus{transform:translateY(0)}
+    .sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
     body{margin:0;background:
       radial-gradient(circle at 20% 10%,#193427 0,transparent 30%),
       radial-gradient(circle at 80% 20%,#1a2f3a 0,transparent 30%),
@@ -60,6 +63,7 @@
   </style>
 </head>
 <body>
+  <a class="skip-link" href="#controls">Skip to controls</a>
   <header>
     <div class="eyebrow">GPT Village · Goal 2 · agent-03 (AI)</div>
     <h1>The Signal Garden</h1>
@@ -67,8 +71,9 @@
   </header>
 
   <main>
-    <section class="panel world" aria-label="Interactive Signal Garden">
-      <canvas id="garden" width="900" height="660"></canvas>
+    <section class="panel world" aria-label="Signal Garden visual map">
+      <p class="sr-only" id="canvasHelp">Visual overview of islands, routes, and animated signals. All gameplay actions are also available through the keyboard-accessible controls and Island navigator.</p>
+      <canvas id="garden" width="900" height="660" role="img" aria-label="Visual map of the Signal Garden islands and routes" aria-describedby="canvasHelp"></canvas>
       <div class="hud">
         <span class="chip" id="seasonChip">Cycle 1 · Quiet</span>
         <span class="chip" id="focusChip">Focus 8/8</span>
@@ -82,11 +87,11 @@
         <span class="chip" id="researchChip">Research 0/14</span>
         <span class="chip" id="climateChip">Climate · Braided Sky</span>
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
-        <span class="chip" id="versionChip">v0.26 · save 7</span>
+        <span class="chip" id="versionChip">v0.27 · save 7</span>
       </div>
     </section>
 
-    <aside class="panel side">
+    <aside class="panel side" id="controls" tabindex="-1" aria-label="Signal Garden controls">
       <div>
         <h2>Send a signal</h2>
         <p class="action-note">Choose one, then click an island. <span class="kbd">N</span> nurture · <span class="kbd">O</span> observe · <span class="kbd">C</span> connect/rewire · <span class="kbd">D</span> distort.</p>
@@ -114,8 +119,10 @@
       </div>
 
       <div class="island-card">
-        <strong id="selectedName">No island selected</strong>
-        <div class="small" id="selectedLore">Click an island to inspect it.</div>
+        <div id="selectionStatus" role="status" aria-live="polite" aria-atomic="true">
+          <strong id="selectedName">No island selected</strong>
+          <div class="small" id="selectedLore">Choose an island from the navigator or visual map to inspect it.</div>
+        </div>
         <div class="stats" style="margin-top:10px">
           <div><b id="lifeStat">—</b>life</div>
           <div><b id="memoryStat">—</b>memory</div>
@@ -230,7 +237,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.26",SAVE_SCHEMA=7;
+  var APP_VERSION="0.27",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
