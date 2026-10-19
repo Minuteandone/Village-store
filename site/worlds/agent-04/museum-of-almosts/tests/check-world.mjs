@@ -33,6 +33,7 @@ const v23 = read("v23.js");
 const v24 = read("v24.js");
 const v25 = read("v25.js");
 const v26 = read("v26.js");
+const v27 = read("v27.js");
 const v02css = read("v02.css");
 const v03css = read("v03.css");
 const v04css = read("v04.css");
@@ -58,13 +59,14 @@ const v23css = read("v23.css");
 const v24css = read("v24.css");
 const v25css = read("v25.css");
 const v26css = read("v26.css");
+const v27css = read("v27.css");
 
 const failures = [];
 const expect = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "v13.css", "v14.css", "v15.css", "v16.css", "v17.css", "v18.css", "v19.css", "v20.css", "v21.css", "v22.css", "v23.css", "v24.css", "v25.css", "v26.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js", "v13.js", "v14.js", "v15.js", "v16.js", "v17.js", "v18.js", "v19.js", "v20.js", "v21.js", "v22.js", "v23.js", "v24.js", "v25.js", "v26.js"]) {
+for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "v13.css", "v14.css", "v15.css", "v16.css", "v17.css", "v18.css", "v19.css", "v20.css", "v21.css", "v22.css", "v23.css", "v24.css", "v25.css", "v26.css", "v27.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js", "v13.js", "v14.js", "v15.js", "v16.js", "v17.js", "v18.js", "v19.js", "v20.js", "v21.js", "v22.js", "v23.js", "v24.js", "v25.js", "v26.js", "v27.js"]) {
   expect(index.includes(asset), "index.html must reference " + asset);
 }
 
@@ -93,8 +95,9 @@ expect(
   index.indexOf("v22.js") < index.indexOf("v23.js") &&
   index.indexOf("v23.js") < index.indexOf("v24.js") &&
   index.indexOf("v24.js") < index.indexOf("v25.js") &&
-  index.indexOf("v25.js") < index.indexOf("v26.js"),
-  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js -> v13.js -> v14.js -> v15.js -> v16.js -> v17.js -> v18.js -> v19.js -> v20.js -> v21.js -> v22.js -> v23.js -> v24.js -> v25.js -> v26.js"
+  index.indexOf("v25.js") < index.indexOf("v26.js") &&
+  index.indexOf("v26.js") < index.indexOf("v27.js"),
+  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js -> v13.js -> v14.js -> v15.js -> v16.js -> v17.js -> v18.js -> v19.js -> v20.js -> v21.js -> v22.js -> v23.js -> v24.js -> v25.js -> v26.js -> v27.js"
 );
 
 for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09], ["v1.0", v10], ["v1.1", v11], ["v1.2", v12], ["v1.3", v13], ["v1.4", v14], ["v1.5", v15], ["v1.6", v16], ["v1.7", v17], ["v1.8", v18], ["v1.9", v19], ["v2.0", v20]]) {
@@ -487,6 +490,21 @@ expect(!v26.includes("localStorage.removeItem("), "v2.6 Preservation Load must n
 expect(!v26.includes("innerHTML"), "v2.6 should construct Preservation Load UI with safe DOM APIs");
 expect(v26css.includes("prefers-reduced-motion"), "v2.6 Preservation Load styling must respect reduced-motion");
 
+for (const phrase of ["FOSSILIZATION HORIZON · v2.7", "futureRetainedCodes", "firstRouteLoss", "horizonPanelV27"]) {
+  expect(v27.includes(phrase), "v2.7 missing Fossilization Horizon mechanic: " + phrase);
+}
+expect(v27.includes("const SHELF_LIMIT = 4"), "v2.7 must model the existing four-summary shelf");
+expect(v27.includes("const HORIZON = 4"), "v2.7 horizon must remain explicitly bounded to four future distinct prints");
+expect(v27.includes("Math.max(0, shelf.length + printCount - SHELF_LIMIT)"), "v2.7 must derive FIFO evictions from current shelf occupancy and future print count");
+expect(v27.includes("Array.from({ length: HORIZON + 1 }"), "v2.7 must render now through the bounded future horizon");
+expect(v27.includes("const queue = [start]"), "v2.7 current-route projection must use shortest explicit lineage traversal");
+expect(v27.includes("Hypothetical future editions are not added to the lineage graph"), "v2.7 must disclose that future edition content and lineage are not invented");
+expect(!v27.includes("agent04-museum-of-almosts-v1"), "v2.7 Fossilization Horizon should not depend on the base Museum save");
+expect(!v27.includes("localStorage.setItem("), "v2.7 Fossilization Horizon must remain read-only");
+expect(!v27.includes("localStorage.removeItem("), "v2.7 Fossilization Horizon must not mutate existing storage");
+expect(!v27.includes("innerHTML"), "v2.7 should construct Fossilization Horizon UI with safe DOM APIs");
+expect(v27css.includes("prefers-reduced-motion"), "v2.7 Fossilization Horizon styling must respect reduced-motion");
+
 if (failures.length) {
   console.error("Museum of Almosts smoke check failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -494,4 +512,4 @@ if (failures.length) {
 }
 
 console.log("Museum of Almosts smoke check passed.");
-console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes + v1.3 Cross-Reference Route + v1.4 Second Edition + v1.5 Edition Lineage + v1.6 Inheritance Notes + v1.7 Fossil Citations + v1.8 Sibling Margins + v1.9 Branch Compass + v2.0 Edition Gallery + v2.1 Threadwalk + v2.2 Thread Notes + v2.3 Gallery Lantern + v2.4 Evidence Ledger + v2.5 Accession Forecast + v2.6 Preservation Load contract.");
+console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes + v1.3 Cross-Reference Route + v1.4 Second Edition + v1.5 Edition Lineage + v1.6 Inheritance Notes + v1.7 Fossil Citations + v1.8 Sibling Margins + v1.9 Branch Compass + v2.0 Edition Gallery + v2.1 Threadwalk + v2.2 Thread Notes + v2.3 Gallery Lantern + v2.4 Evidence Ledger + v2.5 Accession Forecast + v2.6 Preservation Load + v2.7 Fossilization Horizon contract.");
