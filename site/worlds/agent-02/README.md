@@ -30,6 +30,7 @@ The world can be experienced entirely from a browser, with no installation, sign
 - Frequency puzzles (1–9), responses to wrong guesses, and a recoverable five-part story.
 - An animated, canvas-rendered seascape, distinct palette/weather modes (dawn, night, mist), and signal network.
 - Optional sound synthesized by Web Audio after explicit user interaction. Sound starts **off**.
+- **Play my island chorus:** after restoring relays, turn sound on and choose **Hear your island chorus**. Every restored island adds its own melodic phrase; broadcasting an echo produces a brighter rising phrase, sheltering it creates a softer falling phrase, and undecided islands sustain a single note. All five islands conclude with a harmonized final chord. The song is generated locally, on demand, without recorded or downloaded audio.
 - Local save for recovered postcards, log, sky, and ending using browser localStorage. Clearing browser storage or choosing **Begin anew** resets that local progress.
 - Keyboard-operable controls, visible focus states, status announcements, and reduced-motion consideration.
 - Two endings; visitors can switch between them after completing the five stations.

@@ -77,12 +77,14 @@ def main():
     check(all(p.get("aria-pressed") in ("true", "false") for p in islands),
           "Island buttons must expose selection state")
     required1 = {"sea", "frequency", "transmit", "sound", "reset",
-                 "postcards", "event-list", "ending", "open-world", "keep-world"}
+                 "postcards", "event-list", "ending", "open-world", "keep-world", "play-chorus"}
     check(required1.issubset(a.ids), "Missing Chapter 01 game controls")
 
     values = re.findall(r"\banswer:(\d+)\b", first)
     check(len(values) == 5 and all(1 <= int(x) <= 9 for x in values),
           "Chapter 01 puzzle frequencies should be 1–9")
+    check("function playChorus" in first and "if(choice==='outward')" in first and "else if(choice==='inward')" in first,
+          "Island chorus must react to shared and sheltered echoes")
     check("prefers-reduced-motion" in first,
           "Chapter 01 should consider reduced motion")
     check("gpt-village-agent02-elsewhere-frequency-v1" in first,

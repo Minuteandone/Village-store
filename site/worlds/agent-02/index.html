@@ -182,7 +182,7 @@ input[type="range"]{width:100%;accent-color:#f5d18c;margin:15px 0 4px;cursor:poi
     <p class="after-choice" id="echo-response" aria-live="polite">This choice changes the world; you can revisit it.</p>
   </section>
   <div class="progress" role="progressbar" aria-label="Island relays restored" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0" id="progress"><div id="progress-fill"></div></div>
-  <div class="controls"><button class="secondary" id="sound" aria-pressed="false">♫ Sound off</button><button class="secondary" id="reset">↺ Begin anew</button></div>
+  <div class="controls"><button class="secondary" id="sound" aria-pressed="false">♫ Sound off</button><button class="secondary" id="play-chorus" aria-label="Play a melody made from your restored island choices">♫ Hear your island chorus</button><button class="secondary" id="reset">↺ Begin anew</button></div>
   <div class="control-copy">Tip: select an island on the map, use arrow keys on the dial, then transmit. Progress saves in this browser.</div>
  </section>
 </div>
@@ -305,6 +305,54 @@ function selectIsland(i){state.selected=i;query('#frequency').value='1';query('#
 all('.island').forEach(b=>b.addEventListener('click',()=>selectIsland(Number(b.dataset.id))));
 query('#frequency').addEventListener('input',e=>{query('#frequency-value').textContent=e.target.value});
 function sound(freq,success){if(!state.sound)return;try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;if(!audio)audio=new C();if(audio.state==='suspended')audio.resume();const t=audio.currentTime;[1,1.5,2].forEach((harm,i)=>{const o=audio.createOscillator(),g=audio.createGain();o.type=i===0?'sine':'triangle';o.frequency.setValueAtTime(freq*harm,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(success?.085/(i+1):.028/(i+1),t+.035);g.gain.exponentialRampToValueAtTime(.0001,t+(success?1.7:.37));o.connect(g);g.connect(audio.destination);o.start(t);o.stop(t+(success?1.8:.4))})}catch(e){}}
+// A visitor-triggered score: every restored island contributes a distinct phrase.
+// Broadcast echoes ascend brightly; sheltered echoes descend softly.
+// No sound is played until the visitor explicitly enables audio and presses Play.
+function playChorus(){
+  if(query('#sound').getAttribute('aria-pressed')!=='true'){
+    say('Switch sound on, then play the chorus to hear your island choices.',false);
+    return;
+  }
+  const voices=places.flatMap((p,i)=>state.solved[i]?[{p,choice:state.choices[i]}]:[]);
+  if(!voices.length){say('Restore an island to give your chorus its first voice.',false);return;}
+  try{
+    const C=window.AudioContext||window.webkitAudioContext;
+    if(!C){say('This browser cannot play the synthesized chorus.',false);return;}
+    if(!audio)audio=new C();
+    if(audio.state==='suspended')audio.resume().catch(()=>{});
+    const first=audio.currentTime+.08;
+    const note=(frequency,when,duration,type,gain)=>{
+      const o=audio.createOscillator(),g=audio.createGain();
+      o.type=type;
+      o.frequency.setValueAtTime(Math.max(100,Math.min(1600,frequency)),when);
+      g.gain.setValueAtTime(.0001,when);
+      g.gain.exponentialRampToValueAtTime(gain,when+.025);
+      g.gain.exponentialRampToValueAtTime(.0001,when+duration);
+      o.connect(g);g.connect(audio.destination);
+      o.start(when);o.stop(when+duration+.04);
+    };
+    voices.forEach(({p,choice},i)=>{
+      const at=first+i*.62;
+      if(choice==='outward'){
+        [0,4,7,12].forEach((semi,j)=>note(p.tone*Math.pow(2,semi/12),at+j*.11,.34,'triangle',.025));
+      }else if(choice==='inward'){
+        [0,-3,-7,0].forEach((semi,j)=>note(p.tone*Math.pow(2,semi/12),at+j*.11,.40,'sine',.021));
+      }else{
+        note(p.tone,at,.52,'sine',.03);
+      }
+    });
+    if(voices.length===5){
+      const at=first+voices.length*.62;
+      const shared=state.choices.filter(v=>v==='outward').length;
+      const chordBase=shared>=3?392:293.66;
+      [1,1.25,1.5].forEach((ratio,j)=>note(chordBase*ratio,at,.95,j===1?'triangle':'sine',.018));
+    }
+    say('♫ Playing '+voices.length+' island '+(voices.length===1?'voice':'voices')+'. Your shared and sheltered echoes create different melodies.',true);
+  }catch(e){
+    say('The sound engine is unavailable here; your island choices are still saved.',false);
+  }
+}
+query('#play-chorus').addEventListener('click',playChorus);
 query('#choose-outward').addEventListener('click',()=>chooseEcho('outward'));
 query('#choose-inward').addEventListener('click',()=>chooseEcho('inward'));
 query('#copy-report').addEventListener('click',async()=>{
