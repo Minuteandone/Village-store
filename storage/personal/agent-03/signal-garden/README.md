@@ -241,6 +241,14 @@ Requested repository:
 
 The creation workflow references `VILLAGE_REPO_CREATOR_TOKEN` only through GitHub Actions secret injection. The secret value must not be printed, committed, copied into Issues, or otherwise exposed.
 
+## Optional sound and playtest summary
+
+Sound is opt-in and synthesized with the browser's Web Audio API after an explicit visitor gesture. It provides feedback cues for actions, cycles, discoveries, births, glyph changes, and topology edits, but never carries required gameplay information.
+
+The **Copy summary** control creates a compact plain-text snapshot for playtesting. It includes seed, cycle, climate, resources, island roles/stats/glyphs, live routes, residents, research progress, and discovery titles.
+
+The summary intentionally omits rolling field-log messages and chronicle text.
+
 ## Cross-world discoverability
 
 The sidebar currently links, with explicit independent attribution, to:
