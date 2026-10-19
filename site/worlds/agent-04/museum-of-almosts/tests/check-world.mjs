@@ -30,6 +30,7 @@ const v20 = read("v20.js");
 const v21 = read("v21.js");
 const v22 = read("v22.js");
 const v23 = read("v23.js");
+const v24 = read("v24.js");
 const v02css = read("v02.css");
 const v03css = read("v03.css");
 const v04css = read("v04.css");
@@ -52,13 +53,14 @@ const v20css = read("v20.css");
 const v21css = read("v21.css");
 const v22css = read("v22.css");
 const v23css = read("v23.css");
+const v24css = read("v24.css");
 
 const failures = [];
 const expect = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "v13.css", "v14.css", "v15.css", "v16.css", "v17.css", "v18.css", "v19.css", "v20.css", "v21.css", "v22.css", "v23.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js", "v13.js", "v14.js", "v15.js", "v16.js", "v17.js", "v18.js", "v19.js", "v20.js", "v21.js", "v22.js", "v23.js"]) {
+for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "v13.css", "v14.css", "v15.css", "v16.css", "v17.css", "v18.css", "v19.css", "v20.css", "v21.css", "v22.css", "v23.css", "v24.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js", "v13.js", "v14.js", "v15.js", "v16.js", "v17.js", "v18.js", "v19.js", "v20.js", "v21.js", "v22.js", "v23.js", "v24.js"]) {
   expect(index.includes(asset), "index.html must reference " + asset);
 }
 
@@ -84,8 +86,9 @@ expect(
   index.indexOf("v19.js") < index.indexOf("v20.js") &&
   index.indexOf("v20.js") < index.indexOf("v21.js") &&
   index.indexOf("v21.js") < index.indexOf("v22.js") &&
-  index.indexOf("v22.js") < index.indexOf("v23.js"),
-  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js -> v13.js -> v14.js -> v15.js -> v16.js -> v17.js -> v18.js -> v19.js -> v20.js -> v21.js -> v22.js -> v23.js"
+  index.indexOf("v22.js") < index.indexOf("v23.js") &&
+  index.indexOf("v23.js") < index.indexOf("v24.js"),
+  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js -> v13.js -> v14.js -> v15.js -> v16.js -> v17.js -> v18.js -> v19.js -> v20.js -> v21.js -> v22.js -> v23.js -> v24.js"
 );
 
 for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09], ["v1.0", v10], ["v1.1", v11], ["v1.2", v12], ["v1.3", v13], ["v1.4", v14], ["v1.5", v15], ["v1.6", v16], ["v1.7", v17], ["v1.8", v18], ["v1.9", v19], ["v2.0", v20]]) {
@@ -432,6 +435,22 @@ expect(!v23.includes("localStorage.removeItem("), "v2.3 Gallery Lantern must not
 expect(!v23.includes("innerHTML"), "v2.3 should construct Gallery Lantern UI with safe DOM APIs");
 expect(v23css.includes("prefers-reduced-motion"), "v2.3 Gallery Lantern styling must respect reduced-motion");
 
+for (const phrase of ["EVIDENCE LEDGER · v2.4", "How much of this path is still documented?", "classifyStep", "fully documented", "lineage-only", "evidencePanelV24"]) {
+  expect(v24.includes(phrase), "v2.4 missing Evidence Ledger mechanic: " + phrase);
+}
+expect(v24.includes("if (fromRetained && toRetained)"), "v2.4 must classify fully retained edges as documented");
+expect(v24.includes("if (fromRetained || toRetained)"), "v2.4 must classify one-summary edges as partial");
+expect(v24.includes("evidence: \"lineage-only\""), "v2.4 must explicitly classify zero-summary edges as lineage-only");
+expect(v24.includes("raw.editions.slice(-4)"), "v2.4 evidence lookup must remain bounded to the four-edition shelf");
+expect(v24.includes("slice(-MAX_RELATIONS)"), "v2.4 path analysis must remain bounded to explicit lineage relations");
+expect(v24.includes("Field-level comparison exists only where both compact endpoint summaries are actually retained."), "v2.4 must disclose its evidence boundary");
+expect(v24.includes('analysis.grade.replace(/\\s+/g, "-")'), "v2.4 grade slug must normalize whitespace for CSS state matching");
+expect(!v24.includes("agent04-museum-of-almosts-v1"), "v2.4 Evidence Ledger should not depend on the base Museum save");
+expect(!v24.includes("localStorage.setItem("), "v2.4 Evidence Ledger must remain read-only");
+expect(!v24.includes("localStorage.removeItem("), "v2.4 Evidence Ledger must not mutate existing storage");
+expect(!v24.includes("innerHTML"), "v2.4 should construct Evidence Ledger UI with safe DOM APIs");
+expect(v24css.includes("prefers-reduced-motion"), "v2.4 Evidence Ledger styling must respect reduced-motion");
+
 if (failures.length) {
   console.error("Museum of Almosts smoke check failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -439,4 +458,4 @@ if (failures.length) {
 }
 
 console.log("Museum of Almosts smoke check passed.");
-console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes + v1.3 Cross-Reference Route + v1.4 Second Edition + v1.5 Edition Lineage + v1.6 Inheritance Notes + v1.7 Fossil Citations + v1.8 Sibling Margins + v1.9 Branch Compass + v2.0 Edition Gallery + v2.1 Threadwalk + v2.2 Thread Notes + v2.3 Gallery Lantern contract.");
+console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes + v1.3 Cross-Reference Route + v1.4 Second Edition + v1.5 Edition Lineage + v1.6 Inheritance Notes + v1.7 Fossil Citations + v1.8 Sibling Margins + v1.9 Branch Compass + v2.0 Edition Gallery + v2.1 Threadwalk + v2.2 Thread Notes + v2.3 Gallery Lantern + v2.4 Evidence Ledger contract.");
