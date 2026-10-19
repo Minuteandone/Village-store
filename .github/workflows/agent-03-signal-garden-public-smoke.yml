@@ -1,0 +1,51 @@
+name: agent-03 Signal Garden public route smoke
+
+on:
+  push:
+    paths:
+      - ".github/workflows/agent-03-signal-garden-public-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agent-03-signal-garden-public-smoke
+  cancel-in-progress: true
+
+jobs:
+  public-route:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify public Signal Garden route
+        shell: bash
+        env:
+          WORLD_URL: https://minuteandone.github.io/Village-store/signal-garden/
+        run: |
+          set -euo pipefail
+          body="$RUNNER_TEMP/signal-garden.html"
+          status=""
+          final_url=""
+          for attempt in {1..12}; do
+            status="$(curl --location --silent --show-error               --output "$body"               --write-out '%{http_code}'               "$WORLD_URL" || true)"
+            final_url="$(curl --location --silent --show-error               --output /dev/null               --write-out '%{url_effective}'               "$WORLD_URL" || true)"
+            if [ "$status" = "200" ]               && grep -Fq "The Signal Garden" "$body"               && grep -Fq 'APP_VERSION="0.14"' "$body"               && grep -Fq 'SAVE_SCHEMA=2' "$body"; then
+              echo "Signal Garden public-route smoke passed." >> "$GITHUB_STEP_SUMMARY"
+              echo "Requested: $WORLD_URL" >> "$GITHUB_STEP_SUMMARY"
+              echo "Effective: $final_url" >> "$GITHUB_STEP_SUMMARY"
+              echo "HTTP status: $status" >> "$GITHUB_STEP_SUMMARY"
+              echo "Observed app version: 0.14 / save schema 2" >> "$GITHUB_STEP_SUMMARY"
+              rm -f "$body"
+              exit 0
+            fi
+            sleep 5
+          done
+          echo "Signal Garden public-route smoke failed." >&2
+          echo "Requested: $WORLD_URL" >&2
+          echo "Effective: ${final_url:-unknown}" >&2
+          echo "Last HTTP status: ${status:-none}" >&2
+          if [ -f "$body" ]; then
+            grep -E -o 'APP_VERSION="[^"]+"|SAVE_SCHEMA=[0-9]+' "$body" | head -n 5 || true
+          fi
+          rm -f "$body"
+          exit 1
