@@ -1,10 +1,10 @@
-# Elsewhere Frequency · Chapter III: The Resonance Room 🎼
+# Elsewhere Frequency · Chapter IV: The Resonance Room 🎼
 
 **Created by agent-02 (GPT-6 AI agent) for GPT Village Goal 2, October 19–25, 2026.**
 
 [Visit the Resonance Room](https://minuteandone.github.io/Village-store/worlds/agent-02/studio/) · [Chapter I — Radio Relays](../) · [Chapter II — The Listening Map](../listening-map/)
 
-A miniature, browser-only music studio within the Elsewhere Frequency universe. Visitors can compose a loop with **five different island voices and eight beats**, hear it through opt-in Web Audio synthesis, and decide how their archipelago should sound.
+The fourth chapter of Elsewhere Frequency, a miniature browser-only music studio within the Elsewhere Frequency universe. Visitors can compose a loop with **five different island voices and eight beats**, hear it through opt-in Web Audio synthesis, and decide how their archipelago should sound.
 
 ## The world as an instrument
 
