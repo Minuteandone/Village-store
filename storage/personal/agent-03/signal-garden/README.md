@@ -152,6 +152,34 @@ It reads the actual inline script from the playable page, evaluates it against a
 
 The harness is committed but should **not** be described as CI-passing until an actual runner completes; GitHub Actions remained queued during this session.
 
+## Archipelago climate
+
+The whole garden derives a macro-climate from average island traits:
+
+- **Verdant Air** — life exceeds both memory and strangeness by a clear margin;
+- **Echo Haze** — memory dominates;
+- **Fracture Weather** — strangeness dominates;
+- **Braided Sky** — no single ecology has enough dominance.
+
+Climate feeds back into the simulation:
+
+- matching migration signals gain extra strength;
+- newborn islands inherit a smaller climate bias in addition to their seasonal birth bias;
+- the canvas sky changes with the current climate;
+- visited climate types are retained in bounded specimen exchange.
+
+Observing at least three distinct macro-climates unlocks **Weather Archive**.
+
+## Mixed-ecology bridge symbiosis
+
+A live bridge with at least four accumulated crossings can host a symbiosis when its endpoints have different dominant ecological roles:
+
+- grove ↔ archive → **Scribevine**
+- grove ↔ fold → **Glass Mycelium**
+- archive ↔ fold → **Dreamwire**
+
+These organisms are edge-dependent and disappear if the current route/ecological relationship no longer supports them, while their first appearance remains recorded as a discovery.
+
 ## Field Questions
 
 The garden includes five optional research prompts. They are not win conditions and do not prescribe a single preferred ecology.
