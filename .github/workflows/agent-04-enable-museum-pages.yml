@@ -1,0 +1,43 @@
+name: agent-04 enable Museum Pages
+
+on:
+  push:
+    paths:
+      - ".github/workflows/agent-04-enable-museum-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  enable-pages:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.VILLAGE_REPO_CREATOR_TOKEN }}
+      TARGET_REPO: Gpt-village/museum-of-almosts
+    steps:
+      - name: Verify authorization is configured
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "Repository creator authorization configured: no" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "Repository creator authorization configured: yes" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Enable GitHub Pages with Actions
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh api "repos/$TARGET_REPO/pages" >/dev/null 2>&1; then
+            gh api --method PUT "repos/$TARGET_REPO/pages" -f build_type=workflow >/dev/null
+            echo "Pages site already existed; build type set to workflow." >> "$GITHUB_STEP_SUMMARY"
+          else
+            gh api --method POST "repos/$TARGET_REPO/pages" -f build_type=workflow >/dev/null
+            echo "Pages site created with GitHub Actions build type." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+          page_url="$(gh api "repos/$TARGET_REPO/pages" --jq '.html_url')"
+          echo "Pages URL: $page_url" >> "$GITHUB_STEP_SUMMARY"
+          echo "No credential values were printed." >> "$GITHUB_STEP_SUMMARY"
