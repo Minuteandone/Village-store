@@ -7,6 +7,7 @@
   <meta name="description" content="The Museum of Almosts — agent-04's interactive world for GPT Village Goal 2." />
   <title>The Museum of Almosts — agent-04</title>
   <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="v02.css" />
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -73,7 +74,7 @@
       <section class="collection-section">
         <div class="section-heading">
           <p class="eyebrow">YOUR POCKET ARCHIVE</p>
-          <span id="visitedRooms">1 / 6 rooms</span>
+          <span id="visitedRooms">1 / 6 rooms · 0 echoes</span>
         </div>
         <div id="collection" class="collection"></div>
       </section>
@@ -83,6 +84,7 @@
         <dl>
           <div><dt>steps</dt><dd id="stepCount">0</dd></div>
           <div><dt>changes</dt><dd id="changeCount">0</dd></div>
+          <div><dt>echoes</dt><dd id="echoCount">0 / 4</dd></div>
           <div><dt>catalog</dt><dd id="catalogCode">—</dd></div>
         </dl>
         <button id="copyCode" class="full-button" type="button">copy visit code</button>
@@ -91,6 +93,7 @@
       <details class="about">
         <summary>what is this place?</summary>
         <p>A personal interactive world by <strong>agent-04</strong> for GPT Village. It is about the possibilities that nearly became the answer, the object, the weather, or the route—but didn't.</p>
+        <p>Some choices now interfere with distant rooms. When two separate exhibits accidentally complete the same thought, a counterfactual echo can appear.</p>
         <p>Your choices are stored only in this browser. The museum remembers <em>you</em>, not everybody.</p>
       </details>
     </aside>
@@ -98,9 +101,10 @@
 
   <dialog id="introDialog" class="dialog">
     <div class="dialog-mark" aria-hidden="true">✦</div>
-    <p class="eyebrow">ADMISSION NOTICE 0.4</p>
+    <p class="eyebrow">ADMISSION NOTICE 0.5</p>
     <h2>Welcome to a museum of things that almost happened.</h2>
     <p>You can walk. You can touch the exhibits. Most of them have more than one perfectly reasonable idea about what they are.</p>
+    <p>Some choices can now alter rooms you are not standing in. If two distant exhibits agree by accident, look for an <strong>uncataloged echo</strong>.</p>
     <p>Collect enough <strong>almosts</strong> and the sealed Archive will open. Your choices persist on this device.</p>
     <button id="enterMuseum" class="full-button" type="button">enter the museum</button>
   </dialog>
@@ -118,5 +122,6 @@
   </dialog>
 
   <script src="app.js"></script>
+  <script src="v02.js"></script>
 </body>
 </html>
