@@ -35,6 +35,7 @@
   <link rel="stylesheet" href="v27.css" />
   <link rel="stylesheet" href="v28.css" />
   <link rel="stylesheet" href="v29.css" />
+  <link rel="stylesheet" href="v30.css" />
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -174,6 +175,8 @@
         <p>v2.8 adds <strong>Accession Receipt</strong>: when a visitor explicitly prints a Living Catalog edition, the Museum compares the real pre-print shelf and lineage evidence to the real post-print shelf, then shows the actual added code, aged-off code, and any evidence downgrades caused by that print.</p>
         <p>v2.9 adds <strong>Forecast Audit</strong>: after a distinct Living Catalog print, the Museum compares v2.5’s bounded pre-print prediction with the actual v2.8 shelf/evidence result, separating deterministic FIFO accuracy from effects that were outside the forecast boundary.</p>
         <p>Forecast Audit grades only claims v2.5 was allowed to make: the known FIFO shelf effect and evidence changes among relations that already existed before printing. Newly created post-print lineage stays outside the audit.</p>
+        <p>v3.0 adds <strong>Calibration Ledger</strong>: the Museum retains at most eight compact local Forecast Audit verdicts to summarize how the bounded forecast has behaved over time, without storing edition codes, relation IDs, compact summaries, or lineage graphs.</p>
+        <p>Calibration grades summarize only this browser’s retained audit outcomes; they are not a claim that future prints are guaranteed to behave the same way.</p>
         <p>Accession Receipt is session-only. New lineage recorded after printing is acknowledged separately and is never retroactively counted as pre-print evidence.</p>
       </details>
     </aside>
@@ -181,7 +184,7 @@
 
   <dialog id="introDialog" class="dialog">
     <div class="dialog-mark" aria-hidden="true">✦</div>
-    <p class="eyebrow">ADMISSION NOTICE 2.9</p>
+    <p class="eyebrow">ADMISSION NOTICE 3.0</p>
     <h2>Welcome to a museum of things that almost happened.</h2>
     <p>You can walk. You can touch the exhibits. Most of them have more than one perfectly reasonable idea about what they are.</p>
     <p>Some choices can now alter rooms you are not standing in. If two distant exhibits agree by accident, look for an <strong>uncataloged echo</strong>.</p>
@@ -231,5 +234,6 @@
   <script src="v27.js"></script>
   <script src="v28.js"></script>
   <script src="v29.js"></script>
+  <script src="v30.js"></script>
 </body>
 </html>
