@@ -114,6 +114,12 @@
     return list.filter((value, index, arr) => arr.indexOf(value) === index);
   }
 
+  function setText(id, value) {
+    const node = document.getElementById(id);
+    const text = String(value);
+    if (node && node.textContent !== text) node.textContent = text;
+  }
+
   function roomId() {
     const s = readState();
     if (roomTitles[s.room]) return s.room;
@@ -294,23 +300,16 @@
   function applyArchive() {
     const dialog = document.getElementById("archiveDialog");
     if (!dialog?.open) return;
-    const text = document.getElementById("archiveText");
-    const code = document.getElementById("archiveCode");
-    if (text) text.textContent = enhancedArchiveText();
-    if (code) code.textContent = enhancedVisitCode();
+    setText("archiveText", enhancedArchiveText());
+    setText("archiveCode", enhancedVisitCode());
   }
 
   function applyHUD() {
-    const echoCount = document.getElementById("echoCount");
-    if (echoCount) echoCount.textContent = overlay.echoes.length + " / " + echoes.length;
-    const rooms = document.getElementById("visitedRooms");
-    if (rooms) {
-      const s = readState();
-      const uniqueRooms = unique(Array.isArray(s.visited) ? s.visited : []).length;
-      rooms.textContent = uniqueRooms + " / 6 rooms · " + overlay.echoes.length + " echoes";
-    }
-    const code = document.getElementById("catalogCode");
-    if (code) code.textContent = enhancedVisitCode();
+    setText("echoCount", overlay.echoes.length + " / " + echoes.length);
+    const s = readState();
+    const uniqueRooms = unique(Array.isArray(s.visited) ? s.visited : []).length;
+    setText("visitedRooms", uniqueRooms + " / 6 rooms · " + overlay.echoes.length + " echoes");
+    setText("catalogCode", enhancedVisitCode());
   }
 
   function applyConsequences() {
@@ -333,7 +332,8 @@
     const prompt = document.getElementById("interactionPrompt");
     const interact = document.getElementById("interactButton");
     if (prompt) {
-      prompt.textContent = "E · Counterfactual Echo: " + echo.name;
+      const label = "E · Counterfactual Echo: " + echo.name;
+      if (prompt.textContent !== label) prompt.textContent = label;
       prompt.classList.add("show");
     }
     if (interact) interact.disabled = false;
