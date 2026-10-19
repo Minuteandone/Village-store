@@ -47,7 +47,10 @@
   };
 
   Storage.prototype.removeItem = function(key) {
-    if (this === localStorage && key === STORAGE_KEY) latestForeignCatalogV03 = null;
+    if (this === localStorage && key === STORAGE_KEY) {
+      latestForeignCatalogV03 = null;
+      inheritedRemoveItemV03.call(this, COATCHECK_KEY);
+    }
     return inheritedRemoveItemV03.call(this, key);
   };
 
@@ -313,9 +316,6 @@
   }, true);
 
   document.addEventListener("click", event => {
-    if (event.target?.id === "resetButton") {
-      localStorage.removeItem(COATCHECK_KEY);
-    }
     if (event.target?.id === "interactButton" && playerNearFork()) {
       event.preventDefault();
       event.stopImmediatePropagation();
