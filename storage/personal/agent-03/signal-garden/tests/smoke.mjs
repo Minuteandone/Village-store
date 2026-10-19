@@ -11,6 +11,12 @@ assert.ok(html.includes('id="garden" width="900" height="660" role="img"'),"canv
 assert.ok(html.includes('aria-describedby="canvasHelp"'),"canvas should point to equivalent-control guidance");
 assert.ok(html.includes('id="canvasHelp"'),"canvas guidance should exist in the document");
 assert.ok(html.includes('id="selectionStatus" role="status" aria-live="polite"'),"selected-island context should have a focused polite live region");
+assert.ok(html.includes('id="motionChip"'),"v0.29 should expose the active motion preference in the HUD");
+assert.ok(html.includes('@media(prefers-reduced-motion:reduce){button{transition:none}button:hover{transform:none}}'),"reduced-motion CSS should suppress button transition/hover movement");
+assert.ok(html.includes('id="modeStatus" role="status" aria-live="polite"'),"signal mode should expose a polite status line");
+assert.ok(html.includes('data-action="nurture" aria-pressed="true"'),"default nurture mode should expose pressed state");
+assert.ok(html.includes('data-action="connect" aria-pressed="false"'),"inactive signal modes should expose unpressed state");
+assert.ok(html.includes('data-glyph="life" aria-pressed="false"'),"glyph controls should expose toggle state");
 assert.ok(html.includes('id="specimenDock"'),"specimen dock should exist in the page");
 assert.ok(html.includes('id="specimenStatus"'),"specimen dock should expose inline status");
 assert.ok(html.includes('id="specimenPreview"'),"v0.26 specimen dock should expose a preview surface");
@@ -20,6 +26,12 @@ assert.ok(!html.includes('prompt("Paste a Signal Garden specimen code'),"specime
 
 let source = match[1];
 assert.ok(source.includes("previewedSpecimenCode"),"specimen import should be gated by the exact previewed code");
+assert.ok(source.includes('e.key==="Escape"&&Number.isInteger(state.connectFrom)'),"Escape should cancel a pending connection source");
+assert.ok(source.includes('b.setAttribute("aria-pressed",active?"true":"false")'),"signal-mode pressed state should update during render");
+assert.ok(source.includes('b.setAttribute("aria-pressed",selected?"true":"false")'),"glyph pressed state should update during render");
+assert.ok(source.includes('var motionQuery=window.matchMedia?window.matchMedia("(prefers-reduced-motion: reduce)"):null'),"rendering should observe the system reduced-motion preference");
+assert.ok(source.includes('var w=canvas.width,h=canvas.height,rt=reducedMotion?0:t'),"reduced motion should freeze the canvas animation clock");
+assert.ok(source.includes('document.getElementById("motionChip").textContent=reducedMotion?"Motion · reduced":"Motion · standard"'),"HUD should expose whether reduced motion is active");
 const tail = "  renderUI();requestAnimationFrame(draw);";
 assert.ok(source.includes(tail), "expected game startup tail");
 source = source.replace(
@@ -64,6 +76,7 @@ source = source.replace(
 );
 
 function element(extra = {}) {
+  const attrs={};
   return Object.assign({
     textContent: "",
     innerHTML: "",
@@ -72,6 +85,9 @@ function element(extra = {}) {
     dataset: {},
     classList: { toggle() {} },
     addEventListener() {},
+    setAttribute(name,value){attrs[name]=String(value)},
+    getAttribute(name){return Object.prototype.hasOwnProperty.call(attrs,name)?attrs[name]:null},
+    removeAttribute(name){delete attrs[name]},
     closest() { return null; }
   }, extra);
 }
@@ -94,7 +110,7 @@ const canvas = element({
 const ids = new Map();
 ids.set("garden", canvas);
 [
-  "seasonChip","focusChip","resChip","transitChip","historyChip","bondChip","junctionChip","constellationChip","provenanceChip","researchChip","climateChip","germinateBtn",
+  "seasonChip","focusChip","resChip","transitChip","historyChip","bondChip","junctionChip","constellationChip","provenanceChip","researchChip","climateChip","motionChip","germinateBtn",
   "islandNav","applySelectedBtn","selectedName","selectedLore","lifeStat",
   "memoryStat","strangeStat","linksStat","arrivalsStat","trafficStat","glyphStat","lineageStat","successionStat","lifeMeter",
   "research","bonds","provenance","constellation","junctions","species","discoveries","chronicle","log","guidePanel","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
