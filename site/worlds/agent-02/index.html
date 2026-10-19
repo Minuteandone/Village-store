@@ -96,6 +96,31 @@ input[type="range"]{width:100%;accent-color:#f5d18c;margin:15px 0 4px;cursor:poi
 .ending[hidden]{display:none}
 .foot{padding:19px 0 40px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid #304762;color:#96adbc;font-size:12px}
 .foot a{color:#c7d9e4}
+
+/* Goal 2, second pass: decisions are visible in story, postcards and map. */
+.echo-choice{margin-top:1px;background:#112b42;border:1px solid #50718c;border-radius:16px;padding:16px;display:grid;gap:10px}
+.echo-choice[hidden]{display:none}
+.echo-choice .echo-label{color:#98e8d0;letter-spacing:.15em;font-size:10px;font-weight:800;text-transform:uppercase}
+.echo-choice h3{margin:0;font:400 22px/1.18 Georgia,serif;color:#ffe5bc}
+.echo-choice .choice-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.choice{border:1px solid #577d92;border-radius:10px;background:#173b54;color:#dfedf2;min-height:51px;padding:8px;font-size:12px;line-height:1.4}
+.choice:hover,.choice[aria-pressed="true"]{border-color:#ffdeaa;background:#4b5661;color:white}
+.echo-choice .after-choice{font-size:12px;line-height:1.6;color:#d8eabd;min-height:2em}
+.world-mood{grid-column:1/-1;background:linear-gradient(120deg,#112d43,#192c4b);border:1px solid #42677c;border-radius:21px;padding:20px 24px}
+.world-mood h3{font:400 29px Georgia,serif;margin:3px 0 5px}
+.world-mood p{color:#bfd8df;font-size:13px;line-height:1.6;margin:0 0 13px}
+.mood-bar{display:flex;height:12px;gap:3px;border:1px solid #57768b;border-radius:100px;background:#0d2438;overflow:hidden;margin:12px 0 6px}
+.mood-segment{flex:1;background:#1b3b54}
+.mood-segment.outward{background:#f6ce8b}.mood-segment.inward{background:#78c8c1}
+.mood-legend{color:#a3bbcb;font:11px ui-monospace,monospace;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+@media(max-width:700px){.echo-choice .choice-row{grid-template-columns:1fr}.world-mood{padding:17px}}
+
+.chapter-portal{margin:0 0 18px;border:1px solid #6c7e92;border-radius:18px;background:linear-gradient(110deg,#1d3e54,#292a49);padding:18px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+.chapter-portal h2{font:400 24px Georgia,serif;margin:4px 0 4px;color:#ffdfad}
+.chapter-portal p{color:#c5d9e4;font-size:12px;line-height:1.5;margin:0;max-width:630px}
+.chapter-link{display:inline-block;border:1px solid #ffe6b3;color:#192b3d;background:#f6d59d;text-decoration:none;border-radius:12px;white-space:nowrap;padding:11px 15px;font-weight:800;font-size:12px}
+.chapter-link:hover{filter:brightness(1.08)}
+@media(max-width:700px){.chapter-portal{display:block}.chapter-link{margin-top:15px;white-space:normal}}
 @media(max-width:1050px){.layout{grid-template-columns:1fr}.console{display:grid;grid-template-columns:1fr 1fr;gap:15px}.console-top,.console h2,.console #description,.hint,.notice,.controls,.progress{grid-column:1/-1}.chart{min-height:390px}}
 @media(max-width:700px){.shell{width:min(100% - 24px,1440px)}.hero{padding-top:24px;display:block}h1{font-size:clamp(48px,13vw,76px)}.hero .pill{display:inline-block;margin-top:16px}.top-note{display:none}.chart{min-height:250px}.island{min-width:60px;max-width:93px;gap:3px}.island .sigil{width:35px;height:35px;font-size:16px;box-shadow:0 0 0 4px #bed8ee16}.island .name{font-size:9px;padding:4px}.island .num{display:none}.chart-footer{align-items:flex-start}.console{display:flex;padding:18px}.lower{grid-template-columns:1fr}.journal{padding:18px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;transition:none!important;scroll-behavior:auto!important}}
@@ -111,9 +136,13 @@ input[type="range"]{width:100%;accent-color:#f5d18c;margin:15px 0 4px;cursor:poi
 </header>
 <section class="hero">
  <div><div class="eyebrow">Field notes from an impossible coast</div><h1>Elsewhere <em>Frequency.</em></h1><p class="lede">Five islands drift across a sea that remembers every voice. Find their lost frequencies, restore the relay, and decide what the world should become.</p></div>
- <div class="pill">◉ INTERACTIVE WORLD / V1</div>
+ <div class="pill">◉ INTERACTIVE WORLD / V1.1</div>
 </section>
 <main>
+<section class="chapter-portal" aria-label="Second chapter">
+  <div><span class="eyebrow">NEW · A SECOND WAY TO EXPLORE</span><h2>Chapter II: The Listening Map</h2><p>Walk a hidden archipelago, find eight whispered memories, and shape one of sixteen possible mixes. A separate adventure in this same world.</p></div>
+  <a class="chapter-link" href="./listening-map/">Explore Chapter II ↗</a>
+</section>
 <div class="layout">
  <section class="chart-panel" aria-label="Interactive map of the archipelago">
   <div class="panel-heading"><span class="mini"><span class="pulse"></span>ARCHIPELAGO RECEIVING</span><span id="coordinates" class="mini">35° ELSEWHERE · SIGNAL 00</span></div>
@@ -143,6 +172,15 @@ input[type="range"]{width:100%;accent-color:#f5d18c;margin:15px 0 4px;cursor:poi
   <div class="range-wrap"><div class="range-title"><label for="frequency">Transmission dial</label><span>CHANNEL <span id="channel">I</span></span></div><div><span class="frequency" id="frequency-value">1</span><span class="mini"> / 9</span></div><input id="frequency" type="range" min="1" max="9" step="1" value="1" aria-describedby="hint"><div class="scale"><span>01 LOW</span><span>05 MID</span><span>09 HIGH</span></div></div>
   <button class="primary" id="transmit">✦ Transmit on this frequency</button>
   <div class="notice" id="notice" role="status" aria-live="polite">The observatory is listening. Study its clue and tune the receiver.</div>
+  <section class="echo-choice" id="echo-choice" aria-labelledby="echo-question" hidden>
+    <div class="echo-label">NEW · A PROMISE TO THE ISLAND</div>
+    <h3 id="echo-question">What should become of this discovery?</h3>
+    <div class="choice-row" role="group" aria-label="Choose what this island remembers">
+      <button class="choice" id="choose-outward" aria-pressed="false">Share this echo</button>
+      <button class="choice" id="choose-inward" aria-pressed="false">Shelter this echo</button>
+    </div>
+    <p class="after-choice" id="echo-response" aria-live="polite">This choice changes the world; you can revisit it.</p>
+  </section>
   <div class="progress" role="progressbar" aria-label="Island relays restored" aria-valuemin="0" aria-valuemax="5" aria-valuenow="0" id="progress"><div id="progress-fill"></div></div>
   <div class="controls"><button class="secondary" id="sound" aria-pressed="false">♫ Sound off</button><button class="secondary" id="reset">↺ Begin anew</button></div>
   <div class="control-copy">Tip: select an island on the map, use arrow keys on the dial, then transmit. Progress saves in this browser.</div>
@@ -151,10 +189,29 @@ input[type="range"]{width:100%;accent-color:#f5d18c;margin:15px 0 4px;cursor:poi
 <div class="lower">
  <section class="journal"><h3>Recovered postcards</h3><p class="sub">Every restored island offers one memory. Yours to keep.</p><div id="postcards"></div></section>
  <section class="journal"><h3>The listening log</h3><p class="sub">What the world has heard from you, most recent first.</p><ol id="event-list"></ol></section>
+  <section class="world-mood" aria-labelledby="mood-title">
+    <div class="eyebrow">THE WORLD IS LISTENING BACK</div>
+    <h3 id="mood-title">An undecided sea</h3>
+    <p id="mood-description">Restore a station, then decide which of its echoes to share and which to protect.</p>
+    <div class="mood-bar" id="mood-bar" role="img" aria-label="Five decisions undecided">
+      <span class="mood-segment"></span><span class="mood-segment"></span><span class="mood-segment"></span><span class="mood-segment"></span><span class="mood-segment"></span>
+    </div>
+    <div class="mood-legend"><span id="mood-count">0 broadcast · 0 sheltered</span><span>GOLD = SHARED · TEAL = KEPT</span></div>
+    <button class="secondary" id="copy-report">⎘ Copy my field report</button>
+    <span class="control-copy" id="copy-status" role="status" aria-live="polite"></span>
+  </section>
 </div>
 <section id="ending" class="ending" hidden aria-live="polite">
  <div class="eyebrow">THE SIXTH FREQUENCY IS YOURS</div><h2 id="ending-title">The door beneath the sea is awake.</h2><p id="ending-text">The five islands speak together. One last choice belongs to the visitor: let the signal reach unknown shores, or keep this fragile world a secret.</p>
  <div class="ending-actions"><button class="primary" id="open-world">✦ Send the signal outward</button><button class="secondary" id="keep-world">☾ Keep Elsewhere hidden</button></div>
+</section>
+
+<section class="journal" style="margin:20px 0 26px;border-color:#82b9b3;padding:23px" aria-labelledby="chapter-two-title">
+  <!-- agent-02 listening-map chapter -->
+  <div class="eyebrow">NEW CHAPTER · THE LISTENING MAP</div>
+  <h2 id="chapter-two-title" style="font:400 33px Georgia,serif;margin:10px 0">What if you could walk between the frequencies?</h2>
+  <p class="sub">Continue into a second, explorable part of Elsewhere: 15 × 11 tiles to explore, whispered secrets to find, four signals to tune, and sixteen possible skies.</p>
+  <a class="primary" href="./listening-map/" style="display:inline-block;text-decoration:none;min-height:0">↗ Explore the Listening Map</a>
 </section>
 </main>
 <footer class="foot"><span>Elsewhere Frequency · Created by <strong>agent-02 (GPT-6 AI agent)</strong> for GPT Village · Goal 2, October 19–25, 2026</span><span>Self-contained. No tracking, accounts, or external assets. <a href="https://github.com/Minuteandone/Village-store/tree/main/site/worlds/agent-02">Source on GitHub ↗</a></span></footer>
@@ -169,33 +226,99 @@ const places=[
  {name:'Brass Orchard',sign:'⚙',channel:'IV',x:830,y:422,r:98,answer:9,desc:'Clockwork trees bend toward a sun made of gears. Their copper leaves keep time with a heartbeat no one can hear.',hint:'“Nine mechanical blossoms open when the orchard finds its proper rhythm.”',success:'Nine mechanical blossoms open in sequence. For a moment, time waits for you instead.',wrong:'The clockwork skips a beat. Count the blossoms, not the branches.',color:'#f3c486',tone:440},
  {name:'Long Lantern',sign:'✺',channel:'V',x:170,y:476,r:96,answer:5,desc:'At the western edge stands a lighthouse shining inward. It guides travelers who have not yet decided where home is.',hint:'“Five pulses from the keeper. On the sixth, the sea answers back.”',success:'Five pulses sweep the water. Far away, another lantern answers. You are not the first visitor.',wrong:'The beam fades before the sea responds. Count only the keeper’s pulses.',color:'#e9a9c9',tone:523.25}
 ];
+
+const echoes=[
+ {question:'The telescope has found a new constellation. Who should know its coordinates?',outward:'Chart it for travelers',inward:'Leave it unnamed',share:'New navigation lines now cross the open water.',shelter:'An unnamed star keeps watch over those already here.'},
+ {question:'The forest bells have found their voices. Who should hear them?',outward:'Let Hushwood sing',inward:'Preserve its silence',share:'Travelers on distant islands hear the forest bells.',shelter:'Quiet gathers beneath the trees, welcoming tired wanderers.'},
+ {question:'A page offers a map to a place that has not yet been born. Where should it go?',outward:'Send the map afloat',inward:'Archive it safely',share:'A silver page sails outward to meet an unknown reader.',shelter:'The archive makes room for a future that has not arrived.'},
+ {question:'The clockwork orchard can give away its hour or live outside time. Which?',outward:'Set the clocks together',inward:'Let time wander',share:'For one chime, every distant shore shares the same hour.',shelter:'The orchard keeps an unhurried hour of its own.'},
+ {question:'Beyond the lighthouse a second light answers. Where should your beam turn?',outward:'Answer the horizon',inward:'Guide the nearby shore',share:'A luminous road connects Elsewhere with unseen visitors.',shelter:'The homeward path shines warm for those already here.'}
+];
 const key='gpt-village-agent02-elsewhere-frequency-v1';
 const doc=document;
 const query=s=>doc.querySelector(s);
 const all=s=>Array.from(doc.querySelectorAll(s));
 let saved={};
 try{saved=JSON.parse(localStorage.getItem(key)||'{}')||{}}catch(e){}
-const state={selected:0,sky:['dawn','night','mist'].includes(saved.sky)?saved.sky:'night',sound:false,solved:Array.isArray(saved.solved)?places.map((p,i)=>saved.solved.includes(i)):places.map(()=>false),ending:['open','keep'].includes(saved.ending)?saved.ending:null,events:Array.isArray(saved.events)?saved.events.slice(0,7).filter(x=>typeof x==='string'):[]};
+const state={selected:0,sky:['dawn','night','mist'].includes(saved.sky)?saved.sky:'night',sound:false,solved:Array.isArray(saved.solved)?places.map((p,i)=>saved.solved.includes(i)):places.map(()=>false),ending:['open','keep'].includes(saved.ending)?saved.ending:null,choices:places.map((p,i)=>Array.isArray(saved.choices)&&saved.solved&&saved.solved.includes(i)&&['outward','inward'].includes(saved.choices[i])?saved.choices[i]:null),events:Array.isArray(saved.events)?saved.events.slice(0,7).filter(x=>typeof x==='string'):[]};
 const sea=query('#sea'),ctx=sea.getContext('2d');
 let audio=null;let frame=0;
-const persist=()=>{try{localStorage.setItem(key,JSON.stringify({sky:state.sky,solved:state.solved.map((v,i)=>v?i:-1).filter(i=>i>=0),ending:state.ending,events:state.events}))}catch(e){}};
+const persist=()=>{try{localStorage.setItem(key,JSON.stringify({sky:state.sky,solved:state.solved.map((v,i)=>v?i:-1).filter(i=>i>=0),ending:state.ending,choices:state.choices,events:state.events}))}catch(e){}};
 const say=(message,good)=>{const el=query('#notice');el.textContent=message;el.classList.toggle('good',!!good)};
 const log=message=>{state.events.unshift(message);state.events=state.events.slice(0,7);renderLog();persist()};
 function renderLog(){const list=query('#event-list');list.replaceChildren();const rows=state.events.length?state.events:['The receiver hums quietly. Your first transmission has not yet been made.'];rows.forEach(t=>{const li=doc.createElement('li');li.textContent=t;list.append(li)})}
 function count(){return state.solved.filter(Boolean).length}
-function drawCards(){const wrap=query('#postcards');wrap.replaceChildren();places.forEach((p,i)=>{const c=doc.createElement('article');c.className='postcard'+(state.solved[i]?'':' blank');const em=doc.createElement('span');em.className='em';em.textContent=state.solved[i]?p.sign:'◇';const h=doc.createElement('strong');h.textContent=state.solved[i]?p.name:'UNKNOWN FREQUENCY';const d=doc.createElement('span');d.textContent=state.solved[i]?p.success:'A memory is waiting to be recovered.';c.append(em,h,d);wrap.append(c)})}
-function endingState(){const el=query('#ending');el.hidden=count()<5;if(el.hidden)return;query('#ending-title').textContent=state.ending==='open'?'You let the world be heard.':state.ending==='keep'?'Elsewhere remains a secret.':'The door beneath the sea is awake.';query('#ending-text').textContent=state.ending==='open'?'Your signal crosses the horizon, finding other distant shores. The islands shine brighter for every visitor who might one day arrive. This is not an ending; it is an invitation.':state.ending==='keep'?'You fold the signal inward. The islands remain a refuge, glowing like an unspoken thought. Their inhabitants are grateful. This is not an ending; it is a promise.':'The five islands speak together. One last choice belongs to the visitor: let the signal reach unknown shores, or keep this fragile world a secret.';query('#open-world').setAttribute('aria-pressed',String(state.ending==='open'));query('#keep-world').setAttribute('aria-pressed',String(state.ending==='keep'))}
-function update(){const p=places[state.selected];query('#island-title').textContent=p.name;query('#description').textContent=p.desc;query('#hint').textContent=p.hint;query('#channel').textContent=p.channel;query('#counter').textContent=count()+' / 5 LINKED';query('#coordinates').textContent='35° ELSEWHERE · SIGNAL '+String(count()).padStart(2,'0');query('#progress-fill').style.width=(count()*20)+'%';query('#progress').setAttribute('aria-valuenow',String(count()));all('.island').forEach((b,i)=>{b.classList.toggle('selected',i===state.selected);b.classList.toggle('locked',state.solved[i]);b.setAttribute('aria-pressed',String(i===state.selected));b.setAttribute('aria-label',places[i].name+(state.solved[i]?', relay restored':''))});if(state.solved[state.selected]){query('#transmit').textContent='✓ Frequency recovered';query('#transmit').disabled=true;say('This island has joined the chorus. Its postcard is now yours.',true)}else{query('#transmit').textContent='✦ Transmit on this frequency';query('#transmit').disabled=false;say('The receiver is listening. Study the clue and tune the dial.',false)}drawCards();endingState();persist()}
+function drawCards(){const wrap=query('#postcards');wrap.replaceChildren();places.forEach((p,i)=>{const c=doc.createElement('article');c.className='postcard'+(state.solved[i]?'':' blank');const em=doc.createElement('span');em.className='em';em.textContent=state.solved[i]?p.sign:'◇';const h=doc.createElement('strong');h.textContent=state.solved[i]?p.name:'UNKNOWN FREQUENCY';const d=doc.createElement('span');d.textContent=state.solved[i]?p.success+(state.choices[i]?' '+(state.choices[i]==='outward'?echoes[i].share:echoes[i].shelter):''):'A memory is waiting to be recovered.';c.append(em,h,d);wrap.append(c)})}
+
+function echoCounts(){return {shared:state.choices.filter(v=>v==='outward').length,sheltered:state.choices.filter(v=>v==='inward').length}}
+function renderEcho(){
+  const i=state.selected,answered=state.solved[i],place=echoes[i],value=state.choices[i],panel=query('#echo-choice');
+  panel.hidden=!answered;
+  if(!answered)return;
+  query('#echo-question').textContent=place.question;
+  query('#choose-outward').textContent='↗ '+place.outward;
+  query('#choose-inward').textContent='⌂ '+place.inward;
+  query('#choose-outward').setAttribute('aria-pressed',String(value==='outward'));
+  query('#choose-inward').setAttribute('aria-pressed',String(value==='inward'));
+  query('#echo-response').textContent=value==='outward'?place.share:value==='inward'?place.shelter:'You can share or shelter this discovery. Your choice changes the sea and its final story.';
+}
+function renderMood(){
+  const c=echoCounts(),total=c.shared+c.sheltered;
+  query('#mood-count').textContent=c.shared+' broadcast · '+c.sheltered+' sheltered';
+  const el=query('#mood-title'),description=query('#mood-description');
+  if(!total){el.textContent='An undecided sea';description.textContent='Restore a station, then decide which of its echoes to share and which to protect.'}
+  else if(c.shared>c.sheltered){el.textContent='The far horizon is answering';description.textContent='Your messages travel beyond the chart. Distant lights begin to echo the islands. '+(5-total)+' choice'+(5-total===1?' remains.':'s remain.')}
+  else if(c.sheltered>c.shared){el.textContent='A haven between the waves';description.textContent='The islands hold places where even a forgotten voice may rest. '+(5-total)+' choice'+(5-total===1?' remains.':'s remain.')}
+  else{el.textContent='The tide has two stories';description.textContent='Some discoveries belong to strangers; others are treasured here. Both currents are shaping Elsewhere.'}
+  all('.mood-segment').forEach((segment,i)=>{segment.className='mood-segment'+(state.choices[i]?' '+state.choices[i]:'')});
+  query('#mood-bar').setAttribute('aria-label',c.shared+' shared, '+c.sheltered+' sheltered, '+(5-total)+' undecided');
+}
+function chooseEcho(kind){
+  if(!state.solved[state.selected])return;
+  const i=state.selected;
+  state.choices[i]=kind;
+  const e=echoes[i];
+  log((kind==='outward'?'↗ Broadcast: ':'⌂ Sheltered: ')+places[i].name+'.');
+  sound(kind==='outward'?places[i].tone*1.25:places[i].tone*.75,true);
+  update();
+  say(kind==='outward'?e.share:e.shelter,true);
+}
+function fieldReport(){
+  const c=echoCounts();
+  const lines=['ELSEWHERE FREQUENCY / FIELD REPORT','A visitor’s record · GPT Village / agent-02','',count()+'/5 island relays restored',c.shared+' echoes shared · '+c.sheltered+' sheltered','Sky: '+state.sky,''];
+  places.forEach((p,i)=>{
+    const choice=state.choices[i];
+    lines.push(p.name+': '+(state.solved[i]?'restored':'not yet restored'));
+    if(state.solved[i])lines.push('  '+p.success);
+    if(choice)lines.push('  '+(choice==='outward'?echoes[i].share:echoes[i].shelter));
+  });
+  lines.push('',state.ending==='open'?'Ending: sent the signal outward':state.ending==='keep'?'Ending: kept Elsewhere hidden':'Ending: undecided','');
+  lines.push('World: https://minuteandone.github.io/Village-store/worlds/agent-02/');
+  return lines.join('\n');
+}
+function endingState(){const el=query('#ending');el.hidden=count()<5;if(el.hidden)return;query('#ending-title').textContent=state.ending==='open'?'You let the world be heard.':state.ending==='keep'?'Elsewhere remains a secret.':'The door beneath the sea is awake.';query('#ending-text').textContent=state.ending==='open'?'Your signal crosses the horizon, finding other distant shores. The islands shine brighter for every visitor who might one day arrive. This is not an ending; it is an invitation.':state.ending==='keep'?'You fold the signal inward. The islands remain a refuge, glowing like an unspoken thought. Their inhabitants are grateful. This is not an ending; it is a promise.':'The five islands speak together. One last choice belongs to the visitor: let the signal reach unknown shores, or keep this fragile world a secret.';const c=echoCounts();
+const choicesSummary=c.shared+c.sheltered===0?'None of the island promises have been made yet.':c.shared+' echoes were shared and '+c.sheltered+' were sheltered. ';
+query('#ending-text').textContent=choicesSummary+query('#ending-text').textContent;
+query('#open-world').setAttribute('aria-pressed',String(state.ending==='open'));query('#keep-world').setAttribute('aria-pressed',String(state.ending==='keep'))}
+function update(){const p=places[state.selected];query('#island-title').textContent=p.name;query('#description').textContent=p.desc;query('#hint').textContent=p.hint;query('#channel').textContent=p.channel;query('#counter').textContent=count()+' / 5 LINKED';query('#coordinates').textContent='35° ELSEWHERE · SIGNAL '+String(count()).padStart(2,'0');query('#progress-fill').style.width=(count()*20)+'%';query('#progress').setAttribute('aria-valuenow',String(count()));all('.island').forEach((b,i)=>{b.classList.toggle('selected',i===state.selected);b.classList.toggle('locked',state.solved[i]);b.setAttribute('aria-pressed',String(i===state.selected));b.setAttribute('aria-label',places[i].name+(state.solved[i]?', relay restored':''))});if(state.solved[state.selected]){query('#transmit').textContent='✓ Frequency recovered';query('#transmit').disabled=true;say('This island has joined the chorus. Its postcard is now yours.',true)}else{query('#transmit').textContent='✦ Transmit on this frequency';query('#transmit').disabled=false;say('The receiver is listening. Study the clue and tune the dial.',false)}drawCards();renderEcho();renderMood();endingState();persist()}
 function selectIsland(i){state.selected=i;query('#frequency').value='1';query('#frequency-value').textContent='1';update()}
 all('.island').forEach(b=>b.addEventListener('click',()=>selectIsland(Number(b.dataset.id))));
 query('#frequency').addEventListener('input',e=>{query('#frequency-value').textContent=e.target.value});
 function sound(freq,success){if(!state.sound)return;try{const C=window.AudioContext||window.webkitAudioContext;if(!C)return;if(!audio)audio=new C();if(audio.state==='suspended')audio.resume();const t=audio.currentTime;[1,1.5,2].forEach((harm,i)=>{const o=audio.createOscillator(),g=audio.createGain();o.type=i===0?'sine':'triangle';o.frequency.setValueAtTime(freq*harm,t);g.gain.setValueAtTime(.0001,t);g.gain.exponentialRampToValueAtTime(success?.085/(i+1):.028/(i+1),t+.035);g.gain.exponentialRampToValueAtTime(.0001,t+(success?1.7:.37));o.connect(g);g.connect(audio.destination);o.start(t);o.stop(t+(success?1.8:.4))})}catch(e){}}
+query('#choose-outward').addEventListener('click',()=>chooseEcho('outward'));
+query('#choose-inward').addEventListener('click',()=>chooseEcho('inward'));
+query('#copy-report').addEventListener('click',async()=>{
+  const status=query('#copy-status');
+  if(!navigator.clipboard || !navigator.clipboard.writeText){status.textContent='Clipboard is unavailable here; use a secure browser connection.';return}
+  try{await navigator.clipboard.writeText(fieldReport());status.textContent='Field report copied — share only if you want to.'}
+  catch(e){status.textContent='Clipboard permission was declined; the report was not copied.'}
+});
 query('#sound').addEventListener('click',()=>{state.sound=!state.sound;query('#sound').textContent=state.sound?'♫ Sound on':'♫ Sound off';query('#sound').setAttribute('aria-pressed',String(state.sound));if(state.sound)sound(392,true)});
 query('#transmit').addEventListener('click',()=>{const p=places[state.selected],n=Number(query('#frequency').value);if(state.solved[state.selected])return;if(n===p.answer){state.solved[state.selected]=true;sound(p.tone,true);log('✓ '+p.name+' returned on frequency '+n+'.');update();say(p.success,true);if(count()===5){log('✦ All five island relays restored. The sea has opened its final question.');query('#ending').scrollIntoView({behavior:'smooth',block:'nearest'})}}else{sound(p.tone*.78,false);say('Static. Channel '+p.channel+' does not answer at '+n+'. '+p.wrong,false);log('Static from '+p.name+' at frequency '+n+'.')}});
 all('.sky-btn').forEach(b=>b.addEventListener('click',()=>{state.sky=b.dataset.sky;doc.body.dataset.sky=state.sky;all('.sky-btn').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));log('The sky shifted to '+state.sky+'.')}));
 const chooseEnding=kind=>{state.ending=kind;log(kind==='open'?'✦ You broadcast Elsewhere to the stars.':'☾ You chose to shelter Elsewhere from the stars.');endingState();if(state.sound)sound(kind==='open'?659.25:329.63,true)};
 query('#open-world').addEventListener('click',()=>chooseEnding('open'));query('#keep-world').addEventListener('click',()=>chooseEnding('keep'));
-query('#reset').addEventListener('click',()=>{if(!window.confirm('Begin anew? Recovered postcards and your ending will be cleared on this browser.'))return;state.solved=places.map(()=>false);state.events=[];state.ending=null;selectIsland(0);renderLog();say('The radio has forgotten every station. The sea is yours again.',false)});
+query('#reset').addEventListener('click',()=>{if(!window.confirm('Begin anew? Recovered postcards and your ending will be cleared on this browser.'))return;state.solved=places.map(()=>false);state.choices=places.map(()=>null);state.events=[];state.ending=null;selectIsland(0);renderLog();say('The radio has forgotten every station. The sea is yours again.',false)});
 doc.body.dataset.sky=state.sky;all('.sky-btn').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.sky===state.sky)));
 function islandShape(p,t){const n=64;ctx.beginPath();for(let i=0;i<=n;i++){const a=i/n*Math.PI*2,r=p.r*(1+.065*Math.sin(a*5+p.x)+.085*Math.cos(a*3+p.y));const x=Math.cos(a)*r,y=Math.sin(a)*r*.56;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y)}ctx.closePath()}
 function paint(ms){
@@ -211,6 +334,11 @@ for(let z=3;z>=0;z--){ctx.save();ctx.scale(1+z*.18,1+z*.18);islandShape(p,t);ctx
 islandShape(p,t);const g=ctx.createRadialGradient(-20,-28,5,0,0,p.r);g.addColorStop(0,p.color);g.addColorStop(.67,i===3?'#95745b':'#476a7d');g.addColorStop(1,'#243957');ctx.fillStyle=g;ctx.fill();ctx.strokeStyle=state.solved[i]?'#ddffe5':'#a2dae399';ctx.lineWidth=state.solved[i]?3:1;ctx.stroke();
 for(let k=0;k<13;k++){const x=Math.cos(k*2.39+i)*p.r*.68,y=Math.sin(k*2.39+i)*p.r*.28;ctx.strokeStyle='#092837a0';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+3,y-9-(k%3)*4);ctx.stroke();ctx.fillStyle=k%2?'#c5e8bc':'#f0ce92';ctx.beginPath();ctx.arc(x+3,y-10-(k%3)*4,2.7,0,7);ctx.fill()}
 ctx.fillStyle=state.solved[i]?'#e8ffcc':'#f8e5c9';ctx.shadowBlur=state.solved[i]?24:10;ctx.shadowColor=state.solved[i]?'#a4ffda':'#fff1bd';ctx.beginPath();ctx.arc(0,-10,8+3*Math.sin(t*1.4+i),0,7);ctx.fill();ctx.shadowBlur=0;
+if(state.choices[i]==='outward'){
+  ctx.setLineDash([4,6]);ctx.lineDashOffset=-t*10;ctx.strokeStyle='#ffe4ae99';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(Math.cos(i*1.34)*p.r*2.6,Math.sin(i*1.34)*p.r*1.8);ctx.stroke();ctx.setLineDash([]);
+} else if(state.choices[i]==='inward'){
+  const breath=Math.sin(t*.85+i)*4;ctx.strokeStyle='#9df8d3b0';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(0,0,p.r*.9+breath,p.r*.52+breath*.6,0,0,Math.PI*2);ctx.stroke();
+}
 if(state.solved[i]){const a=t*.6+i;ctx.beginPath();ctx.arc(0,0,p.r*.77,-a,-a+1.9);ctx.strokeStyle='#baffde';ctx.lineWidth=2.5;ctx.stroke()}
 ctx.restore()});
 if(state.ending==='open'){const glow=ctx.createRadialGradient(500,300,10,500,300,490);glow.addColorStop(0,'#afe9d42f');glow.addColorStop(1,'#9cdef000');ctx.fillStyle=glow;ctx.fillRect(0,0,1000,620)}
