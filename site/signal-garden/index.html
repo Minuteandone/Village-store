@@ -74,10 +74,11 @@
         <span class="chip" id="resChip">Resonance 0</span>
         <span class="chip" id="transitChip">Transit quiet</span>
         <span class="chip" id="historyChip">Route memory 0</span>
-        <span class="chip" id="researchChip">Research 0/10</span>
+        <span class="chip" id="bondChip">Bonds 0</span>
+        <span class="chip" id="researchChip">Research 0/11</span>
         <span class="chip" id="climateChip">Climate · Braided Sky</span>
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
-        <span class="chip" id="versionChip">v0.19 · save 5</span>
+        <span class="chip" id="versionChip">v0.20 · save 6</span>
       </div>
     </section>
 
@@ -150,6 +151,11 @@
       </details>
 
       <details open>
+        <summary>Route bonds</summary>
+        <div class="discoveries" id="bonds"></div>
+      </details>
+
+      <details open>
         <summary>Resident anomalies</summary>
         <div class="discoveries" id="species"></div>
       </details>
@@ -188,7 +194,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.19",SAVE_SCHEMA=5;
+  var APP_VERSION="0.20",SAVE_SCHEMA=6;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -216,7 +222,7 @@
   }
   function fresh(){
     randState=hash(seed);
-    return {schema:SAVE_SCHEMA,seed:seed,cycle:1,focus:8,resonance:0,mode:"Quiet",selected:null,action:"nurture",discoveries:[],log:[],chronicle:[],edgeMemory:{},climateSeen:{},lastClimate:null,streakClimate:null,climateStreak:0,activePhenomenon:null,phenomenaSeen:{},islands:[
+    return {schema:SAVE_SCHEMA,seed:seed,cycle:1,focus:8,resonance:0,mode:"Quiet",selected:null,action:"nurture",discoveries:[],log:[],chronicle:[],edgeMemory:{},edgeSignals:{},climateSeen:{},lastClimate:null,streakClimate:null,climateStreak:0,activePhenomenon:null,phenomenaSeen:{},islands:[
       makeIsland(0,.24,.31,58),makeIsland(1,.67,.27,48),makeIsland(2,.50,.62,66),makeIsland(3,.79,.69,42)
     ]};
   }
@@ -240,6 +246,7 @@
   }
   state.schema=SAVE_SCHEMA;
   if(!state.edgeMemory||typeof state.edgeMemory!=="object")state.edgeMemory={};
+  if(!state.edgeSignals||typeof state.edgeSignals!=="object")state.edgeSignals={};
   if(!state.climateSeen||typeof state.climateSeen!=="object")state.climateSeen={};
   if(!Array.isArray(state.chronicle))state.chronicle=[];
   if(typeof state.lastClimate!=="string")state.lastClimate=null;
@@ -280,6 +287,18 @@
     if(a>=0&&b>=0&&a<state.islands.length&&b<state.islands.length&&a!==b&&Number.isFinite(v)&&v>=0)repairedMemory[(a<b?a+"-"+b:b+"-"+a)]=Math.min(10000,v);
   });
   state.edgeMemory=repairedMemory;
+  var repairedSignals={};
+  Object.keys(state.edgeSignals).forEach(function(k){
+    var m=k.match(/^(\d+)-(\d+)$/);if(!m)return;
+    var a=Number(m[1]),b=Number(m[2]),row=state.edgeSignals[k];
+    if(a<0||b<0||a>=state.islands.length||b>=state.islands.length||a===b||!row||typeof row!=="object")return;
+    var key=a<b?a+"-"+b:b+"-"+a,out={life:0,memory:0,strange:0};
+    ["life","memory","strange"].forEach(function(type){
+      var v=Number(row[type]);out[type]=Number.isFinite(v)&&v>=0?Math.min(10000,Math.floor(v)):0;
+    });
+    repairedSignals[key]=out;
+  });
+  state.edgeSignals=repairedSignals;
   var repairedClimate={};
   ["verdant","echo","fracture","braided"].forEach(function(k){if(state.climateSeen[k])repairedClimate[k]=true});
   state.climateSeen=repairedClimate;
@@ -334,6 +353,7 @@
       "Focus "+state.focus+"/8 · Resonance "+state.resonance+" · Islands "+state.islands.length,
       "Research observed: "+questions.filter(function(q){return q.done}).length+"/"+questions.length,
       "Live routes: "+(edges.length?edges.join(", "):"none"),
+      "Route bonds: "+(routeBonds().length?routeBonds().map(function(b){return b.name+" "+b.key+(b.active?"":" (severed)")}).join(", "):"none"),
       "Residents: "+(residents.length?residents.map(function(x){return x.name}).join(", "):"none"),
       "Islands:"
     ];
@@ -349,13 +369,16 @@
     var memory=Object.keys(state.edgeMemory).map(function(k){
       var p=k.split("-").map(Number);return [p[0],p[1],state.edgeMemory[k]||0];
     }).filter(function(x){return x[2]>0});
+    var routeSignals=Object.keys(state.edgeSignals||{}).map(function(k){
+      var p=k.split("-").map(Number),c=edgeSignalCounts(k);return [p[0],p[1],c.life,c.memory,c.strange];
+    }).filter(function(x){return x[2]+x[3]+x[4]>0});
     var payload={
       v:1,seed:state.seed,cycle:state.cycle,focus:state.focus,resonance:state.resonance,mode:state.mode,climates:Object.keys(state.climateSeen).filter(function(k){return state.climateSeen[k]}),phenomena:Object.keys(state.phenomenaSeen).filter(function(k){return state.phenomenaSeen[k]}),streak:[state.streakClimate,state.climateStreak,state.activePhenomenon],
       traits:state.islands.map(function(a){return [Math.round(a.life),Math.round(a.memory),Math.round(a.strange),Math.round(a.arrivals||0)]}),
       glyphs:state.islands.map(function(a){return a.glyph||"none"}),
       ancestry:state.islands.map(function(a){var im=a.imprints||{};return [Math.round(im.life||0),Math.round(im.memory||0),Math.round(im.strange||0),a.lineage||"none"]}),
       succession:state.islands.map(function(a){return roleMask(a)}),
-      edges:edges,memory:memory
+      edges:edges,memory:memory,routeSignals:routeSignals
     };
     return "SG1."+btoa(JSON.stringify(payload)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
   }
@@ -375,6 +398,7 @@
     if(!Number.isFinite(p.focus)||p.focus<0||p.focus>8||!Number.isFinite(p.resonance)||p.resonance<0||p.resonance>10000)throw new Error("Specimen resources are invalid.");
     if(["Quiet","Bloom","Static","Storm"].indexOf(p.mode)<0)throw new Error("Specimen season is invalid.");
     if(!Array.isArray(p.edges)||p.edges.length>21||!Array.isArray(p.memory)||p.memory.length>21)throw new Error("Specimen network is too large.");
+    if(p.routeSignals!==undefined&&(!Array.isArray(p.routeSignals)||p.routeSignals.length>21))throw new Error("Specimen route-signal history is too large.");
     if(p.climates!==undefined&&(!Array.isArray(p.climates)||p.climates.length>4||p.climates.some(function(k){return ["verdant","echo","fracture","braided"].indexOf(k)<0})))throw new Error("Specimen climate history is invalid.");
     if(p.phenomena!==undefined&&(!Array.isArray(p.phenomena)||p.phenomena.length>4||p.phenomena.some(function(k){return ["seed-rain","memory-dew","parallax-bloom","confluence-pulse"].indexOf(k)<0})))throw new Error("Specimen phenomenon history is invalid.");
     if(p.streak!==undefined&&(!Array.isArray(p.streak)||p.streak.length!==3||p.streak[0]!==null&&["verdant","echo","fracture","braided"].indexOf(p.streak[0])<0||!Number.isInteger(p.streak[1])||p.streak[1]<0||p.streak[1]>10000||p.streak[2]!==null&&["seed-rain","memory-dew","parallax-bloom","confluence-pulse"].indexOf(p.streak[2])<0))throw new Error("Specimen climate streak is invalid.");
@@ -390,6 +414,9 @@
     });
     p.memory.forEach(function(e){
       if(!Array.isArray(e)||e.length!==3||!Number.isInteger(e[0])||!Number.isInteger(e[1])||e[0]<0||e[1]<0||e[0]>=n||e[1]>=n||e[0]===e[1]||!Number.isFinite(e[2])||e[2]<0||e[2]>10000)throw new Error("Specimen route memory is invalid.");
+    });
+    if(Array.isArray(p.routeSignals))p.routeSignals.forEach(function(e){
+      if(!Array.isArray(e)||e.length!==5||!Number.isInteger(e[0])||!Number.isInteger(e[1])||e[0]<0||e[1]<0||e[0]>=n||e[1]>=n||e[0]===e[1]||!e.slice(2).every(function(v){return Number.isInteger(v)&&v>=0&&v<=10000}))throw new Error("Specimen route-signal history is invalid.");
     });
     return p;
   }
@@ -416,6 +443,8 @@
     });
     p.edges.forEach(function(e){next.islands[e[0]].links.push(e[1]);next.islands[e[1]].links.push(e[0])});
     next.edgeMemory={};p.memory.forEach(function(e){next.edgeMemory[edgeKey(e[0],e[1])]=e[2]});
+    next.edgeSignals={};
+    if(Array.isArray(p.routeSignals))p.routeSignals.forEach(function(e){next.edgeSignals[edgeKey(e[0],e[1])]={life:e[2],memory:e[3],strange:e[4]}});
     next.climateSeen={};
     if(Array.isArray(p.climates))p.climates.slice(0,4).forEach(function(k){if(["verdant","echo","fracture","braided"].indexOf(k)>=0)next.climateSeen[k]=true});
     next.phenomenaSeen={};
@@ -462,6 +491,35 @@
       if(p[0]===id||p[1]===id)total+=state.edgeMemory[k]||0;
     });
     return total;
+  }
+  function edgeSignalCounts(key){
+    var row=state.edgeSignals&&state.edgeSignals[key];
+    return row?{life:row.life||0,memory:row.memory||0,strange:row.strange||0}:{life:0,memory:0,strange:0};
+  }
+  function bondForEdgeKey(key){
+    var c=edgeSignalCounts(key),total=c.life+c.memory+c.strange;
+    if(total<6)return null;
+    if(total>=9&&c.life>=2&&c.memory>=2&&c.strange>=2)return {kind:"braided",name:"Braided Bond",trait:"any",counts:c,total:total,text:"All three signal families have repeatedly crossed this relationship."};
+    var ranked=["life","memory","strange"].sort(function(a,b){return c[b]-c[a]});
+    if(c[ranked[0]]<4||c[ranked[0]]<c[ranked[1]]+2)return null;
+    if(ranked[0]==="life")return {kind:"rootway",name:"Rootway",trait:"life",counts:c,total:total,text:"Repeated life traffic has taught this route to favor growth signals."};
+    if(ranked[0]==="memory")return {kind:"echo-span",name:"Echo Span",trait:"memory",counts:c,total:total,text:"Repeated memory traffic has turned this route into a persistent archive channel."};
+    return {kind:"fold-thread",name:"Fold Thread",trait:"strange",counts:c,total:total,text:"Repeated strange traffic has trained this route to carry unstable geometry."};
+  }
+  function routeBonds(){
+    return Object.keys(state.edgeSignals||{}).map(function(key){
+      var bond=bondForEdgeKey(key);if(!bond)return null;
+      var ids=key.split("-").map(Number);
+      return {key:key,a:ids[0],b:ids[1],kind:bond.kind,name:bond.name,trait:bond.trait,counts:bond.counts,total:bond.total,text:bond.text,active:hasEdge(ids[0],ids[1])};
+    }).filter(Boolean);
+  }
+  function bondStroke(bond,alpha,ghost){
+    var rgb=ghost?"190,205,198":"145,229,183";
+    if(bond&&bond.kind==="rootway")rgb="201,245,169";
+    if(bond&&bond.kind==="echo-span")rgb="158,231,239";
+    if(bond&&bond.kind==="fold-thread")rgb="217,178,255";
+    if(bond&&bond.kind==="braided")rgb="255,224,154";
+    return "rgba("+rgb+","+alpha+")";
   }
   function globalImprints(){
     var out={life:0,memory:0,strange:0,total:0};
@@ -568,7 +626,8 @@
       {id:"symbiosis",done:["scribevine","glassmycelium","dreamwire"].every(function(kind){return residents.some(function(x){return x.kind===kind})}),text:"Can all three mixed-ecology bridge symbioses coexist at once?"},
       {id:"phenomenon",done:Object.keys(state.phenomenaSeen).some(function(k){return state.phenomenaSeen[k]}),text:"Can one macro-climate persist long enough to trigger an archipelago-wide sky phenomenon?"},
       {id:"lineage",done:state.islands.some(function(a){return a.lineage&&a.lineage!=="none"}),text:"Can enough migration history accumulate for a newborn island to inherit an echo lineage?"},
-      {id:"succession",done:state.islands.some(function(a){return a.palimpsest}),text:"Can one island genuinely live through grove-, archive-, and fold-mind roles and become a Palimpsest Mind?"}
+      {id:"succession",done:state.islands.some(function(a){return a.palimpsest}),text:"Can one island genuinely live through grove-, archive-, and fold-mind roles and become a Palimpsest Mind?"},
+      {id:"bond",done:routeBonds().some(function(b){return b.kind==="braided"}),text:"Can one relationship remember all three signal families strongly enough to become a Braided Bond?"}
     ];
   }
   function symbiosisSpecies(){
@@ -665,7 +724,7 @@
     save();renderUI();
   }
   function migrateSignals(){
-    var transfers=[],cycleClimate=macroClimate(),sendTraits={};
+    var transfers=[],cycleClimate=macroClimate(),sendTraits={},bondEvents=[];
     state.islands.forEach(function(a){sendTraits[a.id]=exportTrait(a)});
     state.islands.forEach(function(a){
       if(!a.links.length)return;
@@ -673,11 +732,13 @@
       var b=state.islands.find(function(x){return x.id===targetId});
       if(!b)return;
       var type=sendTraits[a.id];
+      var ek=edgeKey(a.id,b.id),existingBond=bondForEdgeKey(ek);
       var amount=3;
       if((state.mode==="Bloom"&&type==="life")||(state.mode==="Static"&&type==="memory")||(state.mode==="Storm"&&type==="strange"))amount=5;
       if(cycleClimate.trait===type)amount+=1;
       var lineageBonus=b.lineage===type?1:0;
-      var receivedAmount=amount+lineageBonus;
+      var bondBonus=existingBond&&(existingBond.trait==="any"||existingBond.trait===type)?1:0;
+      var receivedAmount=amount+lineageBonus+bondBonus;
       var beforeTrait=dominantTrait(b);
       if(type==="life")b.life=clamp(b.life+receivedAmount);
       if(type==="memory")b.memory=clamp(b.memory+receivedAmount);
@@ -690,8 +751,14 @@
       b.arrivals=(b.arrivals||0)+1;
       if(!b.imprints)b.imprints={life:0,memory:0,strange:0};
       b.imprints[type]=Math.min(10000,(b.imprints[type]||0)+1);
-      var ek=edgeKey(a.id,b.id);state.edgeMemory[ek]=(state.edgeMemory[ek]||0)+1;
-      transfers.push({from:a.id,to:b.id,type:type,amount:receivedAmount,lineageBonus:lineageBonus,sourcePalimpsest:!!a.palimpsest});
+      state.edgeMemory[ek]=(state.edgeMemory[ek]||0)+1;
+      if(!state.edgeSignals[ek])state.edgeSignals[ek]={life:0,memory:0,strange:0};
+      state.edgeSignals[ek][type]=Math.min(10000,(state.edgeSignals[ek][type]||0)+1);
+      var newBond=bondForEdgeKey(ek);
+      if((!existingBond&&newBond)||(existingBond&&!newBond)||(existingBond&&newBond&&existingBond.kind!==newBond.kind)){
+        bondEvents.push({key:ek,before:existingBond,after:newBond});
+      }
+      transfers.push({from:a.id,to:b.id,type:type,amount:receivedAmount,lineageBonus:lineageBonus,bondBonus:bondBonus,bondName:existingBond?existingBond.name:null,sourcePalimpsest:!!a.palimpsest});
       motes.push({from:a.id,to:b.id,type:type,start:performance.now(),duration:reducedMotion?1:1300+a.id*120});
     });
     if(transfers.length){
@@ -705,6 +772,17 @@
       state.log.unshift({c:state.cycle,msg:"Migration crossed the bridges: "+parts.join(", ")+" signal"+(transfers.length===1?"":"s")+"."});
       state.log=state.log.slice(0,20);
       if(state.islands.every(function(x){return x.arrivals>0}))d("cross-pollinated","Cross-Pollinated Archipelago","Every island has received a signal born somewhere else. The garden no longer has truly isolated histories.");
+      bondEvents.forEach(function(x){
+        if(!x.before&&x.after){
+          addChronicle("bond",x.after.name+" matured on route "+x.key+" from accumulated typed crossings.");
+          d("bond-"+x.after.kind,x.after.name,x.after.text);
+        }else if(x.before&&x.after){
+          addChronicle("bond",x.key+" transitioned from "+x.before.name+" to "+x.after.name+" as its crossing history changed.");
+          d("bond-"+x.after.kind,x.after.name,x.after.text);
+        }else if(x.before&&!x.after){
+          addChronicle("bond",x.key+" lost its "+x.before.name+" identity as its signal history became less coherent.");
+        }
+      });
     }
     return transfers;
   }
@@ -816,6 +894,8 @@
     document.getElementById("transitChip").textContent=motes.length?"Transit "+motes.length:"Transit quiet";
     var routeTotal=Object.keys(state.edgeMemory).reduce(function(n,k){return n+(state.edgeMemory[k]||0)},0);
     document.getElementById("historyChip").textContent="Route memory "+routeTotal;
+    var bonds=routeBonds();
+    document.getElementById("bondChip").textContent="Bonds "+bonds.length;
     var questions=researchPrompts(),doneQuestions=questions.filter(function(q){return q.done}).length;
     document.getElementById("researchChip").textContent="Research "+doneQuestions+"/"+questions.length;
     var climate=macroClimate();
@@ -861,7 +941,7 @@
     else{
       var transferText=lastCycleReport.transfers.length?lastCycleReport.transfers.map(function(x){
         var from=state.islands[x.from],to=state.islands[x.to];
-        return (from?from.name:"island "+x.from)+" → "+(to?to.name:"island "+x.to)+": "+x.type+" +"+x.amount+(x.lineageBonus?" (echo lineage +1)":"")+(x.sourcePalimpsest?" (remembered self)":"");
+        return (from?from.name:"island "+x.from)+" → "+(to?to.name:"island "+x.to)+": "+x.type+" +"+x.amount+(x.lineageBonus?" (echo lineage +1)":"")+(x.bondBonus?" ("+esc(x.bondName)+" +1)":"")+(x.sourcePalimpsest?" (remembered self)":"");
       }).join("<br>"):"No migrations crossed live routes.";
       var roleText=lastCycleReport.roleChanges.length?lastCycleReport.roleChanges.map(function(x){return esc(x.name)+": "+x.from+" → "+x.to}).join("<br>"):"No island changed dominant role.";
       var climateText=lastCycleReport.climateBefore===lastCycleReport.climateAfter?lastCycleReport.climateAfter:lastCycleReport.climateBefore+" → "+lastCycleReport.climateAfter;
@@ -871,6 +951,11 @@
     }
     var rq=document.getElementById("research");
     rq.innerHTML=questions.map(function(q){return '<div class="discovery"><b>'+(q.done?'✓ observed':'◇ open')+'</b><br>'+esc(q.text)+'</div>'}).join("");
+    var bp=document.getElementById("bonds");
+    bp.innerHTML=bonds.length?bonds.map(function(x){
+      var a=state.islands[x.a],b=state.islands[x.b],status=x.active?"active":"severed memory";
+      return '<div class="discovery"><b>'+esc(x.name)+'</b> · '+esc(status)+'<br>'+esc(a?a.name:"island "+x.a)+' ↔ '+esc(b?b.name:"island "+x.b)+' · L'+x.counts.life+' M'+x.counts.memory+' S'+x.counts.strange+'<br>'+esc(x.text)+'</div>';
+    }).join(""):'<p class="small">No route has accumulated enough typed crossing history to form a bond.</p>';
     var sp=document.getElementById("species"), residents=topologySpecies();
     sp.innerHTML=residents.length?residents.map(function(x){return '<div class="discovery"><b>'+esc(x.name)+'</b><br>'+esc(x.text)+'</div>'}).join(""):'<p class="small">No topology-dependent species currently resident.</p>';
     var ds=document.getElementById("discoveries");
@@ -935,15 +1020,15 @@
     Object.keys(state.edgeMemory).forEach(function(k){
       var ids=k.split("-").map(Number),a=state.islands[ids[0]],b=state.islands[ids[1]],mem=state.edgeMemory[k]||0;
       if(!a||!b||mem<=0||hasEdge(a.id,b.id))return;
-      ctx.strokeStyle="rgba(190,205,198,"+Math.min(.22,.04+mem*.012)+")";
+      ctx.strokeStyle=bondStroke(bondForEdgeKey(k),Math.min(.22,.04+mem*.012),true);
       ctx.lineWidth=Math.min(3,.5+mem*.12);ctx.setLineDash([2,10]);
       ctx.beginPath();ctx.moveTo(a.x*w,a.y*h);ctx.quadraticCurveTo((a.x+b.x)*w/2,h*.42,b.x*w,b.y*h);ctx.stroke();ctx.setLineDash([]);
     });
     state.islands.forEach(function(a){
       a.links.forEach(function(id){
         if(id<a.id)return;
-        var b=state.islands[id],mem=state.edgeMemory[edgeKey(a.id,id)]||0;
-        ctx.strokeStyle="rgba(145,229,183,"+Math.min(.78,.30+mem*.035)+")";
+        var b=state.islands[id],key=edgeKey(a.id,id),mem=state.edgeMemory[key]||0,bond=bondForEdgeKey(key);
+        ctx.strokeStyle=bondStroke(bond,Math.min(.78,.30+mem*.035),false);
         ctx.lineWidth=Math.min(5,1.4+mem*.22);ctx.setLineDash(mem>=8?[]:[5,7]);
         ctx.beginPath();ctx.moveTo(a.x*w,a.y*h);ctx.quadraticCurveTo((a.x+b.x)*w/2,h*.42,b.x*w,b.y*h);ctx.stroke();ctx.setLineDash([]);
       });
