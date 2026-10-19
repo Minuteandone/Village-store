@@ -99,7 +99,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip" id="motionChip">Motion · standard</span>
         <span class="chip" id="contrastChip">Contrast · custom</span>
-        <span class="chip" id="versionChip">v0.33 · save 7</span>
+        <span class="chip" id="versionChip">v0.34 · save 7</span>
       </div>
     </section>
 
@@ -258,7 +258,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.33",SAVE_SCHEMA=7;
+  var APP_VERSION="0.34",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -1097,11 +1097,13 @@
   function suggestedMove(){
     var edges=state.islands.reduce(function(n,a){return n+a.links.length},0)/2;
     if(state.selected===null)return {title:"1 · Select an island",text:"Click any island on the map or choose one in the navigator. Selection lets you inspect its role and apply the current signal."};
-    if(edges===0)return {title:"2 · Make a bridge",text:"Choose Connect, apply it to one island, then apply Connect to a second island. Bridges are where migration history begins."};
-    if(state.cycle===1)return {title:"3 · Let one cycle pass",text:"Use “Let one cycle pass.” Connected islands will exchange their outgoing signals and start writing route memory."};
+    if(edges===0&&state.focus<1)return {title:"2 · Recover bridge focus",text:"You can arm or cancel a Connect source for free, but completing the first bridge needs 1 focus. Let a cycle pass to restore 3 focus."};
+    if(edges===0)return {title:"2 · Make a bridge",text:"Choose Connect, apply it to one island for free, then complete the route to a second island for 1 focus. Bridges are where migration history begins."};
+    if(state.cycle===1)return {title:"3 · Let one cycle pass",text:"Use “Let one cycle pass.” Connected islands will exchange their outgoing signals, start writing route memory, and restore focus."};
     if(state.focus<1)return {title:"4 · Recover focus",text:"Let another cycle pass. Each cycle restores 3 focus and advances the garden's season."};
-    if(state.islands.length===4&&state.resonance<6)return {title:"4 · Build resonance",text:"Observe grants +2 resonance; Nurture and Distort grant +1. Reach 6 resonance while keeping 2 focus if you want to germinate new land."};
-    if(state.islands.length===4)return {title:"5 · Germinate new land",text:"You have enough resonance to expand the map. Germinate an island now, or keep shaping the original four."};
+    if(state.islands.length===4&&state.resonance<6)return {title:"4 · Build resonance",text:"Observe grants +2 resonance; Nurture and Distort grant +1. Reach 6 resonance while preserving enough focus for whatever you want to do next."};
+    if(state.islands.length===4&&state.focus<2)return {title:"5 · Restore germination focus",text:"You have enough resonance for new land, but germination needs 2 focus. Let a cycle pass to restore 3 focus, or keep exploring before you germinate."};
+    if(state.islands.length===4)return {title:"5 · Germinate new land",text:"You have enough resonance and focus to expand the map. Germinate an island now, or keep shaping the original four."};
     return {title:"Open research",text:"The garden is now yours. Pick any open Field Question, reshape the topology, cultivate route bonds, or export a specimen for another host."};
   }
   function renderUI(){
