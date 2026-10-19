@@ -61,6 +61,9 @@ assert.ok(!source.includes('addEventListener("mousemove"'),"canvas should not pe
 assert.ok(!source.includes('Math.hypot(dx,dy)'),"canvas hit testing should avoid an unnecessary square root");
 assert.equal((source.match(/canvas\.getBoundingClientRect\(\)/g)||[]).length,1,"canvas geometry should be read exactly once per click path");
 assert.ok(source.includes('canvas.addEventListener("click",function(e){apply(pickIsland(e.clientX,e.clientY))})'),"canvas click path should pass client coordinates directly to one hit-test geometry read");
+assert.ok(source.includes('checkpointUndo("same-seed reset")'),"same-seed reset should be recoverable in-session");
+assert.ok(source.includes('checkpointUndo("new random garden")'),"new-random-garden replacement should be recoverable in-session");
+assert.ok(!source.includes("undoSnapshot:"),"undo checkpoint must not be serialized as part of world state");
 assert.ok(source.includes('var frameBonds=routeBonds(),frameBondByKey={}'),"renderer should compute route bonds once per frame");
 assert.ok(source.includes('var frameJunctions=junctionEcologies(frameBonds),frameJunctionByIsland={}'),"renderer should reuse the frame bond snapshot for junctions");
 assert.ok(source.includes('var frameSpecies=topologySpecies(),frameCrown={},frameSymbioses=[]'),"renderer should compute topology species once per frame");
@@ -124,8 +127,10 @@ source = source.replace(
     log:log,
     apply:apply,
     renderUI:renderUI,
+    undoLastAction:undoLastAction,
+    hasUndo:function(){return !!undoSnapshot},
     getState:function(){return state},
-    setState:function(next){state=next;motes=[]}
+    setState:function(next){state=next;motes=[];lastCycleReport=null;undoSnapshot=null}
   };
 })();`
 );
@@ -165,7 +170,7 @@ const canvas = element({
 const ids = new Map();
 ids.set("garden", canvas);
 [
-  "seasonChip","focusChip","resChip","transitChip","historyChip","bondChip","junctionChip","constellationChip","provenanceChip","researchChip","climateChip","motionChip","contrastChip","germinateBtn","germinateStatus",
+  "seasonChip","focusChip","resChip","transitChip","historyChip","bondChip","junctionChip","constellationChip","provenanceChip","researchChip","climateChip","motionChip","contrastChip","germinateBtn","germinateStatus","undoBtn","undoStatus",
   "islandNav","applySelectedBtn","selectedName","selectedLore","lifeStat",
   "memoryStat","strangeStat","linksStat","arrivalsStat","trafficStat","glyphStat","lineageStat","successionStat","lifeMeter",
   "research","researchSummary","researchCompass","observedResearchDetails","observedResearchSummary","researchObserved","bonds","provenance","constellation","junctions","species","discoveries","chronicle","log","actionStatus","guidePanel","textMap","modeStatus","actionCostNote","glyphCostNote","glyphStatus","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
@@ -254,6 +259,66 @@ api.renderUI();
 assert.equal(ids.get("germinateBtn").disabled,true,"fresh garden should expose germination as disabled");
 assert.match(ids.get("germinateStatus").textContent,/6 more resonance/,"fresh germination status should explain the missing resource");
 assert.ok(glyphButtons.every(b=>b.disabled),"glyph controls should be unavailable until an island is selected");
+assert.equal(ids.get("undoBtn").disabled,true,"fresh session should not offer Undo");
+
+setGraph([island(0),island(1),island(2),island(3)]);
+api.getState().selected=0;
+api.getState().action="nurture";
+const undoLife=api.getState().islands[0].life,undoFocus=api.getState().focus;
+api.apply(api.getState().islands[0]);
+assert.ok(api.getState().islands[0].life>undoLife,"Nurture should mutate before Undo");
+assert.equal(api.hasUndo(),true);
+assert.equal(ids.get("undoBtn").disabled,false,"meaningful mutation should enable Undo");
+assert.equal(api.undoLastAction(),true,"first Undo should restore the checkpoint");
+assert.equal(api.getState().islands[0].life,undoLife);
+assert.equal(api.getState().focus,undoFocus);
+assert.equal(api.hasUndo(),false,"Undo should be single-use");
+assert.equal(api.undoLastAction(),false,"second Undo without a new mutation should do nothing");
+
+setGraph([island(0),island(1),island(2),island(3)]);
+api.getState().action="connect";api.getState().focus=0;
+api.apply(api.getState().islands[0]);
+assert.equal(api.getState().connectFrom,0);
+assert.equal(api.hasUndo(),false,"free Connect source planning should not consume the Undo slot");
+api.apply(api.getState().islands[0]);
+assert.equal(api.hasUndo(),false,"free Connect cancellation should not consume the Undo slot");
+
+setGraph([island(0),island(1),island(2),island(3)]);
+const undoCycle=api.getState().cycle;
+api.nextCycle();
+assert.equal(api.getState().cycle,undoCycle+1);
+assert.ok(api.getLastCycleReport());
+api.undoLastAction();
+assert.equal(api.getState().cycle,undoCycle,"Undo should restore the pre-cycle number");
+assert.equal(api.getLastCycleReport(),null,"Undo should restore the pre-cycle causal report");
+
+setGraph([island(0),island(1),island(2),island(3)]);
+api.getState().selected=0;api.getState().resonance=3;api.getState().focus=2;
+api.inscribeGlyph("life");
+assert.equal(api.getState().islands[0].glyph,"life");
+api.undoLastAction();
+assert.equal(api.getState().islands[0].glyph,"none","Undo should restore the previous glyph");
+assert.equal(api.getState().resonance,3);
+assert.equal(api.getState().focus,2);
+
+setGraph([island(0),island(1),island(2),island(3)]);
+api.getState().resonance=10;api.getState().focus=4;
+api.spawnIsland();
+assert.equal(api.getState().islands.length,5);
+api.undoLastAction();
+assert.equal(api.getState().islands.length,4,"Undo should remove newly germinated land");
+assert.equal(api.getState().resonance,10);
+assert.equal(api.getState().focus,4);
+
+setGraph([island(0),island(1),island(2),island(3)]);
+api.getState().seed="foreignseed";
+const foreignSpecimen=api.specimenCode();
+setGraph([island(0),island(1),island(2),island(3)]);
+assert.equal(api.getState().seed,"testseed");
+api.importSpecimenCode(foreignSpecimen);
+assert.equal(api.getState().seed,"foreignseed");
+api.undoLastAction();
+assert.equal(api.getState().seed,"testseed","Undo should restore the garden replaced by specimen import");
 
 api.getState().selected=0;
 api.renderUI();
