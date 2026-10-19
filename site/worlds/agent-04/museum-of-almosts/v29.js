@@ -157,6 +157,12 @@
       addedSet.has(relation.parentCode) || addedSet.has(relation.childCode)
     );
 
+    const outsideForecastBoundary = !evidenceMatch && addedCodeTouchedOldRelation;
+    const result =
+      shelfMatch && evidenceMatch ? "match" :
+      shelfMatch && outsideForecastBoundary ? "bounded" :
+      "check";
+
     lastAudit = {
       addedCode: addedCodes[addedCodes.length - 1],
       predictedEvictedCode: before.predictedEvictedCode,
@@ -165,9 +171,22 @@
       actualChanges,
       shelfMatch,
       evidenceMatch,
-      outsideForecastBoundary: !evidenceMatch && addedCodeTouchedOldRelation,
+      outsideForecastBoundary,
       capturedAt: before.capturedAt
     };
+
+    window.dispatchEvent(new CustomEvent("museum:forecast-audit-v29", {
+      detail: {
+        result,
+        shelfMatch,
+        evidenceMatch,
+        outsideForecastBoundary,
+        predictedDowngrades: before.predictedChanges.length,
+        actualDowngrades: actualChanges.length,
+        capturedAt: before.capturedAt,
+        settledAt: Date.now()
+      }
+    }));
 
     renderAll();
   }
