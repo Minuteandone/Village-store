@@ -142,6 +142,10 @@ try{
 
   const initialGuide=await evaluate("document.getElementById('guidePanel').textContent");
   assert.match(initialGuide,/Select an island/,"fresh deployed garden should expose first-step guidance");
+  const germinationInitiallyDisabled=await evaluate("document.getElementById('germinateBtn').disabled");
+  assert.equal(germinationInitiallyDisabled,true,"fresh garden should disable germination");
+  const germinationInitialStatus=await evaluate("document.getElementById('germinateStatus').textContent");
+  assert.match(germinationInitialStatus,/6 more resonance/,"disabled germination should expose its missing resource");
   const initialTextMap=await evaluate("document.getElementById('textMap').innerText");
   assert.match(initialTextMap,/isolated/,"fresh deployed Text Map should describe unlinked islands as isolated");
 
@@ -150,6 +154,10 @@ try{
   assert.equal(selectionRole,"status");
   const selectedAnnouncement=await evaluate("document.getElementById('selectionStatus').textContent");
   assert.ok(!selectedAnnouncement.includes("No island selected"),"selected-island status should update after navigator selection");
+  const echoInitiallyDisabled=await evaluate(`document.querySelector('[data-glyph="memory"]').disabled`);
+  assert.equal(echoInitiallyDisabled,true,"fresh selected island should not offer unaffordable glyph inscription");
+  const glyphInitialStatus=await evaluate("document.getElementById('glyphStatus').textContent");
+  assert.match(glyphInitialStatus,/3 more resonance/);
   const lifeBefore=Number(await evaluate("document.getElementById('lifeStat').textContent"));
   await evaluate(`document.querySelector('[data-action="nurture"]').click()`);
   await evaluate("document.getElementById('applySelectedBtn').click()");
@@ -199,11 +207,17 @@ try{
   await evaluate(`document.querySelector('[data-island-id="1"]').click()`);
   const glyphButtons=await evaluate(`document.querySelectorAll('[data-glyph]').length`);
   assert.equal(glyphButtons,4);
+  const echoReady=await evaluate(`!document.querySelector('[data-glyph="memory"]').disabled`);
+  assert.equal(echoReady,true,"migration progress should eventually make Echo inscription available");
+  const glyphDescription=await evaluate(`document.querySelector('[data-glyph="memory"]').getAttribute('aria-describedby')`);
+  assert.equal(glyphDescription,"glyphCostNote glyphStatus");
   await evaluate(`document.querySelector('[data-glyph="memory"]').click()`);
   const glyph=await evaluate("document.getElementById('glyphStat').textContent");
   assert.equal(glyph,"Echo");
   const echoGlyphPressed=await evaluate(`document.querySelector('[data-glyph="memory"]').getAttribute('aria-pressed')`);
   assert.equal(echoGlyphPressed,"true","selected glyph should expose pressed state");
+  const echoDisabledAfterSelection=await evaluate(`document.querySelector('[data-glyph="memory"]').disabled`);
+  assert.equal(echoDisabledAfterSelection,true,"currently selected glyph should be a disabled no-op");
   const rootGlyphPressed=await evaluate(`document.querySelector('[data-glyph="life"]').getAttribute('aria-pressed')`);
   assert.equal(rootGlyphPressed,"false");
 
@@ -256,7 +270,7 @@ try{
   assert.equal(exceptions.length,0,"uncaught browser exceptions: "+JSON.stringify(exceptions));
 
   console.log("Signal Garden shared-mirror browser smoke passed.");
-  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,contrastChip,panelShadow,activeOutline,title,firstTabClass,controlsLabel,canvasRole,selectedAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,initialTextMap,linkedTextMap,migratedTextMap,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,url:selectedUrl}));
+  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,contrastChip,panelShadow,activeOutline,title,firstTabClass,controlsLabel,canvasRole,selectedAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,germinationInitiallyDisabled,germinationInitialStatus,echoInitiallyDisabled,glyphInitialStatus,echoReady,glyphDescription,echoDisabledAfterSelection,initialTextMap,linkedTextMap,migratedTextMap,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,url:selectedUrl}));
 }finally{
   if(ws)try{ws.close()}catch{}
   proc.kill("SIGTERM");
