@@ -205,8 +205,9 @@
       makeIsland(0,.24,.31,58),makeIsland(1,.67,.27,48),makeIsland(2,.50,.62,66),makeIsland(3,.79,.69,42)
     ]};
   }
-  function validSavedState(saved){
-    if(!saved||saved.seed!==seed||!Array.isArray(saved.islands)||saved.islands.length<4||saved.islands.length>7)return false;
+  function validSavedState(saved,expectedSeed){
+    var wanted=validSeedString(expectedSeed)?expectedSeed:seed;
+    if(!saved||saved.seed!==wanted||!Array.isArray(saved.islands)||saved.islands.length<4||saved.islands.length>7)return false;
     if(!Number.isInteger(saved.cycle)||saved.cycle<1||!Number.isFinite(saved.focus)||!Number.isFinite(saved.resonance))return false;
     return saved.islands.every(function(a,i){
       return a&&a.id===i&&Number.isFinite(a.life)&&Number.isFinite(a.memory)&&Number.isFinite(a.strange)&&Array.isArray(a.links)&&
