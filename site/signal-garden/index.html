@@ -70,6 +70,7 @@
         <span class="chip" id="resChip">Resonance 0</span>
         <span class="chip" id="transitChip">Transit quiet</span>
         <span class="chip" id="historyChip">Route memory 0</span>
+        <span class="chip" id="researchChip">Research 0/5</span>
       </div>
     </section>
 
@@ -107,6 +108,11 @@
           <div><b id="trafficStat">—</b>route memory</div>
         </div>
         <div class="meter"><span id="lifeMeter"></span></div>
+      </div>
+
+      <div>
+        <h3>Field questions</h3>
+        <div class="discoveries" id="research"></div>
       </div>
 
       <div>
@@ -257,6 +263,18 @@
       if(p[0]===id||p[1]===id)total+=state.edgeMemory[k]||0;
     });
     return total;
+  }
+  function researchPrompts(){
+    var residents=topologySpecies();
+    var traits={life:false,memory:false,strange:false};
+    state.islands.forEach(function(a){traits[dominantTrait(a)]=true});
+    return [
+      {id:"new-land",done:state.islands.length>4,text:"Can resonance condense into an island that was not part of the starting map?"},
+      {id:"ring",done:residents.some(function(x){return x.id==="loopmoss"}),text:"Can you build one connected ring with no endpoints and attract Loopmoss?"},
+      {id:"pollination",done:state.islands.every(function(a){return a.arrivals>0}),text:"Can every current island receive at least one signal born somewhere else?"},
+      {id:"scar",done:residents.some(function(x){return x.id==="ghostreed"}),text:"Can a well-traveled route be severed without erasing its ecological memory?"},
+      {id:"ecologies",done:traits.life&&traits.memory&&traits.strange,text:"Can grove-, archive-, and fold-minds coexist in one archipelago?"}
+    ];
   }
   function topologySpecies(){
     var active=state.islands.filter(function(a){return a.links.length>0});
@@ -422,6 +440,8 @@
     document.getElementById("transitChip").textContent=motes.length?"Transit "+motes.length:"Transit quiet";
     var routeTotal=Object.keys(state.edgeMemory).reduce(function(n,k){return n+(state.edgeMemory[k]||0)},0);
     document.getElementById("historyChip").textContent="Route memory "+routeTotal;
+    var questions=researchPrompts(),doneQuestions=questions.filter(function(q){return q.done}).length;
+    document.getElementById("researchChip").textContent="Research "+doneQuestions+"/"+questions.length;
     var gb=document.getElementById("germinateBtn");
     gb.disabled=state.resonance<6||state.focus<2||state.islands.length>=7;
     gb.textContent=state.islands.length>=7?"🌿 Germination sites full":"🌿 Germinate island · 6 resonance + 2 focus";
@@ -444,6 +464,8 @@
     document.getElementById("arrivalsStat").textContent=a?a.arrivals:"—";
     document.getElementById("trafficStat").textContent=a?incidentTraffic(a.id):"—";
     document.getElementById("lifeMeter").style.width=(a?a.life:0)+"%";
+    var rq=document.getElementById("research");
+    rq.innerHTML=questions.map(function(q){return '<div class="discovery"><b>'+(q.done?'✓ observed':'◇ open')+'</b><br>'+esc(q.text)+'</div>'}).join("");
     var sp=document.getElementById("species"), residents=topologySpecies();
     sp.innerHTML=residents.length?residents.map(function(x){return '<div class="discovery"><b>'+esc(x.name)+'</b><br>'+esc(x.text)+'</div>'}).join(""):'<p class="small">No topology-dependent species currently resident.</p>';
     var ds=document.getElementById("discoveries");
