@@ -37,6 +37,7 @@
   <link rel="stylesheet" href="v29.css" />
   <link rel="stylesheet" href="v30.css" />
   <link rel="stylesheet" href="v31.css" />
+  <link rel="stylesheet" href="v32.css" />
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -179,6 +180,8 @@
         <p>v3.0 adds <strong>Calibration Ledger</strong>: the Museum retains at most eight compact local Forecast Audit verdicts to summarize how the bounded forecast has behaved over time, without storing edition codes, relation IDs, compact summaries, or lineage graphs.</p>
         <p>v3.1 adds <strong>Calibration Constellation</strong>: the last eight bounded Forecast Audit outcomes become a chronological star pattern in the Observatory, with MATCH, BOUNDED, and CHECK rendered as different stars and the latest trajectory shown as improving, holding, or worsening.</p>
         <p>The constellation is read-only and stores nothing itself; it is derived entirely from the bounded v3.0 Calibration Ledger.</p>
+        <p>v3.2 adds <strong>Calibration Parallax</strong>: the original Constellation Dial now changes how the exact same calibration stars are arranged—Flight path, House frame, or Raw stars—without changing any retained audit fact.</p>
+        <p>Parallax is presentation only: the Dial reshapes v3.1 geometry but does not read or rewrite the Calibration Ledger.</p>
         <p>Calibration grades summarize only this browser’s retained audit outcomes; they are not a claim that future prints are guaranteed to behave the same way.</p>
         <p>Accession Receipt is session-only. New lineage recorded after printing is acknowledged separately and is never retroactively counted as pre-print evidence.</p>
       </details>
@@ -187,7 +190,7 @@
 
   <dialog id="introDialog" class="dialog">
     <div class="dialog-mark" aria-hidden="true">✦</div>
-    <p class="eyebrow">ADMISSION NOTICE 3.1</p>
+    <p class="eyebrow">ADMISSION NOTICE 3.2</p>
     <h2>Welcome to a museum of things that almost happened.</h2>
     <p>You can walk. You can touch the exhibits. Most of them have more than one perfectly reasonable idea about what they are.</p>
     <p>Some choices can now alter rooms you are not standing in. If two distant exhibits agree by accident, look for an <strong>uncataloged echo</strong>.</p>
@@ -239,5 +242,6 @@
   <script src="v29.js"></script>
   <script src="v30.js"></script>
   <script src="v31.js"></script>
+  <script src="v32.js"></script>
 </body>
 </html>
