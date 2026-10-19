@@ -14,19 +14,21 @@ const v04 = read("v04.js");
 const v05 = read("v05.js");
 const v06 = read("v06.js");
 const v07 = read("v07.js");
+const v08 = read("v08.js");
 const v02css = read("v02.css");
 const v03css = read("v03.css");
 const v04css = read("v04.css");
 const v05css = read("v05.css");
 const v06css = read("v06.css");
 const v07css = read("v07.css");
+const v08css = read("v08.css");
 
 const failures = [];
 const expect = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js"]) {
+for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js"]) {
   expect(index.includes(asset), "index.html must reference " + asset);
 }
 
@@ -36,11 +38,12 @@ expect(
   index.indexOf("v03.js") < index.indexOf("v04.js") &&
   index.indexOf("v04.js") < index.indexOf("v05.js") &&
   index.indexOf("v05.js") < index.indexOf("v06.js") &&
-  index.indexOf("v06.js") < index.indexOf("v07.js"),
-  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js"
+  index.indexOf("v06.js") < index.indexOf("v07.js") &&
+  index.indexOf("v07.js") < index.indexOf("v08.js"),
+  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js"
 );
 
-for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07]]) {
+for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08]]) {
   expect(source.includes("agent04-museum-of-almosts-v1"), name + " must share the Museum storage key");
 }
 
@@ -154,6 +157,21 @@ expect(!v07.includes("localStorage.setItem(STORAGE_KEY"), "v0.7 must remain obse
 expect(!v07.includes("innerHTML"), "v0.7 should construct conservation UI with safe DOM APIs");
 expect(v07css.includes("prefers-reduced-motion"), "v0.7 conservation styling must respect reduced-motion");
 
+for (const phrase of ["UNBUILT_KEY", "MAX_BLUEPRINTS = 5", "The Unbuilt Wing", "seal this blueprint", "CURRENT BLUEPRINT"]) {
+  expect(v08.includes(phrase), "v0.8 missing Unbuilt Wing mechanic: " + phrase);
+}
+expect(v08.includes('["present", "afterimage", "reference"].includes(name)'), "v0.8 blueprint sources must be explicitly whitelisted");
+expect(v08.includes("Boolean(state.archiveSeen) && availableSources().length >= 2"), "v0.8 wing must require the Archive plus at least one alternate source");
+expect(v08.includes("wing.blueprints.slice(-MAX_BLUEPRINTS)"), "v0.8 sealed blueprint history must stay bounded");
+expect(v08.includes("localStorage.setItem(UNBUILT_KEY"), "v0.8 must persist only its own bounded blueprint state");
+expect(!v08.includes("localStorage.setItem(STORAGE_KEY"), "v0.8 must not rewrite the present Museum save");
+expect(!v08.includes("localStorage.setItem(REFERENCE_KEY"), "v0.8 must not rewrite the mounted reference");
+expect(!v08.includes("localStorage.setItem(AFTERIMAGE_KEY"), "v0.8 must not rewrite Afterimage storage");
+expect(v08.includes("normalizeSelection"), "v0.8 restored blueprints must fall back safely when a source is no longer available");
+expect(v08.includes("blueprintCode"), "v0.8 must produce deterministic local blueprint codes");
+expect(!v08.includes("innerHTML"), "v0.8 should construct the Unbuilt Wing with safe DOM APIs");
+expect(v08css.includes("prefers-reduced-motion"), "v0.8 Unbuilt Wing styling must respect reduced-motion");
+
 if (failures.length) {
   console.error("Museum of Almosts smoke check failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -161,4 +179,4 @@ if (failures.length) {
 }
 
 console.log("Museum of Almosts smoke check passed.");
-console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation contract.");
+console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing contract.");
