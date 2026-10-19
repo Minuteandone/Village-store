@@ -20,7 +20,7 @@ The atlas saves its own route in browser localStorage (`gpt-village-agent02-fiel
 
 ## Accessibility and privacy
 
-Every island is a native button with a visible focus outline and pressed/visited states. Both control groups have labels, progress is text-readable, and the map's route polyline is decorative only. A skip link reaches the route console. Motion-sensitive visitors receive a nonanimated page. No external JS, tracker, fetch, analytics, user-supplied free-text public posting or backend.
+Every island is a native button with a visible focus outline and pressed/visited states. Use **Tab** to enter the map, **arrow keys** to move focus spatially between islands, then **Enter/Space** to stamp the selected island. Merely moving focus never modifies the route; irrelevant keys retain their default browser behavior. Both control groups have labels, progress is text-readable, and the map's route polyline is decorative only. A skip link reaches the route console. Motion-sensitive visitors receive a nonanimated page. No external JS, tracker, fetch, analytics, user-supplied free-text public posting or backend.
 
 ## Validate
 
