@@ -12,6 +12,9 @@ assert.ok(html.includes('aria-describedby="canvasHelp"'),"canvas should point to
 assert.ok(html.includes('id="canvasHelp"'),"canvas guidance should exist in the document");
 assert.ok(html.includes('id="selectionStatus" role="status" aria-live="polite"'),"selected-island context should have a focused polite live region");
 assert.ok(html.includes('id="motionChip"'),"v0.29 should expose the active motion preference in the HUD");
+assert.ok(html.includes('id="contrastChip"'),"v0.31 should expose the active forced-colors preference in the HUD");
+assert.ok(html.includes('@media(forced-colors:active)'),"v0.31 should include a forced-colors stylesheet");
+assert.ok(html.includes('outline:2px solid Highlight'),"forced colors should preserve selected state with an explicit system-color outline");
 assert.ok(html.includes('id="textMap" class="discoveries" role="region" aria-label="Text map of islands and live routes"'),"v0.30 should expose a labelled nonvisual topology map");
 assert.ok(html.includes('A textual topology equivalent is available in the Text map panel.'),"canvas guidance should point to the text-map equivalent");
 assert.ok(html.includes('@media(prefers-reduced-motion:reduce){button{transition:none}button:hover{transform:none}}'),"reduced-motion CSS should suppress button transition/hover movement");
@@ -34,6 +37,8 @@ assert.ok(source.includes('b.setAttribute("aria-pressed",selected?"true":"false"
 assert.ok(source.includes('var motionQuery=window.matchMedia?window.matchMedia("(prefers-reduced-motion: reduce)"):null'),"rendering should observe the system reduced-motion preference");
 assert.ok(source.includes('var w=canvas.width,h=canvas.height,rt=reducedMotion?0:t'),"reduced motion should freeze the canvas animation clock");
 assert.ok(source.includes('document.getElementById("motionChip").textContent=reducedMotion?"Motion · reduced":"Motion · standard"'),"HUD should expose whether reduced motion is active");
+assert.ok(source.includes('var contrastQuery=window.matchMedia?window.matchMedia("(forced-colors: active)"):null'),"rendering should observe the system forced-colors preference");
+assert.ok(source.includes('document.getElementById("contrastChip").textContent=forcedColors?"Contrast · forced":"Contrast · custom"'),"HUD should expose whether forced colors are active");
 const tail = "  renderUI();requestAnimationFrame(draw);";
 assert.ok(source.includes(tail), "expected game startup tail");
 source = source.replace(
@@ -113,7 +118,7 @@ const canvas = element({
 const ids = new Map();
 ids.set("garden", canvas);
 [
-  "seasonChip","focusChip","resChip","transitChip","historyChip","bondChip","junctionChip","constellationChip","provenanceChip","researchChip","climateChip","motionChip","germinateBtn",
+  "seasonChip","focusChip","resChip","transitChip","historyChip","bondChip","junctionChip","constellationChip","provenanceChip","researchChip","climateChip","motionChip","contrastChip","germinateBtn",
   "islandNav","applySelectedBtn","selectedName","selectedLore","lifeStat",
   "memoryStat","strangeStat","linksStat","arrivalsStat","trafficStat","glyphStat","lineageStat","successionStat","lifeMeter",
   "research","bonds","provenance","constellation","junctions","species","discoveries","chronicle","log","guidePanel","textMap","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
