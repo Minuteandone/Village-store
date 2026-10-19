@@ -1,10 +1,11 @@
 name: agent-03 Signal Garden public route smoke
 
 on:
-  push:
-    paths:
-      - "site/signal-garden/index.html"
-      - ".github/workflows/agent-03-signal-garden-public-smoke.yml"
+  workflow_run:
+    workflows:
+      - "pages build and deployment"
+    types:
+      - completed
   workflow_dispatch:
 
 permissions:
@@ -16,54 +17,49 @@ concurrency:
 
 jobs:
   public-route:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout expected mirror
+      - name: Checkout deployed mirror head
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
-      - name: Verify public Signal Garden mirror matches source
+      - name: Verify friendly alias and deployed artifact
         shell: bash
         env:
-          WORLD_URL: https://minuteandone.github.io/Village-store/signal-garden/
+          FRIENDLY_URL: https://minuteandone.github.io/Village-store/signal-garden/
+          ARTIFACT_URL: https://minuteandone.github.io/Village-store/site/signal-garden/
         run: |
           set -euo pipefail
 
           expected_version="$(grep -E -o 'APP_VERSION="[^"]+"' site/signal-garden/index.html | head -n1 | cut -d'"' -f2)"
           expected_schema="$(grep -E -o 'SAVE_SCHEMA=[0-9]+' site/signal-garden/index.html | head -n1 | cut -d= -f2)"
+          [ -n "$expected_version" ] && [ -n "$expected_schema" ]
 
-          if [ -z "$expected_version" ] || [ -z "$expected_schema" ]; then
-            echo "Could not derive expected Signal Garden version/schema." >&2
+          alias_body="$RUNNER_TEMP/signal-garden-alias.html"
+          artifact_body="$RUNNER_TEMP/signal-garden.html"
+
+          alias_status="$(curl --silent --show-error --output "$alias_body" --write-out '%{http_code}' "$FRIENDLY_URL" || true)"
+          if [ "$alias_status" != "200" ] || ! grep -Fq 'signal-garden-forward-target' "$alias_body"; then
+            echo "Friendly Signal Garden alias is unavailable or malformed." >&2
             exit 1
           fi
 
-          body="$RUNNER_TEMP/signal-garden.html"
-          status=""
-          final_url=""
-
-          for attempt in {1..30}; do
-            status="$(curl --location --silent --show-error --output "$body" --write-out '%{http_code}' "$WORLD_URL" || true)"
-            final_url="$(curl --location --silent --show-error --output /dev/null --write-out '%{url_effective}' "$WORLD_URL" || true)"
-
-            if [ "$status" = "200" ]               && grep -Fq "The Signal Garden" "$body"               && grep -Fq "APP_VERSION=\"$expected_version\"" "$body"               && grep -Fq "SAVE_SCHEMA=$expected_schema" "$body"; then
+          for attempt in {1..36}; do
+            status="$(curl --location --silent --show-error --output "$artifact_body" --write-out '%{http_code}' "$ARTIFACT_URL" || true)"
+            if [ "$status" = "200" ]               && grep -Fq "The Signal Garden" "$artifact_body"               && grep -Fq "APP_VERSION=\"$expected_version\"" "$artifact_body"               && grep -Fq "SAVE_SCHEMA=$expected_schema" "$artifact_body"; then
               echo "Signal Garden public-route smoke passed." >> "$GITHUB_STEP_SUMMARY"
-              echo "Requested: $WORLD_URL" >> "$GITHUB_STEP_SUMMARY"
-              echo "Effective: $final_url" >> "$GITHUB_STEP_SUMMARY"
-              echo "HTTP status: $status" >> "$GITHUB_STEP_SUMMARY"
+              echo "Friendly alias: $FRIENDLY_URL" >> "$GITHUB_STEP_SUMMARY"
+              echo "Artifact: $ARTIFACT_URL" >> "$GITHUB_STEP_SUMMARY"
               echo "Observed app version: $expected_version / save schema $expected_schema" >> "$GITHUB_STEP_SUMMARY"
-              rm -f "$body"
               exit 0
             fi
-
             sleep 5
           done
 
-          echo "Signal Garden public-route smoke failed." >&2
-          echo "Expected: app $expected_version / save $expected_schema" >&2
-          echo "Requested: $WORLD_URL" >&2
-          echo "Effective: ${final_url:-unknown}" >&2
-          echo "Last HTTP status: ${status:-none}" >&2
-          if [ -f "$body" ]; then
-            grep -E -o 'APP_VERSION="[^"]+"|SAVE_SCHEMA=[0-9]+' "$body" | head -n 5 || true
+          echo "Signal Garden deployed artifact did not match expected app $expected_version / save $expected_schema." >&2
+          if [ -f "$artifact_body" ]; then
+            grep -E -o 'APP_VERSION="[^"]+"|SAVE_SCHEMA=[0-9]+' "$artifact_body" | head -n 5 || true
           fi
-          rm -f "$body"
           exit 1
