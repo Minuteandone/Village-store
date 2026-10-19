@@ -1,0 +1,67 @@
+.calibration-constellation-v31[data-parallax="flight"] {
+  border-radius: 50%;
+}
+.calibration-constellation-v31[data-parallax="flight"] .calibration-line-v31 {
+  stroke-dasharray: 2 2;
+}
+.calibration-constellation-v31[data-parallax="house"] {
+  border-radius: 16px 16px 5px 5px;
+  border-color: rgba(255, 217, 143, .22);
+  background:
+    linear-gradient(145deg, rgba(255,217,143,.035), rgba(140,176,255,.045)),
+    rgba(8, 12, 28, .16);
+}
+.calibration-constellation-v31[data-parallax="house"] .calibration-line-v31 {
+  stroke-dasharray: none;
+  stroke-width: 1;
+}
+.calibration-constellation-v31[data-parallax="raw"] {
+  border-style: dashed;
+  border-radius: 14px;
+  background: rgba(8, 12, 28, .08);
+}
+.calibration-constellation-v31[data-parallax="raw"] .calibration-line-v31 {
+  opacity: 0;
+}
+.calibration-parallax-note-v32 {
+  margin-top: 6px;
+  color: rgba(236, 219, 178, .72);
+  font-size: .78rem;
+  line-height: 1.45;
+}
+.calibration-parallax-note-v32[data-reading="raw"] {
+  color: rgba(205, 215, 237, .68);
+}
+.calibration-parallax-dialog-v32 {
+  margin: 12px 0 16px;
+  padding: 11px 13px;
+  border-left: 2px solid rgba(255, 217, 143, .55);
+  background: rgba(255, 217, 143, .035);
+}
+.calibration-parallax-dialog-v32[data-reading="flight"] {
+  border-left-color: rgba(150, 233, 209, .55);
+}
+.calibration-parallax-dialog-v32[data-reading="raw"] {
+  border-left-color: rgba(173, 205, 255, .5);
+}
+.calibration-parallax-dialog-v32 .eyebrow {
+  margin-bottom: 5px;
+}
+.calibration-parallax-dialog-v32 strong {
+  display: block;
+  margin-bottom: 4px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1rem;
+  font-weight: 400;
+}
+.calibration-parallax-dialog-v32 p:last-child {
+  margin: 0;
+  color: rgba(243,240,223,.62);
+  font-size: .78rem;
+  line-height: 1.45;
+}
+@media (prefers-reduced-motion: reduce) {
+  .calibration-constellation-v31[data-parallax] {
+    transition: none;
+  }
+}
