@@ -108,8 +108,16 @@
           <div><b id="linksStat">—</b>links</div>
           <div><b id="arrivalsStat">—</b>arrivals</div>
           <div><b id="trafficStat">—</b>route memory</div>
+          <div><b id="glyphStat">—</b>glyph</div>
         </div>
         <div class="meter"><span id="lifeMeter"></span></div>
+        <div class="small" style="margin-top:10px">Inscribe a glyph · costs 3 resonance + 1 focus. Glyphs add +2 of their trait whenever this island receives a migration.</div>
+        <div class="actions" style="margin-top:8px">
+          <button data-glyph="life">⌁ Root</button>
+          <button data-glyph="memory">◌ Echo</button>
+          <button data-glyph="strange">◇ Fold</button>
+          <button data-glyph="none">× Clear</button>
+        </div>
       </div>
 
       <div>
@@ -171,7 +179,7 @@
   var spawnSlots=[{x:.16,y:.72,r:39},{x:.88,y:.46,r:41},{x:.44,y:.14,r:37}];
   function makeIsland(i,x,y,r){
     var n=baseNames[Math.floor(rand()*baseNames.length)]+" "+(i+1);
-    return {id:i,name:n,x:x,y:y,r:r,life:35+Math.floor(rand()*35),memory:10+Math.floor(rand()*20),strange:5+Math.floor(rand()*18),links:[],arrivals:0,phase:rand()*6.28,color:palettes[Math.floor(rand()*palettes.length)]};
+    return {id:i,name:n,x:x,y:y,r:r,life:35+Math.floor(rand()*35),memory:10+Math.floor(rand()*20),strange:5+Math.floor(rand()*18),links:[],arrivals:0,glyph:"none",phase:rand()*6.28,color:palettes[Math.floor(rand()*palettes.length)]};
   }
   function fresh(){
     randState=hash(seed);
@@ -188,7 +196,10 @@
   if(!state.climateSeen||typeof state.climateSeen!=="object")state.climateSeen={};
   if(!Array.isArray(state.chronicle))state.chronicle=[];
   if(typeof state.lastClimate!=="string")state.lastClimate=null;
-  state.islands.forEach(function(a){if(typeof a.arrivals!=="number")a.arrivals=0});
+  state.islands.forEach(function(a){
+    if(typeof a.arrivals!=="number")a.arrivals=0;
+    if(["none","life","memory","strange"].indexOf(a.glyph)<0)a.glyph="none";
+  });
   var mouse={x:0,y:0};
   var motes=[];
   var reducedMotion=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -204,6 +215,7 @@
     var payload={
       v:1,seed:state.seed,cycle:state.cycle,focus:state.focus,resonance:state.resonance,mode:state.mode,climates:Object.keys(state.climateSeen).filter(function(k){return state.climateSeen[k]}),
       traits:state.islands.map(function(a){return [Math.round(a.life),Math.round(a.memory),Math.round(a.strange),Math.round(a.arrivals||0)]}),
+      glyphs:state.islands.map(function(a){return a.glyph||"none"}),
       edges:edges,memory:memory
     };
     return "SG1."+btoa(JSON.stringify(payload)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
@@ -225,6 +237,7 @@
     if(["Quiet","Bloom","Static","Storm"].indexOf(p.mode)<0)throw new Error("Specimen season is invalid.");
     if(!Array.isArray(p.edges)||p.edges.length>21||!Array.isArray(p.memory)||p.memory.length>21)throw new Error("Specimen network is too large.");
     if(p.climates!==undefined&&(!Array.isArray(p.climates)||p.climates.length>4||p.climates.some(function(k){return ["verdant","echo","fracture","braided"].indexOf(k)<0})))throw new Error("Specimen climate history is invalid.");
+    if(p.glyphs!==undefined&&(!Array.isArray(p.glyphs)||p.glyphs.length!==p.traits.length||p.glyphs.some(function(k){return ["none","life","memory","strange"].indexOf(k)<0})))throw new Error("Specimen glyph data is invalid.");
     var n=p.traits.length,seen={};
     p.edges.forEach(function(e){
       if(!Array.isArray(e)||e.length!==2||!e.every(Number.isInteger)||e[0]<0||e[1]<0||e[0]>=n||e[1]>=n||e[0]===e[1])throw new Error("Specimen edge is invalid.");
@@ -247,6 +260,7 @@
     }
     next.islands.forEach(function(a,i){
       var row=p.traits[i];a.life=row[0];a.memory=row[1];a.strange=row[2];a.arrivals=row[3];a.links=[];
+      a.glyph=Array.isArray(p.glyphs)?p.glyphs[i]:"none";
     });
     p.edges.forEach(function(e){next.islands[e[0]].links.push(e[1]);next.islands[e[1]].links.push(e[0])});
     next.edgeMemory={};p.memory.forEach(function(e){next.edgeMemory[edgeKey(e[0],e[1])]=e[2]});
@@ -372,6 +386,19 @@
     if(old.length)species.push({id:"ghostreed",name:"Ghost Reed",text:"A severed high-traffic route still carries enough memory for pale Ghost Reed to grow along the scar."});
     return species.concat(symbiosisSpecies());
   }
+  function glyphName(type){return type==="life"?"Root":type==="memory"?"Echo":type==="strange"?"Fold":"None"}
+  function inscribeGlyph(type){
+    if(["none","life","memory","strange"].indexOf(type)<0)return;
+    var a=state.islands.find(function(x){return x.id===state.selected});
+    if(!a){log("Select an island before inscribing a glyph.");return}
+    if(a.glyph===type){log(a.name+" already carries the "+glyphName(type)+" glyph.");return}
+    var cost=type==="none"?0:3,focusCost=1;
+    if(state.resonance<cost||state.focus<focusCost){log("That inscription needs "+cost+" resonance and "+focusCost+" focus.");return}
+    state.resonance-=cost;state.focus-=focusCost;a.glyph=type;
+    addChronicle("glyph",type==="none"?"Cleared the glyph from "+a.name+".":"Inscribed the "+glyphName(type)+" glyph on "+a.name+".");
+    log(type==="none"?"Cleared "+a.name+"'s glyph.":a.name+" now carries the "+glyphName(type)+" glyph.");
+    save();renderUI();
+  }
   function spawnIsland(){
     if(state.islands.length>=7){log("The current sky can support only seven islands.");return}
     if(state.resonance<6||state.focus<2){log("Germination needs 6 resonance and 2 focus.");return}
@@ -410,9 +437,15 @@
       if((state.mode==="Bloom"&&type==="life")||(state.mode==="Static"&&type==="memory")||(state.mode==="Storm"&&type==="strange"))amount=5;
       var climate=macroClimate();
       if(climate.trait===type)amount+=1;
+      var beforeTrait=dominantTrait(b);
       if(type==="life")b.life=clamp(b.life+amount);
       if(type==="memory")b.memory=clamp(b.memory+amount);
       if(type==="strange"){b.strange=clamp(b.strange+amount);b.life=clamp(b.life-1)}
+      if(b.glyph==="life")b.life=clamp(b.life+2);
+      if(b.glyph==="memory")b.memory=clamp(b.memory+2);
+      if(b.glyph==="strange")b.strange=clamp(b.strange+2);
+      var afterTrait=dominantTrait(b);
+      if(b.glyph!=="none"&&beforeTrait!==afterTrait)addChronicle("glyph-turn",b.name+"'s "+glyphName(b.glyph)+" glyph shifted it toward "+afterTrait+".");
       b.arrivals=(b.arrivals||0)+1;
       var ek=edgeKey(a.id,b.id);state.edgeMemory[ek]=(state.edgeMemory[ek]||0)+1;
       transfers.push({from:a.id,to:b.id,type:type,amount:amount});
@@ -543,6 +576,11 @@
     document.getElementById("linksStat").textContent=a?a.links.length:"—";
     document.getElementById("arrivalsStat").textContent=a?a.arrivals:"—";
     document.getElementById("trafficStat").textContent=a?incidentTraffic(a.id):"—";
+    document.getElementById("glyphStat").textContent=a?glyphName(a.glyph):"—";
+    document.querySelectorAll("[data-glyph]").forEach(function(b){
+      b.disabled=!a||(b.dataset.glyph!=="none"&&(state.resonance<3||state.focus<1))||(b.dataset.glyph==="none"&&state.focus<1);
+      b.classList.toggle("active",!!a&&a.glyph===b.dataset.glyph);
+    });
     document.getElementById("lifeMeter").style.width=(a?a.life:0)+"%";
     var rq=document.getElementById("research");
     rq.innerHTML=questions.map(function(q){return '<div class="discovery"><b>'+(q.done?'✓ observed':'◇ open')+'</b><br>'+esc(q.text)+'</div>'}).join("");
@@ -629,12 +667,17 @@
       if(topologySpecies().some(function(sp){return sp.id==="crown"&&sp.island===a.id})){
         ctx.fillStyle="#ffe09a";ctx.font="20px system-ui,sans-serif";ctx.textAlign="center";ctx.fillText("✦",x,y-r-16);
       }
+      if(a.glyph!=="none"){
+        ctx.strokeStyle=a.glyph==="life"?"#d8f3b0":a.glyph==="memory"?"#a7e8f0":"#e2c2ff";
+        ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r+7,0,Math.PI*2);ctx.stroke();
+      }
       ctx.fillStyle="#b8d9c2";ctx.font="10px ui-monospace,monospace";ctx.textAlign="center";ctx.fillText(dominantTrait(a).toUpperCase(),x,y+r+20);
       ctx.fillStyle="#eaf8ee";ctx.font="12px ui-monospace,monospace";ctx.fillText(a.name,x,y+r+36);
     });
     requestAnimationFrame(draw);
   }
   document.querySelectorAll("[data-action]").forEach(function(b){b.addEventListener("click",function(){state.action=b.dataset.action;delete state.connectFrom;save();renderUI()})});
+  document.querySelectorAll("[data-glyph]").forEach(function(b){b.addEventListener("click",function(){inscribeGlyph(b.dataset.glyph)})});
   document.getElementById("islandNav").addEventListener("click",function(e){
     var b=e.target.closest("[data-island-id]");if(!b)return;
     state.selected=Number(b.dataset.islandId);save();renderUI();
