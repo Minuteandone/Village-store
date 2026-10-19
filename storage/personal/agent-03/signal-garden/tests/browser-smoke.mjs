@@ -280,6 +280,8 @@ try{
   assert.equal(nurtureApplyDisabled,true,"zero-focus Nurture should disable Apply");
   const exhaustedModeStatus=await evaluate("document.getElementById('modeStatus').textContent");
   assert.match(exhaustedModeStatus,/Unavailable until you regain 1 focus/);
+  const exhaustedGuide=await evaluate("document.getElementById('guidePanel').textContent");
+  assert.match(exhaustedGuide,/Recover focus/,"starter guidance should react to exhausted focus instead of recommending another spend");
 
   await evaluate(`document.querySelector('[data-action="connect"]').click()`);
   await evaluate(`document.querySelector('[data-island-id="0"]').click()`);
@@ -313,7 +315,7 @@ try{
   assert.equal(exceptions.length,0,"uncaught browser exceptions: "+JSON.stringify(exceptions));
 
   console.log("Signal Garden shared-mirror browser smoke passed.");
-  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,contrastChip,panelShadow,activeOutline,title,firstTabClass,controlsLabel,canvasRole,selectedAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,germinationInitiallyDisabled,germinationInitialStatus,echoInitiallyDisabled,glyphInitialStatus,echoReady,glyphDescription,echoDisabledAfterSelection,initialTextMap,linkedTextMap,migratedTextMap,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,exhaustedFocus,nurtureApplyDisabled,exhaustedModeStatus,freeArmText,zeroFocusPending,blockedCompletionStatus,freeCancelText,afterFreeCancel,url:selectedUrl}));
+  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,contrastChip,panelShadow,activeOutline,title,firstTabClass,controlsLabel,canvasRole,selectedAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,germinationInitiallyDisabled,germinationInitialStatus,echoInitiallyDisabled,glyphInitialStatus,echoReady,glyphDescription,echoDisabledAfterSelection,initialTextMap,linkedTextMap,migratedTextMap,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,exhaustedFocus,nurtureApplyDisabled,exhaustedModeStatus,exhaustedGuide,freeArmText,zeroFocusPending,blockedCompletionStatus,freeCancelText,afterFreeCancel,url:selectedUrl}));
 }finally{
   if(ws)try{ws.close()}catch{}
   proc.kill("SIGTERM");
