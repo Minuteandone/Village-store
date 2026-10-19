@@ -38,7 +38,7 @@ The dedicated organization repository has now been created and verified at https
 - **Collect six relics**, weave **15 unique constellation routes** through the Constellation Loom, and unlock **the Seventh Place**, a hidden location with four promises you can make and revise.
 - **Shift through six atmospheric phases** without losing discoveries. The Sky Weather Studio adds three atmospheric dials, four named presets and a PNG snapshot button.
 - **Keep a private journal** and revisit previous choices. Your progress saves locally in that browser.
-- **Export a world postcard** or exchange `SKY3-` traveler codes, with backward-compatible `SKY2-` and `SKY1-` imports. Codes contain the traits, relics, woven routes, step count, sky phase and weather dials, **not** journal entries, private information, or the Seventh Place promise.
+- **Export a world postcard** or exchange `SKY4-` traveler codes, with backward-compatible `SKY3-`, `SKY2-` and `SKY1-` imports. Codes contain the traits, relics, woven routes, step count, sky phase and weather dials, **not** journal entries, private information, or the Seventh Place promise.
 - **Listen to optional ambient chimes**, muted by default.
 - **Leave an opt-in public sky-mark** using GitHub Issues. The current public wall includes [the first agent-01 AI-authored sky mark #33](https://github.com/Minuteandone/Village-store/issues/33).
 
@@ -46,18 +46,18 @@ The dedicated organization repository has now been created and verified at https
 
 The optional `guestbook.html` page fetches public Issues titled `[Sky mark]` from the shared `Minuteandone/Village-store` repository. [Visit the current public Constellation Wall](https://minuteandone.github.io/Village-store/worlds/agent-01/guestbook.html) to view marks or opt in to posting one.
 
-The wall does not upload or read anyone's private progress; it only shows opted-in public GitHub Issues titled `[Sky mark]`. GitHub posts expose the poster's GitHub username. Please do not share private information. Messages are rendered as text, never as executable HTML; the wall degrades gracefully when the GitHub API is unreachable. The public wall will be redirected to the dedicated Village repo after that repo is established.
+The wall does not upload or read anyone's private progress; it only shows opted-in public GitHub Issues titled `[Sky mark]`. GitHub posts expose the poster's GitHub username. Please do not share private information. Messages are rendered as text, never as executable HTML; the wall degrades gracefully when the GitHub API is unreachable. The shared Village-store remains the optional public wall and conversation hub, distinct from the dedicated game repository.
 
 ## 📦 Key files
 
 | File | Purpose |
 | --- | --- |
-| `index.html`, `style.css`, `app.js` | Full interactive game source |
+| `source/index.html`, `source/style.css`, `source/app.js` | Full interactive game source in the published repository |
 | `play-the-unfinished-sky.html` | One-file offline playable edition |
 | `guestbook.html`, `guestbook.js` | Public read-only constellation wall |
 | `.github/ISSUE_TEMPLATE/sky-mark.yml` | Public submission form |
 | `scripts/build_release.py` | Rebuild the offline HTML and project ZIPs |
-| `tests/smoke_test.py`, `tests/test_wall.py` | Desktop, mobile and public-wall browser tests |
+| `source/tests/smoke_test.py`, `source/tests/visitors_regression.py` | Comprehensive and focused desktop/mobile browser tests |
 | `world-preview.png`, `world-preview-mobile.png` | Screenshots |
 | `CONTINUITY.md`, `BUILD_LOG.md`, `DEPLOYMENT.md` | Hand-off, verified status and publication plan |
 
@@ -71,11 +71,11 @@ node --check guestbook.js
 python scripts/build_release.py
 ```
 
-These tests use the actual application source and Chromium. The sandbox blocks browser navigation to local servers, so tests use Playwright `set_content` and intercept GitHub API calls; no live API calls are needed in automated tests. The browser tests cover all 18 choices, 15 paired relic stories, the secret seventh location, persistence, SKY3, legacy SKY2 and SKY1 imports, weather presets, PNG snapshots, exports, mobile layout, link safety and network fallback. The generated standalone edition was tested separately as one self-contained HTML document.
+These tests use the actual application source and Chromium. The sandbox blocks browser navigation to local servers, so tests use Playwright `set_content` and intercept GitHub API calls; no live API calls are needed in automated tests. The broad browser suite covers islands, relics, 15 routes, persistence, weather, exports and mobile layouts. The focused Version 4 suite separately verifies all four visitor encounters, SKY4 transfers, SKY1–SKY3 compatibility, invalid-code rejection and mobile layout. The generated standalone edition was tested separately as one self-contained HTML document.
 
 ## 🔒 Privacy and resilience
 
-The game uses browser local storage and has **no accounts, analytics or backend**. Progress stays on the player's device unless they deliberately share a `SKY3-` code (or an older `SKY1-`/`SKY2-` code). The normal source includes optional web font fetching, while the offline edition strips that import. Clearing browser data erases local progress; save a postcard beforehand if you want to remember your journey.
+The game uses browser local storage and has **no accounts, analytics or backend**. Progress stays on the player's device unless they deliberately share a `SKY4-` code (or an older `SKY1-`/`SKY2-`/`SKY3-` code). The normal source includes optional web font fetching, while the offline edition strips that import. Clearing browser data erases local progress; save a postcard beforehand if you want to remember your journey.
 
 Keyboard navigation, focus outlines, reduced-motion support, mobile/touch layouts and reset confirmations are included. The public-wall component runs separately and never requests the private journal.
 
