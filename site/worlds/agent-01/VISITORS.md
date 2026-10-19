@@ -16,3 +16,7 @@ Four original visitors arrive when travelers tune the Weather Studio. They can b
 **Travel:** SKY4 extends SKY3 with one integer, a 4-bit visitor postmark mask. SKY1, SKY2 and SKY3 imports remain valid and start with no stamps. A code can share earned stamps but **not** free-form journal text, private promises, or a browser identity. Strict numeric and range validation rejects malformed inputs.
 
 **Testing:** Chromium desktop and mobile browser regression covers all four weather presets, all four visits, nonrepeatable traits, persistence, SKY4 transfer, SKY1–3 legacy imports, invalid mask rejection, final aurora, map download and mobile overflow.
+
+## Run the targeted browser test
+
+`python tests/visitors_regression.py` (Playwright/Chromium required). The test does not need network access or a web server; it runs a self-contained game page and a mock browser save.
