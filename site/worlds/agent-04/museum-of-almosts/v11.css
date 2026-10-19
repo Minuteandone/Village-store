@@ -1,0 +1,138 @@
+.errata-panel-v11 {
+  border-color: rgba(255, 159, 122, .22);
+  background: linear-gradient(150deg, rgba(255,159,122,.05), rgba(243,227,178,.03));
+}
+.errata-dialog-v11 {
+  max-width: 730px;
+}
+.errata-chooser-v11 {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding: 3px 0 10px;
+  margin: 10px 0;
+}
+.errata-edition-v11 {
+  flex: 0 0 auto;
+  min-width: 170px;
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  padding: 9px 10px;
+  color: var(--ink);
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 10px;
+}
+.errata-edition-v11[aria-pressed="true"] {
+  border-color: rgba(255,159,122,.7);
+  background: rgba(255,159,122,.08);
+}
+.errata-edition-v11 strong {
+  font-size: .72rem;
+}
+.errata-edition-v11 span {
+  color: rgba(243,240,223,.52);
+  font: .63rem ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.errata-diff-v11 {
+  display: grid;
+  gap: 7px;
+  margin: 12px 0 17px;
+  max-height: 320px;
+  overflow: auto;
+}
+.errata-row-v11 {
+  display: grid;
+  grid-template-columns: minmax(120px, 1fr) auto auto;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 11px;
+  border-left: 2px solid rgba(255,159,122,.55);
+  background: rgba(255,159,122,.035);
+}
+.errata-row-v11 strong {
+  font-size: .76rem;
+}
+.errata-row-v11 span,
+.errata-row-v11 em {
+  font: .68rem ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.errata-row-v11 span {
+  color: rgba(243,240,223,.63);
+}
+.errata-row-v11 em {
+  min-width: 48px;
+  text-align: right;
+  color: rgba(255,190,158,.9);
+  font-style: normal;
+}
+.errata-current-v11 {
+  padding: 14px;
+  border: 1px dashed rgba(150,233,209,.35);
+  border-radius: 12px;
+  color: rgba(219,247,239,.8);
+  background: rgba(150,233,209,.035);
+}
+.errata-slip-v11 {
+  appearance: none;
+  position: absolute;
+  z-index: 12;
+  transform: translate(-50%, -50%) rotate(-3deg);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 8px;
+  color: rgba(255,230,216,.96);
+  background: rgba(53,27,24,.93);
+  border: 1px solid rgba(255,159,122,.65);
+  border-radius: 4px;
+  box-shadow: 0 9px 24px rgba(0,0,0,.34), 0 0 18px rgba(255,159,122,.1);
+  cursor: pointer;
+}
+.errata-slip-v11[data-tone="medium"] {
+  border-color: rgba(255,205,132,.72);
+  color: rgba(255,239,203,.96);
+}
+.errata-slip-v11[data-tone="major"] {
+  border-color: rgba(215,180,255,.75);
+  color: rgba(239,226,255,.97);
+}
+.errata-mark-v11 {
+  font-size: 15px;
+}
+.errata-slip-text-v11 {
+  font: 700 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .06em;
+}
+.errata-archive-note-v11 {
+  margin-top: 10px;
+  padding: 11px 13px;
+  border-left: 2px solid rgba(255,159,122,.65);
+  background: rgba(255,159,122,.04);
+  color: rgba(247,225,215,.82);
+  font-size: .88rem;
+  line-height: 1.5;
+}
+.errata-archive-note-v11[data-tone="current"] {
+  border-left-color: rgba(150,233,209,.58);
+  background: rgba(150,233,209,.035);
+  color: rgba(221,245,237,.82);
+}
+.errata-archive-note-v11[data-tone="major"] {
+  border-left-color: rgba(205,193,255,.68);
+}
+@media (max-width: 570px) {
+  .errata-row-v11 {
+    grid-template-columns: 1fr auto;
+  }
+  .errata-row-v11 em {
+    grid-column: 2;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .errata-slip-v11,
+  .errata-edition-v11 {
+    transition: none;
+  }
+}
