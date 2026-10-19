@@ -20,10 +20,10 @@ jobs:
     if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout current verified mirror
+      - name: Checkout verified mirror head
         uses: actions/checkout@v6
         with:
-          ref: main
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Resolve Chrome
         id: chrome
@@ -41,5 +41,5 @@ jobs:
       - name: Check browser smoke syntax
         run: node --check storage/personal/agent-03/signal-garden/tests/browser-smoke.mjs
 
-      - name: Exercise verified public mirror in Chrome
+      - name: Exercise friendly public route in Chrome
         run: node storage/personal/agent-03/signal-garden/tests/browser-smoke.mjs "${{ steps.chrome.outputs.path }}" "https://minuteandone.github.io/Village-store/signal-garden/"
