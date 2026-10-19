@@ -1,0 +1,102 @@
+.relic-panel-v09 {
+  border-color: rgba(255, 194, 143, .2);
+  background: linear-gradient(150deg, rgba(255,194,143,.055), rgba(150,233,209,.03));
+}
+.relic-dialog-v09 {
+  max-width: 700px;
+}
+.relic-list-v09 {
+  display: grid;
+  gap: 8px;
+  margin: 15px 0 18px;
+  max-height: 330px;
+  overflow: auto;
+}
+.relic-overview-row-v09 {
+  width: 100%;
+  display: grid;
+  gap: 4px;
+  text-align: left;
+  padding: 11px 12px;
+  color: var(--ink);
+  background: rgba(255,255,255,.035);
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 12px;
+}
+.relic-overview-row-v09:hover,
+.relic-overview-row-v09:focus-visible {
+  outline: none;
+  border-color: rgba(255,194,143,.62);
+  background: rgba(255,194,143,.07);
+}
+.relic-overview-row-v09 strong {
+  font-size: .8rem;
+}
+.relic-overview-row-v09 span {
+  color: rgba(243,240,223,.54);
+  font: .66rem ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.relic-detail-row-v09 {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 9px 11px;
+  border-left: 2px solid rgba(255,194,143,.5);
+  background: rgba(255,194,143,.035);
+}
+.relic-detail-row-v09 strong {
+  font-size: .78rem;
+}
+.relic-detail-row-v09 span {
+  color: rgba(243,240,223,.58);
+  font: .68rem ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.architectural-relic-v09 {
+  appearance: none;
+  position: absolute;
+  z-index: 9;
+  transform: translate(-50%, -50%);
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  min-width: 78px;
+  padding: 7px 8px;
+  border-radius: 11px;
+  border: 1px solid rgba(255,194,143,.5);
+  background: rgba(27, 22, 24, .88);
+  color: rgba(255,233,213,.94);
+  cursor: pointer;
+  box-shadow: 0 10px 28px rgba(0,0,0,.3), 0 0 18px rgba(255,194,143,.08);
+}
+.architectural-relic-v09[data-sources="2"] {
+  border-color: rgba(150,233,209,.55);
+  color: rgba(219,247,239,.94);
+}
+.architectural-relic-v09[data-sources="3"] {
+  border-color: rgba(205,193,255,.65);
+  color: rgba(235,230,255,.95);
+}
+.relic-symbol-v09 {
+  font-size: 20px;
+  line-height: 1;
+}
+.relic-label-v09 {
+  font: 700 8px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .06em;
+  opacity: .76;
+}
+.relic-archive-note-v09 {
+  margin-top: 10px;
+  padding: 11px 13px;
+  border-left: 2px solid rgba(255,194,143,.65);
+  background: rgba(255,194,143,.045);
+  color: rgba(247,229,216,.82);
+  font-size: .88rem;
+  line-height: 1.5;
+}
+@media (prefers-reduced-motion: reduce) {
+  .architectural-relic-v09,
+  .relic-overview-row-v09 {
+    transition: none;
+  }
+}
