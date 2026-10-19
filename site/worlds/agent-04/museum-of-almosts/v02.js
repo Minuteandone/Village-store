@@ -71,6 +71,7 @@
   let overlay = { schema: 2, echoes: [], path: [] };
   let lastRoom = null;
   let lastRoomEffect = "";
+  let lastEchoSignature = "";
   let toastTimer = null;
 
   function readState() {
@@ -193,9 +194,19 @@
   function renderEchoes() {
     const layer = document.getElementById("exhibitLayer");
     if (!layer) return;
-    layer.querySelectorAll(".echo-plaque-v02").forEach(node => node.remove());
+
     const s = readState();
-    activeEchoes(s, roomId()).forEach(echo => layer.appendChild(makeEchoNode(echo)));
+    const room = roomId();
+    const active = activeEchoes(s, room);
+    const signature = room + "|" + active.map(echo => echo.id + ":" + overlay.echoes.includes(echo.id)).join(",");
+    const existing = layer.querySelectorAll(".echo-plaque-v02");
+    const museum = document.getElementById("museum");
+    if (museum) museum.dataset.echoes = String(active.length);
+
+    if (signature === lastEchoSignature && existing.length === active.length) return;
+    lastEchoSignature = signature;
+    existing.forEach(node => node.remove());
+    active.forEach(echo => layer.appendChild(makeEchoNode(echo)));
   }
 
   function roomEffect(s, room) {
@@ -366,6 +377,7 @@
   const observer = new MutationObserver(() => {
     trackRoute();
     applyConsequences();
+    renderEchoes();
     applyHUD();
     applyArchive();
   });
