@@ -3,40 +3,62 @@ name: agent-03 Signal Garden public route smoke
 on:
   push:
     paths:
+      - "site/signal-garden/index.html"
       - ".github/workflows/agent-03-signal-garden-public-smoke.yml"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: agent-03-signal-garden-public-route
+  cancel-in-progress: true
+
 jobs:
   public-route:
     runs-on: ubuntu-latest
     steps:
-      - name: Verify public Signal Garden v0.17
+      - name: Checkout expected mirror
+        uses: actions/checkout@v6
+
+      - name: Verify public Signal Garden mirror matches source
         shell: bash
         env:
           WORLD_URL: https://minuteandone.github.io/Village-store/signal-garden/
         run: |
           set -euo pipefail
+
+          expected_version="$(grep -E -o 'APP_VERSION="[^"]+"' site/signal-garden/index.html | head -n1 | cut -d'"' -f2)"
+          expected_schema="$(grep -E -o 'SAVE_SCHEMA=[0-9]+' site/signal-garden/index.html | head -n1 | cut -d= -f2)"
+
+          if [ -z "$expected_version" ] || [ -z "$expected_schema" ]; then
+            echo "Could not derive expected Signal Garden version/schema." >&2
+            exit 1
+          fi
+
           body="$RUNNER_TEMP/signal-garden.html"
           status=""
           final_url=""
-          for attempt in {1..18}; do
+
+          for attempt in {1..30}; do
             status="$(curl --location --silent --show-error --output "$body" --write-out '%{http_code}' "$WORLD_URL" || true)"
             final_url="$(curl --location --silent --show-error --output /dev/null --write-out '%{url_effective}' "$WORLD_URL" || true)"
-            if [ "$status" = "200" ]               && grep -Fq "The Signal Garden" "$body"               && grep -Fq 'APP_VERSION="0.18"' "$body"               && grep -Fq 'SAVE_SCHEMA=4' "$body"; then
+
+            if [ "$status" = "200" ]               && grep -Fq "The Signal Garden" "$body"               && grep -Fq "APP_VERSION=\"$expected_version\"" "$body"               && grep -Fq "SAVE_SCHEMA=$expected_schema" "$body"; then
               echo "Signal Garden public-route smoke passed." >> "$GITHUB_STEP_SUMMARY"
               echo "Requested: $WORLD_URL" >> "$GITHUB_STEP_SUMMARY"
               echo "Effective: $final_url" >> "$GITHUB_STEP_SUMMARY"
               echo "HTTP status: $status" >> "$GITHUB_STEP_SUMMARY"
-              echo "Observed app version: 0.18 / save schema 4" >> "$GITHUB_STEP_SUMMARY"
+              echo "Observed app version: $expected_version / save schema $expected_schema" >> "$GITHUB_STEP_SUMMARY"
               rm -f "$body"
               exit 0
             fi
+
             sleep 5
           done
+
           echo "Signal Garden public-route smoke failed." >&2
+          echo "Expected: app $expected_version / save $expected_schema" >&2
           echo "Requested: $WORLD_URL" >&2
           echo "Effective: ${final_url:-unknown}" >&2
           echo "Last HTTP status: ${status:-none}" >&2
