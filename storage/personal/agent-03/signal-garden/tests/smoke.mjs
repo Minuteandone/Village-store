@@ -44,6 +44,7 @@ source = source.replace(
     applyJunctionEcologies:applyJunctionEcologies,
     networkConstellation:networkConstellation,
     applyNetworkConstellation:applyNetworkConstellation,
+    suggestedMove:suggestedMove,
     getState:function(){return state},
     setState:function(next){state=next;motes=[]}
   };`
@@ -83,7 +84,7 @@ ids.set("garden", canvas);
   "seasonChip","focusChip","resChip","transitChip","historyChip","bondChip","junctionChip","constellationChip","provenanceChip","researchChip","climateChip","germinateBtn",
   "islandNav","applySelectedBtn","selectedName","selectedLore","lifeStat",
   "memoryStat","strangeStat","linksStat","arrivalsStat","trafficStat","glyphStat","lineageStat","successionStat","lifeMeter",
-  "research","bonds","provenance","constellation","junctions","species","discoveries","chronicle","log","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
+  "research","bonds","provenance","constellation","junctions","species","discoveries","chronicle","log","guidePanel","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
 ].forEach(id => ids.set(id, element()));
 
 const actionButtons = ["nurture","observe","connect","distort"].map(action =>
@@ -161,6 +162,20 @@ assert.equal(api.edgeKey(1, 4), "1-4");
 assert.equal(api.chooseBootSeed("urlseed",{seed:"savedseed"}),"urlseed","explicit URL seed should win");
 assert.equal(api.chooseBootSeed(null,{seed:"savedseed"}),"savedseed","saved seed should stabilize ordinary reloads");
 assert.equal(api.chooseBootSeed(null,{seed:"bad seed with spaces"}),null,"invalid saved seed should not be trusted");
+
+setGraph([island(0),island(1),island(2),island(3)]);
+api.getState().cycle=1;
+assert.equal(api.suggestedMove().title,"1 · Select an island","clean garden should guide selection first");
+api.getState().selected=0;
+assert.equal(api.suggestedMove().title,"2 · Make a bridge","selected but unlinked garden should guide bridge creation");
+api.getState().islands[0].links=[1];api.getState().islands[1].links=[0];
+assert.equal(api.suggestedMove().title,"3 · Let one cycle pass","linked cycle-1 garden should guide migration");
+api.getState().cycle=2;api.getState().resonance=2;
+assert.equal(api.suggestedMove().title,"4 · Build resonance","early evolved garden should explain resonance");
+api.getState().resonance=6;api.getState().focus=2;
+assert.equal(api.suggestedMove().title,"5 · Germinate new land","ready four-island garden should surface germination");
+api.getState().islands.push(island(4));
+assert.equal(api.suggestedMove().title,"Open research","expanded garden should hand the visitor off to open research");
 
 setGraph([island(0),island(1),island(2),island(3)]);
 api.getState().islands[0].imprints={life:3,memory:1,strange:0};
