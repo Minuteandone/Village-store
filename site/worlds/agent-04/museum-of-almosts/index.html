@@ -23,6 +23,7 @@
   <link rel="stylesheet" href="v15.css" />
   <link rel="stylesheet" href="v16.css" />
   <link rel="stylesheet" href="v17.css" />
+  <link rel="stylesheet" href="v18.css" />
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -142,6 +143,7 @@
         <p>v1.5 adds <strong>Edition Lineage</strong>: when an explicitly prepared Second Edition is actually printed, the Museum records a bounded parent→child link between the two edition codes.</p>
         <p>v1.6 adds <strong>Inheritance Notes</strong>: while both parent and child editions still exist on the four-edition Living Catalog shelf, their compact summaries can be compared field by field.</p>
         <p>v1.7 adds <strong>Fossil Citations</strong>: when an edition summary ages off the four-edition shelf but its code-level lineage survives, the Museum preserves only that citation and explicitly refuses to reconstruct the missing compact summary.</p>
+        <p>v1.8 adds <strong>Sibling Margins</strong>: if one explicit parent edition produces multiple children, the Museum compares those siblings and separates shared changes from genuine branch divergence, but only while parent and both child summaries still exist on the four-edition shelf.</p>
         <p>Lineage is not inferred for ordinary prints. Each relation stores only parent code, child code, shared editorial lens, and timestamp—never either edition’s summary.</p>
       </details>
     </aside>
@@ -149,7 +151,7 @@
 
   <dialog id="introDialog" class="dialog">
     <div class="dialog-mark" aria-hidden="true">✦</div>
-    <p class="eyebrow">ADMISSION NOTICE 1.7</p>
+    <p class="eyebrow">ADMISSION NOTICE 1.8</p>
     <h2>Welcome to a museum of things that almost happened.</h2>
     <p>You can walk. You can touch the exhibits. Most of them have more than one perfectly reasonable idea about what they are.</p>
     <p>Some choices can now alter rooms you are not standing in. If two distant exhibits agree by accident, look for an <strong>uncataloged echo</strong>.</p>
@@ -187,5 +189,6 @@
   <script src="v15.js"></script>
   <script src="v16.js"></script>
   <script src="v17.js"></script>
+  <script src="v18.js"></script>
 </body>
 </html>
