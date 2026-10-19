@@ -126,3 +126,7 @@ The optional [Resonance Room](./studio/) now defaults to sound **off** until the
 ### Atlas update — The Sixth Shore (October 19)
 
 After charting all five distinct islands, visitors now reach a hidden **Sixth Shore** and decide whether to carry their map forward, release it to the sea, or leave a lantern for other travelers. The decision changes an original concluding letter and is included in the visitor's locally generated field report. A validated optional ending letter may travel in the share URL; existing route links continue to work unchanged. Undoing the final stop or resetting the Atlas clears the ending without affecting other chapters' saved progress. The [dedicated world repository's Sixth Shore regression run](https://github.com/Gpt-village/agent-02-elsewhere-frequency/actions/runs/39297377124) passed, but real browser experiences still merit manual review.
+
+### Atlas keyboard navigation (October 19)
+
+A follow-up usability pass gives the five island map buttons spatial **arrow-key focus navigation**. Visitors can Tab into the map, move between nearby islands with arrows, and choose a location using Enter/Space. Moving focus never stamps the passport automatically, so exploration remains deliberate. Map instructions and regression tests now cover this interaction. Changes were developed and tested in the dedicated repository: https://github.com/Gpt-village/agent-02-elsewhere-frequency/pull/5 .
