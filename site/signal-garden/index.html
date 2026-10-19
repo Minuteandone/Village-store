@@ -71,6 +71,7 @@
         <span class="chip" id="transitChip">Transit quiet</span>
         <span class="chip" id="historyChip">Route memory 0</span>
         <span class="chip" id="researchChip">Research 0/5</span>
+        <span class="chip" id="climateChip">Climate · Braided Sky</span>
       </div>
     </section>
 
@@ -161,7 +162,7 @@
   }
   function fresh(){
     randState=hash(seed);
-    return {seed:seed,cycle:1,focus:8,resonance:0,mode:"Quiet",selected:null,action:"nurture",discoveries:[],log:[],edgeMemory:{},islands:[
+    return {seed:seed,cycle:1,focus:8,resonance:0,mode:"Quiet",selected:null,action:"nurture",discoveries:[],log:[],edgeMemory:{},climateSeen:{},islands:[
       makeIsland(0,.24,.31,58),makeIsland(1,.67,.27,48),makeIsland(2,.50,.62,66),makeIsland(3,.79,.69,42)
     ]};
   }
@@ -171,6 +172,7 @@
     if(saved&&saved.seed===seed&&Array.isArray(saved.islands))state=saved;
   }catch(e){}
   if(!state.edgeMemory||typeof state.edgeMemory!=="object")state.edgeMemory={};
+  if(!state.climateSeen||typeof state.climateSeen!=="object")state.climateSeen={};
   state.islands.forEach(function(a){if(typeof a.arrivals!=="number")a.arrivals=0});
   var mouse={x:0,y:0};
   var motes=[];
@@ -185,7 +187,7 @@
       var p=k.split("-").map(Number);return [p[0],p[1],state.edgeMemory[k]||0];
     }).filter(function(x){return x[2]>0});
     var payload={
-      v:1,seed:state.seed,cycle:state.cycle,focus:state.focus,resonance:state.resonance,mode:state.mode,
+      v:1,seed:state.seed,cycle:state.cycle,focus:state.focus,resonance:state.resonance,mode:state.mode,climates:Object.keys(state.climateSeen).filter(function(k){return state.climateSeen[k]}),
       traits:state.islands.map(function(a){return [Math.round(a.life),Math.round(a.memory),Math.round(a.strange),Math.round(a.arrivals||0)]}),
       edges:edges,memory:memory
     };
@@ -207,6 +209,7 @@
     if(!Number.isFinite(p.focus)||p.focus<0||p.focus>8||!Number.isFinite(p.resonance)||p.resonance<0||p.resonance>10000)throw new Error("Specimen resources are invalid.");
     if(["Quiet","Bloom","Static","Storm"].indexOf(p.mode)<0)throw new Error("Specimen season is invalid.");
     if(!Array.isArray(p.edges)||p.edges.length>21||!Array.isArray(p.memory)||p.memory.length>21)throw new Error("Specimen network is too large.");
+    if(p.climates!==undefined&&(!Array.isArray(p.climates)||p.climates.length>4||p.climates.some(function(k){return ["verdant","echo","fracture","braided"].indexOf(k)<0})))throw new Error("Specimen climate history is invalid.");
     var n=p.traits.length,seen={};
     p.edges.forEach(function(e){
       if(!Array.isArray(e)||e.length!==2||!e.every(Number.isInteger)||e[0]<0||e[1]<0||e[0]>=n||e[1]>=n||e[0]===e[1])throw new Error("Specimen edge is invalid.");
@@ -232,6 +235,8 @@
     });
     p.edges.forEach(function(e){next.islands[e[0]].links.push(e[1]);next.islands[e[1]].links.push(e[0])});
     next.edgeMemory={};p.memory.forEach(function(e){next.edgeMemory[edgeKey(e[0],e[1])]=e[2]});
+    next.climateSeen={};
+    if(Array.isArray(p.climates))p.climates.slice(0,4).forEach(function(k){if(["verdant","echo","fracture","braided"].indexOf(k)>=0)next.climateSeen[k]=true});
     next.cycle=p.cycle;next.focus=p.focus;next.resonance=p.resonance;next.mode=p.mode;next.selected=null;next.action="nurture";
     next.discoveries=[];next.log=[{c:next.cycle,msg:"Imported a bounded Signal Garden specimen. Historical field-log text was intentionally not transferred."}];
     state=next;motes=[];save();renderUI();
@@ -264,6 +269,25 @@
     });
     return total;
   }
+  function macroClimate(){
+    var n=state.islands.length||1;
+    var avg={
+      life:state.islands.reduce(function(s,a){return s+a.life},0)/n,
+      memory:state.islands.reduce(function(s,a){return s+a.memory},0)/n,
+      strange:state.islands.reduce(function(s,a){return s+a.strange},0)/n
+    };
+    if(avg.life>=avg.memory+8&&avg.life>=avg.strange+8)return {id:"verdant",name:"Verdant Air",trait:"life",text:"Life dominates the shared atmosphere. Growth signals travel unusually well."};
+    if(avg.memory>=avg.life+8&&avg.memory>=avg.strange+8)return {id:"echo",name:"Echo Haze",trait:"memory",text:"Memory saturates the sky. Observed patterns linger and repeat."};
+    if(avg.strange>=avg.life+8&&avg.strange>=avg.memory+8)return {id:"fracture",name:"Fracture Weather",trait:"strange",text:"Strangeness dominates the archipelago. Migration carries unstable geometry."};
+    return {id:"braided",name:"Braided Sky",trait:null,text:"No single ecology controls the atmosphere; competing signals braid together."};
+  }
+  function recordClimate(){
+    var c=macroClimate();
+    state.climateSeen[c.id]=true;
+    var count=Object.keys(state.climateSeen).filter(function(k){return state.climateSeen[k]}).length;
+    if(count>=3)d("weather-archive","Weather Archive","The garden has inhabited at least three distinct archipelago-scale climates.");
+    return c;
+  }
   function researchPrompts(){
     var residents=topologySpecies();
     var traits={life:false,memory:false,strange:false};
@@ -273,7 +297,8 @@
       {id:"ring",done:residents.some(function(x){return x.id==="loopmoss"}),text:"Can you build one connected ring with no endpoints and attract Loopmoss?"},
       {id:"pollination",done:state.islands.every(function(a){return a.arrivals>0}),text:"Can every current island receive at least one signal born somewhere else?"},
       {id:"scar",done:residents.some(function(x){return x.id==="ghostreed"}),text:"Can a well-traveled route be severed without erasing its ecological memory?"},
-      {id:"ecologies",done:traits.life&&traits.memory&&traits.strange,text:"Can grove-, archive-, and fold-minds coexist in one archipelago?"}
+      {id:"ecologies",done:traits.life&&traits.memory&&traits.strange,text:"Can grove-, archive-, and fold-minds coexist in one archipelago?"},
+      {id:"climate",done:Object.keys(state.climateSeen).filter(function(k){return state.climateSeen[k]}).length>=3,text:"Can the garden pass through at least three different archipelago-scale climates?"}
     ];
   }
   function topologySpecies(){
@@ -320,6 +345,10 @@
     a.life=clamp(a.life+(state.mode==="Bloom"?10:0));
     a.memory=clamp(a.memory+(state.mode==="Static"?10:0));
     a.strange=clamp(a.strange+(state.mode==="Storm"?10:0));
+    var climate=macroClimate();
+    if(climate.trait==="life")a.life=clamp(a.life+7);
+    if(climate.trait==="memory")a.memory=clamp(a.memory+7);
+    if(climate.trait==="strange")a.strange=clamp(a.strange+7);
     state.islands.push(a);
     state.selected=a.id;
     log("A new island germinated: "+a.name+". It begins unlinked and remembers the season of its birth.");
@@ -337,6 +366,8 @@
       var type=dominantTrait(a);
       var amount=3;
       if((state.mode==="Bloom"&&type==="life")||(state.mode==="Static"&&type==="memory")||(state.mode==="Storm"&&type==="strange"))amount=5;
+      var climate=macroClimate();
+      if(climate.trait===type)amount+=1;
       if(type==="life")b.life=clamp(b.life+amount);
       if(type==="memory")b.memory=clamp(b.memory+amount);
       if(type==="strange"){b.strange=clamp(b.strange+amount);b.life=clamp(b.life-1)}
@@ -387,7 +418,7 @@
     var n=state.cycle%8;
     state.mode=n===0?"Storm":n===4?"Bloom":n===6?"Static":"Quiet";
     migrateSignals();
-    evolve();save();renderUI();
+    evolve();recordClimate();save();renderUI();
   }
   function pickIsland(px,py){
     var rect=canvas.getBoundingClientRect(),sx=canvas.width/rect.width,sy=canvas.height/rect.height;
@@ -442,6 +473,8 @@
     document.getElementById("historyChip").textContent="Route memory "+routeTotal;
     var questions=researchPrompts(),doneQuestions=questions.filter(function(q){return q.done}).length;
     document.getElementById("researchChip").textContent="Research "+doneQuestions+"/"+questions.length;
+    var climate=macroClimate();
+    document.getElementById("climateChip").textContent="Climate · "+climate.name;
     var gb=document.getElementById("germinateBtn");
     gb.disabled=state.resonance<6||state.focus<2||state.islands.length>=7;
     gb.textContent=state.islands.length>=7?"🌿 Germination sites full":"🌿 Germinate island · 6 resonance + 2 focus";
@@ -486,7 +519,10 @@
   function draw(t){
     var w=canvas.width,h=canvas.height;
     ctx.clearRect(0,0,w,h);
-    var g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,"#0a1b18");g.addColorStop(1,"#04100d");ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+    var climate=macroClimate();
+    var tops={verdant:"#12301c",echo:"#102833",fracture:"#28172f",braided:"#0a1b18"};
+    var bottoms={verdant:"#06120a",echo:"#061015",fracture:"#100814",braided:"#04100d"};
+    var g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,tops[climate.id]);g.addColorStop(1,bottoms[climate.id]);ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
     stars.forEach(function(s){ctx.globalAlpha=s.a*(.8+.2*Math.sin(t*.001+s.x*8));ctx.fillStyle="#b8e9d0";ctx.fillRect(s.x*w,s.y*h,s.s,s.s)});ctx.globalAlpha=1;
     if(state.mode==="Storm"){ctx.fillStyle="rgba(110,160,190,.06)";for(var q=0;q<7;q++)ctx.fillRect(0,(q*103+t*.03)%h,w,1)}
     Object.keys(state.edgeMemory).forEach(function(k){
