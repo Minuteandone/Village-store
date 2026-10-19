@@ -37,6 +37,7 @@ const v27 = read("v27.js");
 const v28 = read("v28.js");
 const v29 = read("v29.js");
 const v30 = read("v30.js");
+const v31 = read("v31.js");
 const v02css = read("v02.css");
 const v03css = read("v03.css");
 const v04css = read("v04.css");
@@ -66,13 +67,14 @@ const v27css = read("v27.css");
 const v28css = read("v28.css");
 const v29css = read("v29.css");
 const v30css = read("v30.css");
+const v31css = read("v31.css");
 
 const failures = [];
 const expect = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "v13.css", "v14.css", "v15.css", "v16.css", "v17.css", "v18.css", "v19.css", "v20.css", "v21.css", "v22.css", "v23.css", "v24.css", "v25.css", "v26.css", "v27.css", "v28.css", "v29.css", "v30.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js", "v13.js", "v14.js", "v15.js", "v16.js", "v17.js", "v18.js", "v19.js", "v20.js", "v21.js", "v22.js", "v23.js", "v24.js", "v25.js", "v26.js", "v27.js", "v28.js", "v29.js", "v30.js"]) {
+for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "v13.css", "v14.css", "v15.css", "v16.css", "v17.css", "v18.css", "v19.css", "v20.css", "v21.css", "v22.css", "v23.css", "v24.css", "v25.css", "v26.css", "v27.css", "v28.css", "v29.css", "v30.css", "v31.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js", "v13.js", "v14.js", "v15.js", "v16.js", "v17.js", "v18.js", "v19.js", "v20.js", "v21.js", "v22.js", "v23.js", "v24.js", "v25.js", "v26.js", "v27.js", "v28.js", "v29.js", "v30.js", "v31.js"]) {
   expect(index.includes(asset), "index.html must reference " + asset);
 }
 
@@ -105,8 +107,9 @@ expect(
   index.indexOf("v26.js") < index.indexOf("v27.js") &&
   index.indexOf("v27.js") < index.indexOf("v28.js") &&
   index.indexOf("v28.js") < index.indexOf("v29.js") &&
-  index.indexOf("v29.js") < index.indexOf("v30.js"),
-  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js -> v13.js -> v14.js -> v15.js -> v16.js -> v17.js -> v18.js -> v19.js -> v20.js -> v21.js -> v22.js -> v23.js -> v24.js -> v25.js -> v26.js -> v27.js -> v28.js"
+  index.indexOf("v29.js") < index.indexOf("v30.js") &&
+  index.indexOf("v30.js") < index.indexOf("v31.js"),
+  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js -> v13.js -> v14.js -> v15.js -> v16.js -> v17.js -> v18.js -> v19.js -> v20.js -> v21.js -> v22.js -> v23.js -> v24.js -> v25.js -> v26.js -> v27.js -> v28.js -> v29.js -> v30.js -> v31.js"
 );
 
 for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09], ["v1.0", v10], ["v1.1", v11], ["v1.2", v12], ["v1.3", v13], ["v1.4", v14], ["v1.5", v15], ["v1.6", v16], ["v1.7", v17], ["v1.8", v18], ["v1.9", v19], ["v2.0", v20]]) {
@@ -564,6 +567,19 @@ expect(v30.includes("shelf agreement") && v30.includes("evidence exactness"), "v
 expect(!v30.includes("innerHTML"), "v3.0 should construct Calibration Ledger UI with safe DOM APIs");
 expect(v30css.includes("prefers-reduced-motion"), "v3.0 Calibration Ledger styling must respect reduced-motion");
 
+for (const phrase of ["CALIBRATION CONSTELLATION · v3.1", "MAX_AUDITS = 8", "starSlots", "trajectory", "calibration-constellation-v31"]) {
+  expect(v31.includes(phrase), "v3.1 missing Calibration Constellation mechanic: " + phrase);
+}
+expect(v31.includes('agent04-museum-forecast-calibration-v30'), "v3.1 must derive its sky from the bounded v3.0 Calibration Ledger");
+expect(v31.includes("raw.audits.filter(validAudit).slice(-MAX_AUDITS)"), "v3.1 must keep constellation input bounded to the last eight valid audits");
+expect(v31.includes("currentRoom() !== \"observatory\""), "v3.1 constellation must remain an Observatory exhibit");
+expect(v31.includes("createElementNS"), "v3.1 must construct constellation lines with safe SVG DOM APIs");
+expect(v31.includes("improving") && v31.includes("holding") && v31.includes("worsening"), "v3.1 must expose bounded latest-result trajectory without inventing a numeric forecast score");
+expect(!v31.includes("localStorage.setItem("), "v3.1 Calibration Constellation must write no browser storage");
+expect(!v31.includes("localStorage.removeItem("), "v3.1 Calibration Constellation must not mutate v3.0 calibration history");
+expect(!v31.includes("innerHTML"), "v3.1 should construct constellation UI with safe DOM APIs");
+expect(v31css.includes("prefers-reduced-motion"), "v3.1 Calibration Constellation styling must respect reduced-motion");
+
 if (failures.length) {
   console.error("Museum of Almosts smoke check failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -571,4 +587,4 @@ if (failures.length) {
 }
 
 console.log("Museum of Almosts smoke check passed.");
-console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes + v1.3 Cross-Reference Route + v1.4 Second Edition + v1.5 Edition Lineage + v1.6 Inheritance Notes + v1.7 Fossil Citations + v1.8 Sibling Margins + v1.9 Branch Compass + v2.0 Edition Gallery + v2.1 Threadwalk + v2.2 Thread Notes + v2.3 Gallery Lantern + v2.4 Evidence Ledger + v2.5 Accession Forecast + v2.6 Preservation Load + v2.7 Fossilization Horizon + v2.8 Accession Receipt + v2.9 Forecast Audit + v3.0 Calibration Ledger contract.");
+console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes + v1.3 Cross-Reference Route + v1.4 Second Edition + v1.5 Edition Lineage + v1.6 Inheritance Notes + v1.7 Fossil Citations + v1.8 Sibling Margins + v1.9 Branch Compass + v2.0 Edition Gallery + v2.1 Threadwalk + v2.2 Thread Notes + v2.3 Gallery Lantern + v2.4 Evidence Ledger + v2.5 Accession Forecast + v2.6 Preservation Load + v2.7 Fossilization Horizon + v2.8 Accession Receipt + v2.9 Forecast Audit + v3.0 Calibration Ledger + v3.1 Calibration Constellation contract.");
