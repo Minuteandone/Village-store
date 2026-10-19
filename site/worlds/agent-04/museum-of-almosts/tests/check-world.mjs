@@ -27,6 +27,7 @@ const v17 = read("v17.js");
 const v18 = read("v18.js");
 const v19 = read("v19.js");
 const v20 = read("v20.js");
+const v21 = read("v21.js");
 const v02css = read("v02.css");
 const v03css = read("v03.css");
 const v04css = read("v04.css");
@@ -46,13 +47,14 @@ const v17css = read("v17.css");
 const v18css = read("v18.css");
 const v19css = read("v19.css");
 const v20css = read("v20.css");
+const v21css = read("v21.css");
 
 const failures = [];
 const expect = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "v13.css", "v14.css", "v15.css", "v16.css", "v17.css", "v18.css", "v19.css", "v20.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js", "v13.js", "v14.js", "v15.js", "v16.js", "v17.js", "v18.js", "v19.js", "v20.js"]) {
+for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "v13.css", "v14.css", "v15.css", "v16.css", "v17.css", "v18.css", "v19.css", "v20.css", "v21.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js", "v13.js", "v14.js", "v15.js", "v16.js", "v17.js", "v18.js", "v19.js", "v20.js", "v21.js"]) {
   expect(index.includes(asset), "index.html must reference " + asset);
 }
 
@@ -75,8 +77,9 @@ expect(
   index.indexOf("v16.js") < index.indexOf("v17.js") &&
   index.indexOf("v17.js") < index.indexOf("v18.js") &&
   index.indexOf("v18.js") < index.indexOf("v19.js") &&
-  index.indexOf("v19.js") < index.indexOf("v20.js"),
-  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js -> v13.js -> v14.js -> v15.js -> v16.js -> v17.js -> v18.js -> v19.js -> v20.js"
+  index.indexOf("v19.js") < index.indexOf("v20.js") &&
+  index.indexOf("v20.js") < index.indexOf("v21.js"),
+  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js -> v13.js -> v14.js -> v15.js -> v16.js -> v17.js -> v18.js -> v19.js -> v20.js -> v21.js"
 );
 
 for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09], ["v1.0", v10], ["v1.1", v11], ["v1.2", v12], ["v1.3", v13], ["v1.4", v14], ["v1.5", v15], ["v1.6", v16], ["v1.7", v17], ["v1.8", v18], ["v1.9", v19], ["v2.0", v20]]) {
@@ -383,6 +386,19 @@ expect(!v20.includes("localStorage.setItem("), "v2.0 Edition Gallery must remain
 expect(!v20.includes("innerHTML"), "v2.0 should construct Edition Gallery UI with safe DOM/SVG APIs");
 expect(v20css.includes("prefers-reduced-motion"), "v2.0 Edition Gallery styling must respect reduced-motion");
 
+for (const phrase of ["THREADWALK · v2.1", "Walk an explicit lineage path", "shortestPath", "threadwalkPanelV21", "No explicit lineage path connects these two gallery nodes."]) {
+  expect(v21.includes(phrase), "v2.1 missing Threadwalk mechanic: " + phrase);
+}
+expect(v21.includes("const queue = [start]"), "v2.1 must use breadth-first traversal for shortest explicit lineage paths");
+expect(v21.includes("graph.get(relation.parentCode).push") && v21.includes("graph.get(relation.childCode).push"), "v2.1 must traverse only both directions of explicit retained lineage relations");
+expect(v21.includes("visibleRelations"), "v2.1 highlighted gallery threads must be mapped back to explicit visible relations");
+expect(v21.includes("Threadwalk uses only explicit retained parent→child lineage relations"), "v2.1 must disclose its no-inference boundary");
+expect(!v21.includes("agent04-museum-of-almosts-v1"), "v2.1 Threadwalk should not depend on the base Museum save when it only traverses Edition Gallery lineage");
+expect(!v21.includes("localStorage.setItem("), "v2.1 Threadwalk must remain session-only and write no browser storage");
+expect(!v21.includes("localStorage.removeItem("), "v2.1 Threadwalk must not mutate existing browser storage");
+expect(!v21.includes("innerHTML"), "v2.1 should construct Threadwalk UI with safe DOM APIs");
+expect(v21css.includes("prefers-reduced-motion"), "v2.1 Threadwalk styling must respect reduced-motion");
+
 if (failures.length) {
   console.error("Museum of Almosts smoke check failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -390,4 +406,4 @@ if (failures.length) {
 }
 
 console.log("Museum of Almosts smoke check passed.");
-console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes + v1.3 Cross-Reference Route + v1.4 Second Edition + v1.5 Edition Lineage + v1.6 Inheritance Notes + v1.7 Fossil Citations + v1.8 Sibling Margins + v1.9 Branch Compass + v2.0 Edition Gallery contract.");
+console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes + v1.3 Cross-Reference Route + v1.4 Second Edition + v1.5 Edition Lineage + v1.6 Inheritance Notes + v1.7 Fossil Citations + v1.8 Sibling Margins + v1.9 Branch Compass + v2.0 Edition Gallery + v2.1 Threadwalk contract.");
