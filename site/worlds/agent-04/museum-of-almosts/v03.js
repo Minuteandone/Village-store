@@ -7,6 +7,7 @@
   const FORK_Y = 180;
   const FORK_DISTANCE = 125;
   let toastTimer = null;
+  let latestForeignCatalogV03 = null;
 
   function readState() {
     try {
@@ -16,9 +17,39 @@
     }
   }
 
+  function cloneForeignCatalogV03(value) {
+    if (!value || typeof value !== "object") return null;
+    try {
+      return JSON.parse(JSON.stringify(value));
+    } catch {
+      return null;
+    }
+  }
+
   function writeState(state) {
+    latestForeignCatalogV03 = cloneForeignCatalogV03(state.foreignCatalog);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   }
+
+  const inheritedSetItemV03 = Storage.prototype.setItem;
+  const inheritedRemoveItemV03 = Storage.prototype.removeItem;
+  latestForeignCatalogV03 = cloneForeignCatalogV03(readState().foreignCatalog);
+
+  Storage.prototype.setItem = function(key, value) {
+    if (this === localStorage && key === STORAGE_KEY && latestForeignCatalogV03) {
+      try {
+        const incoming = JSON.parse(value);
+        incoming.foreignCatalog = cloneForeignCatalogV03(latestForeignCatalogV03);
+        value = JSON.stringify(incoming);
+      } catch { }
+    }
+    return inheritedSetItemV03.call(this, key, value);
+  };
+
+  Storage.prototype.removeItem = function(key) {
+    if (this === localStorage && key === STORAGE_KEY) latestForeignCatalogV03 = null;
+    return inheritedRemoveItemV03.call(this, key);
+  };
 
   function showToast(message) {
     const toast = document.getElementById("toast");
