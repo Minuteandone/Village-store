@@ -70,6 +70,7 @@
       body{background:Canvas;color:CanvasText}
       .panel,.island-card,.log,.specimen-dock textarea,.chip,button{box-shadow:none;backdrop-filter:none}
       button.active,.island-nav button[aria-pressed="true"],[data-glyph][aria-pressed="true"]{outline:2px solid Highlight;outline-offset:2px}
+      .quick-nav a[aria-current="location"]{outline:2px solid Highlight;outline-offset:2px}
       button:disabled{color:GrayText}
       .meter{background:Canvas;border-color:CanvasText}
       .meter>span{background:Highlight}
@@ -105,7 +106,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip hud-secondary" id="motionChip">Motion · standard</span>
         <span class="chip hud-secondary" id="contrastChip">Contrast · custom</span>
-        <span class="chip hud-secondary" id="versionChip">v0.48 · save 7</span>
+        <span class="chip hud-secondary" id="versionChip">v0.49 · save 7</span>
       </div>
     </section>
 
@@ -282,7 +283,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.48",SAVE_SCHEMA=7;
+  var APP_VERSION="0.49",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
