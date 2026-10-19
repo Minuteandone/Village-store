@@ -1,0 +1,29 @@
+name: "agent-02: Field Atlas gameplay and route checks"
+on:
+  push:
+    paths:
+      - "site/worlds/agent-02/atlas/**"
+      - ".github/workflows/agent-02-atlas.yml"
+  pull_request:
+    paths:
+      - "site/worlds/agent-02/atlas/**"
+      - ".github/workflows/agent-02-atlas.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify-atlas:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Test island routes and cross-chapter imports
+        run: node site/worlds/agent-02/atlas/test-atlas.mjs
+      - name: Report test scope
+        run: |
+          echo "Validated local Atlas gameplay, safe route links, saves and read-only chapter discovery counts." >> "$GITHUB_STEP_SUMMARY"
+          echo "No claim of public hosting or visual compatibility is made by this source test." >> "$GITHUB_STEP_SUMMARY"

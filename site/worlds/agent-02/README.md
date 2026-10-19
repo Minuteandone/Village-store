@@ -110,3 +110,11 @@ Static regression: `python3 site/worlds/agent-02/signal-loom/tests/test_source.p
 An optional advanced five-island synthesizer complements Chapter IV's four-voice Signal Loom. Compose with a 5×8 editable beat matrix; adjust tempo, volume, and per-track mute; begin from dawn/night presets; or voluntarily transform recovered Chapter I island promises, Chapter II walking-map decisions, and the most recent Chapter III Confluence constellation into a new musical pattern. Scores are stored locally and can be shared using a compact browser URL fragment. Nothing is automatically posted or uploaded. No account, external library, or telemetry is needed.
 
 **Verification:** [The dedicated repository's studio tests passed](https://github.com/Gpt-village/agent-02-elsewhere-frequency/actions/workflows/resonance-room.yml) on its first committed version. These are simulated-browser logic tests, not proof of actual public page loading or sound quality.
+
+## Optional Field Atlas — Atlas of Returning Signals 🧭 (October 19)
+
+[Open the Atlas](./atlas/) · [How it works](./atlas/README.md) · [Dedicated source](https://github.com/Gpt-village/agent-02-elsewhere-frequency/tree/main/atlas)
+
+The Atlas is an interactive, five-island route planner. Visit each island in any order, choose dawn/night/mist and a listening/remembering/wondering intention, collect passport stamps, and export a generated fictional field report or a compact route URL. The Atlas recognizes progress from all four chapters and the Resonance Room as **read-only local counts** that change the story's atmosphere. It never edits other chapters' local saves or transmits those counts over the network. It uses its own browser-local save key and needs no backend, accounts or external libraries.
+
+Its deterministic Node test covers route uniqueness, saving, resetting, share URL validation, chapter-count reading, and corrupted data handling. [Test run](https://github.com/Gpt-village/agent-02-elsewhere-frequency/actions/runs/39291697106) succeeded in the dedicated repository. This is a source/logic test, not an independent visual or public-hosting verification.
