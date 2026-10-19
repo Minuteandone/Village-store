@@ -30,6 +30,9 @@
     .side{padding:16px;display:flex;flex-direction:column;gap:14px}
     .side h2,.side h3{font-family:system-ui,sans-serif;margin:0}
     .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .island-nav{display:grid;grid-template-columns:1fr;gap:6px;max-height:190px;overflow:auto}
+    .island-nav button{text-align:left;padding:8px 10px;font-size:12px}
+    .island-nav button[aria-pressed="true"]{border-color:#9ee7ef;background:#173443}
     button{font:inherit;color:var(--text);background:#13271c;border:1px solid #365743;border-radius:12px;padding:11px 10px;cursor:pointer;transition:.15s transform,.15s background,.15s border-color}
     button:hover{transform:translateY(-1px);background:#193424;border-color:#5c8d6f}
     button.active{background:#244d35;border-color:#8ad5a2;box-shadow:0 0 0 2px #5fb77d33 inset}
@@ -84,6 +87,13 @@
       <button id="restBtn">🌙 Let one cycle pass</button>
       <button id="germinateBtn">🌿 Germinate island · 6 resonance + 2 focus</button>
       <div class="small">Connected islands exchange their strongest trait when a cycle passes. Bloom favors life, Static favors memory, and Storm favors strangeness. Use Connect on an existing pair to cut that bridge.</div>
+
+      <div>
+        <h3>Island navigator</h3>
+        <div class="small">Keyboard: <span class="kbd">1–7</span> selects an island; <span class="kbd">Enter</span> applies the current signal when focus is not on another control.</div>
+        <div class="island-nav" id="islandNav" aria-label="Select an island" style="margin-top:8px"></div>
+        <button id="applySelectedBtn" style="width:100%;margin-top:8px">⚡ Apply current signal</button>
+      </div>
 
       <div class="island-card">
         <strong id="selectedName">No island selected</strong>
@@ -416,7 +426,15 @@
     gb.disabled=state.resonance<6||state.focus<2||state.islands.length>=7;
     gb.textContent=state.islands.length>=7?"🌿 Germination sites full":"🌿 Germinate island · 6 resonance + 2 focus";
     document.querySelectorAll("[data-action]").forEach(function(b){b.classList.toggle("active",b.dataset.action===state.action)});
+    var nav=document.getElementById("islandNav");
+    nav.innerHTML=state.islands.map(function(x,i){
+      var role=dominantTrait(x)==="life"?"grove":dominantTrait(x)==="memory"?"archive":"fold";
+      return '<button type="button" data-island-id="'+x.id+'" aria-pressed="'+(state.selected===x.id?'true':'false')+'">'+(i+1)+' · '+esc(x.name)+' · '+role+'</button>';
+    }).join("");
     var a=state.islands.find(function(x){return x.id===state.selected});
+    var applyBtn=document.getElementById("applySelectedBtn");
+    applyBtn.disabled=!a;
+    applyBtn.textContent=a?"⚡ Apply "+state.action+" to "+a.name:"⚡ Select an island first";
     document.getElementById("selectedName").textContent=a?a.name:"No island selected";
     document.getElementById("selectedLore").textContent=a?lore(a):"Click an island to inspect it.";
     document.getElementById("lifeStat").textContent=a?Math.round(a.life):"—";
@@ -501,11 +519,29 @@
     requestAnimationFrame(draw);
   }
   document.querySelectorAll("[data-action]").forEach(function(b){b.addEventListener("click",function(){state.action=b.dataset.action;delete state.connectFrom;save();renderUI()})});
+  document.getElementById("islandNav").addEventListener("click",function(e){
+    var b=e.target.closest("[data-island-id]");if(!b)return;
+    state.selected=Number(b.dataset.islandId);save();renderUI();
+  });
+  document.getElementById("applySelectedBtn").addEventListener("click",function(){
+    var a=state.islands.find(function(x){return x.id===state.selected});if(a)apply(a);
+  });
   document.getElementById("restBtn").addEventListener("click",function(){nextCycle();log("One cycle passed. The garden evolved without direct instruction.")});
   document.getElementById("germinateBtn").addEventListener("click",spawnIsland);
   canvas.addEventListener("click",function(e){var r=canvas.getBoundingClientRect();apply(pickIsland(e.clientX-r.left,e.clientY-r.top))});
   canvas.addEventListener("mousemove",function(e){var r=canvas.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top});
-  document.addEventListener("keydown",function(e){var m={n:"nurture",o:"observe",c:"connect",d:"distort"};if(m[e.key.toLowerCase()]){state.action=m[e.key.toLowerCase()];delete state.connectFrom;save();renderUI()}});
+  document.addEventListener("keydown",function(e){
+    var tag=(e.target&&e.target.tagName)||"";
+    if(tag==="BUTTON"||tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT")return;
+    var m={n:"nurture",o:"observe",c:"connect",d:"distort"};
+    if(m[e.key.toLowerCase()]){state.action=m[e.key.toLowerCase()];delete state.connectFrom;save();renderUI();return}
+    if(/^[1-7]$/.test(e.key)){
+      var idx=Number(e.key)-1;if(state.islands[idx]){state.selected=state.islands[idx].id;save();renderUI()}return;
+    }
+    if(e.key==="Enter"){
+      var a=state.islands.find(function(x){return x.id===state.selected});if(a){e.preventDefault();apply(a)}
+    }
+  });
   document.getElementById("exportBtn").addEventListener("click",async function(){
     var url=location.origin+location.pathname+"?seed="+encodeURIComponent(state.seed);
     try{await navigator.clipboard.writeText(url);log("Copied the garden seed URL to the clipboard.");}
