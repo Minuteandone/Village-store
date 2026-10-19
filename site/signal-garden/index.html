@@ -116,9 +116,11 @@
 
       <div class="actions">
         <button id="exportBtn">Copy garden seed</button>
+        <button id="specimenBtn">Copy specimen</button>
+        <button id="importBtn">Import specimen</button>
         <button id="resetBtn">Reset local world</button>
       </div>
-      <div class="small">The garden is deliberately local-first: your choices persist in <code>localStorage</code>. A copied seed encodes the starting personality of a garden, not your full history.</div>
+      <div class="small">The garden is deliberately local-first: your choices persist in <code>localStorage</code>. A seed recreates the beginning. A specimen contains only bounded game state (traits, topology, route memory, cycle/resources), not field logs or other browser data.</div>
     </aside>
 
     <div class="footer-note">Built by <b>agent-03 (AI agent, GPT-5.6)</b> for GPT Village Goal 2 · October 19, 2026.</div>
@@ -160,6 +162,64 @@
   var stars=[];
   for(var si=0;si<100;si++)stars.push({x:rand(),y:rand(),a:.2+rand()*.6,s:rand()*1.6+.3});
   function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+  function specimenCode(){
+    var edges=[];
+    state.islands.forEach(function(a){a.links.forEach(function(b){if(a.id<b)edges.push([a.id,b])})});
+    var memory=Object.keys(state.edgeMemory).map(function(k){
+      var p=k.split("-").map(Number);return [p[0],p[1],state.edgeMemory[k]||0];
+    }).filter(function(x){return x[2]>0});
+    var payload={
+      v:1,seed:state.seed,cycle:state.cycle,focus:state.focus,resonance:state.resonance,mode:state.mode,
+      traits:state.islands.map(function(a){return [Math.round(a.life),Math.round(a.memory),Math.round(a.strange),Math.round(a.arrivals||0)]}),
+      edges:edges,memory:memory
+    };
+    return "SG1."+btoa(JSON.stringify(payload)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+  }
+  function decodeSpecimen(code){
+    code=String(code||"").trim();
+    if(!code.startsWith("SG1."))throw new Error("This is not a Signal Garden specimen code.");
+    var raw=code.slice(4).replace(/-/g,"+").replace(/_/g,"/");
+    while(raw.length%4)raw+="=";
+    var p=JSON.parse(atob(raw));
+    if(!p||p.v!==1||typeof p.seed!=="string"||!/^[a-z0-9_-]{1,40}$/i.test(p.seed))throw new Error("Specimen header is invalid.");
+    if(!Array.isArray(p.traits)||p.traits.length<4||p.traits.length>7)throw new Error("Specimen island count is invalid.");
+    p.traits.forEach(function(row){
+      if(!Array.isArray(row)||row.length!==4)throw new Error("Specimen traits are malformed.");
+      if(!row.every(function(v,i){return Number.isFinite(v)&&v>=0&&v<=(i===3?10000:100)}))throw new Error("Specimen trait value is outside allowed bounds.");
+    });
+    if(!Number.isInteger(p.cycle)||p.cycle<1||p.cycle>10000)throw new Error("Specimen cycle is invalid.");
+    if(!Number.isFinite(p.focus)||p.focus<0||p.focus>8||!Number.isFinite(p.resonance)||p.resonance<0||p.resonance>10000)throw new Error("Specimen resources are invalid.");
+    if(["Quiet","Bloom","Static","Storm"].indexOf(p.mode)<0)throw new Error("Specimen season is invalid.");
+    if(!Array.isArray(p.edges)||p.edges.length>21||!Array.isArray(p.memory)||p.memory.length>21)throw new Error("Specimen network is too large.");
+    var n=p.traits.length,seen={};
+    p.edges.forEach(function(e){
+      if(!Array.isArray(e)||e.length!==2||!e.every(Number.isInteger)||e[0]<0||e[1]<0||e[0]>=n||e[1]>=n||e[0]===e[1])throw new Error("Specimen edge is invalid.");
+      var k=edgeKey(e[0],e[1]);if(seen[k])throw new Error("Specimen contains duplicate edges.");seen[k]=true;
+    });
+    p.memory.forEach(function(e){
+      if(!Array.isArray(e)||e.length!==3||!Number.isInteger(e[0])||!Number.isInteger(e[1])||e[0]<0||e[1]<0||e[0]>=n||e[1]>=n||e[0]===e[1]||!Number.isFinite(e[2])||e[2]<0||e[2]>10000)throw new Error("Specimen route memory is invalid.");
+    });
+    return p;
+  }
+  function importSpecimenCode(code){
+    var p=decodeSpecimen(code);
+    seed=p.seed;randState=hash(seed);
+    var next=fresh();
+    while(next.islands.length<p.traits.length){
+      var id=next.islands.length,slot=spawnSlots[id-4],oldRand=randState;
+      randState=hash(seed+":spawn:"+id);
+      next.islands.push(makeIsland(id,slot.x,slot.y,slot.r));
+      randState=oldRand;
+    }
+    next.islands.forEach(function(a,i){
+      var row=p.traits[i];a.life=row[0];a.memory=row[1];a.strange=row[2];a.arrivals=row[3];a.links=[];
+    });
+    p.edges.forEach(function(e){next.islands[e[0]].links.push(e[1]);next.islands[e[1]].links.push(e[0])});
+    next.edgeMemory={};p.memory.forEach(function(e){next.edgeMemory[edgeKey(e[0],e[1])]=e[2]});
+    next.cycle=p.cycle;next.focus=p.focus;next.resonance=p.resonance;next.mode=p.mode;next.selected=null;next.action="nurture";
+    next.discoveries=[];next.log=[{c:next.cycle,msg:"Imported a bounded Signal Garden specimen. Historical field-log text was intentionally not transferred."}];
+    state=next;motes=[];save();renderUI();
+  }
   function log(msg){
     state.log.unshift({c:state.cycle,msg:msg});
     state.log=state.log.slice(0,20);save();renderUI();
@@ -450,6 +510,17 @@
     var url=location.origin+location.pathname+"?seed="+encodeURIComponent(state.seed);
     try{await navigator.clipboard.writeText(url);log("Copied the garden seed URL to the clipboard.");}
     catch(e){prompt("Copy this garden seed URL:",url)}
+  });
+  document.getElementById("specimenBtn").addEventListener("click",async function(){
+    var code=specimenCode();
+    try{await navigator.clipboard.writeText(code);log("Copied a bounded specimen code. It contains game state, not the field log or other browser data.");}
+    catch(e){prompt("Copy this Signal Garden specimen code:",code)}
+  });
+  document.getElementById("importBtn").addEventListener("click",function(){
+    var code=prompt("Paste a Signal Garden specimen code (SG1…):");
+    if(!code)return;
+    try{importSpecimenCode(code);log("Specimen imported successfully.");}
+    catch(e){alert("Could not import specimen: "+e.message)}
   });
   document.getElementById("resetBtn").addEventListener("click",function(){
     if(confirm("Reset this local garden? This clears its local history.")){localStorage.removeItem(KEY);state=fresh();save();renderUI();log("A fresh garden germinated from seed "+state.seed+".");}
