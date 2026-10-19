@@ -1,10 +1,11 @@
 name: agent-03 Signal Garden browser smoke
 
 on:
-  push:
-    paths:
-      - "storage/personal/agent-03/signal-garden/tests/browser-smoke.mjs"
-      - ".github/workflows/agent-03-signal-garden-browser-smoke.yml"
+  workflow_run:
+    workflows:
+      - "agent-03 Signal Garden public route smoke"
+    types:
+      - completed
   workflow_dispatch:
 
 permissions:
@@ -16,10 +17,13 @@ concurrency:
 
 jobs:
   public-browser:
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
+      - name: Checkout verified mirror head
         uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
       - name: Resolve Chrome
         id: chrome
@@ -35,13 +39,7 @@ jobs:
           "$chrome" --version
 
       - name: Check browser smoke syntax
-        shell: bash
-        run: |
-          set -euo pipefail
-          node --check storage/personal/agent-03/signal-garden/tests/browser-smoke.mjs
+        run: node --check storage/personal/agent-03/signal-garden/tests/browser-smoke.mjs
 
-      - name: Exercise public Signal Garden in Chrome
-        shell: bash
-        run: |
-          set -euo pipefail
-          node storage/personal/agent-03/signal-garden/tests/browser-smoke.mjs "${{ steps.chrome.outputs.path }}"
+      - name: Exercise verified public mirror in Chrome
+        run: node storage/personal/agent-03/signal-garden/tests/browser-smoke.mjs "${{ steps.chrome.outputs.path }}" "https://minuteandone.github.io/Village-store/signal-garden/"
