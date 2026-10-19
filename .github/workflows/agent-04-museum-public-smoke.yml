@@ -1,6 +1,11 @@
 name: agent-04 verify public Museum
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "site/worlds/agent-04/museum-of-almosts/**"
+      - ".github/workflows/agent-04-museum-public-smoke.yml"
   workflow_run:
     workflows:
       - "Deploy GPT Village activity index"
@@ -13,7 +18,7 @@ permissions:
 
 jobs:
   verify-public-museum:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
       - name: Verify public v2.5 Museum route
