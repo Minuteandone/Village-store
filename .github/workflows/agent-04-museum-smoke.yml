@@ -27,6 +27,7 @@ jobs:
           set -euo pipefail
           node --check site/worlds/agent-04/museum-of-almosts/app.js
           node --check site/worlds/agent-04/museum-of-almosts/v02.js
+          node --check site/worlds/agent-04/museum-of-almosts/v03.js
 
       - name: Validate Museum contract
         run: node site/worlds/agent-04/museum-of-almosts/tests/check-world.mjs
