@@ -102,17 +102,17 @@ try{
   const overflow=await evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1");
   assert.equal(overflow,true,"390px viewport should not overflow horizontally");
 
-  await evaluate("document.querySelector('[data-island-id="0"]').click()");
+  await evaluate(`document.querySelector('[data-island-id="0"]').click()`);
   const lifeBefore=Number(await evaluate("document.getElementById('lifeStat').textContent"));
-  await evaluate("document.querySelector('[data-action="nurture"]').click()");
+  await evaluate(`document.querySelector('[data-action="nurture"]').click()`);
   await evaluate("document.getElementById('applySelectedBtn').click()");
   const lifeAfter=Number(await evaluate("document.getElementById('lifeStat').textContent"));
   assert.ok(lifeAfter>lifeBefore,"Nurture should increase selected-island life");
 
-  await evaluate("document.querySelector('[data-action="connect"]').click()");
-  await evaluate("document.querySelector('[data-island-id="0"]').click()");
+  await evaluate(`document.querySelector('[data-action="connect"]').click()`);
+  await evaluate(`document.querySelector('[data-island-id="0"]').click()`);
   await evaluate("document.getElementById('applySelectedBtn').click()");
-  await evaluate("document.querySelector('[data-island-id="1"]').click()");
+  await evaluate(`document.querySelector('[data-island-id="1"]').click()`);
   await evaluate("document.getElementById('applySelectedBtn').click()");
   const links=Number(await evaluate("document.getElementById('linksStat').textContent"));
   assert.equal(links,1,"Connect should create one live link");
@@ -121,15 +121,15 @@ try{
   const routeMemory=await evaluate("document.getElementById('historyChip').textContent");
   assert.match(routeMemory,/Route memory [1-9]/,"advancing a linked cycle should create route memory");
 
-  await evaluate("document.querySelector('[data-island-id="1"]').click()");
-  const glyphButtons=await evaluate("document.querySelectorAll('[data-glyph]').length");
+  await evaluate(`document.querySelector('[data-island-id="1"]').click()`);
+  const glyphButtons=await evaluate(`document.querySelectorAll('[data-glyph]').length`);
   assert.equal(glyphButtons,4);
-  await evaluate("document.querySelector('[data-glyph="memory"]').click()");
+  await evaluate(`document.querySelector('[data-glyph="memory"]').click()`);
   const glyph=await evaluate("document.getElementById('glyphStat').textContent");
   assert.equal(glyph,"Echo");
 
   await evaluate("if(document.activeElement) document.activeElement.blur()");
-  const memoryBefore=Number(await evaluate("document.querySelector('[data-island-id="1"]').click(); document.getElementById('memoryStat').textContent"));
+  const memoryBefore=Number(await evaluate(`document.querySelector('[data-island-id="1"]').click(); document.getElementById('memoryStat').textContent`));
   await key("2","Digit2",50,"2");
   await key("o","KeyO",79,"o");
   await key("Enter","Enter",13);
@@ -137,10 +137,10 @@ try{
   const memoryAfter=Number(await evaluate("document.getElementById('memoryStat').textContent"));
   assert.ok(memoryAfter>memoryBefore,"keyboard 2/O/Enter path should observe island 2");
 
-  const persistedLife=Number(await evaluate("document.querySelector('[data-island-id="0"]').click(); document.getElementById('lifeStat').textContent"));
+  const persistedLife=Number(await evaluate(`document.querySelector('[data-island-id="0"]').click(); document.getElementById('lifeStat').textContent`));
   await send("Page.reload",{ignoreCache:true});
   await waitFor("document.readyState==='complete' && !!document.getElementById('versionChip')","Signal Garden reload");
-  await evaluate("document.querySelector('[data-island-id="0"]').click()");
+  await evaluate(`document.querySelector('[data-island-id="0"]').click()`);
   const reloadedLife=Number(await evaluate("document.getElementById('lifeStat').textContent"));
   assert.equal(reloadedLife,persistedLife,"local garden state should survive reload for the same seed");
 
