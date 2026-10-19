@@ -20,6 +20,7 @@ const v10 = read("v10.js");
 const v11 = read("v11.js");
 const v12 = read("v12.js");
 const v13 = read("v13.js");
+const v14 = read("v14.js");
 const v02css = read("v02.css");
 const v03css = read("v03.css");
 const v04css = read("v04.css");
@@ -32,13 +33,14 @@ const v10css = read("v10.css");
 const v11css = read("v11.css");
 const v12css = read("v12.css");
 const v13css = read("v13.css");
+const v14css = read("v14.css");
 
 const failures = [];
 const expect = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "v13.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js", "v13.js"]) {
+for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "v13.css", "v14.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js", "v13.js", "v14.js"]) {
   expect(index.includes(asset), "index.html must reference " + asset);
 }
 
@@ -54,11 +56,12 @@ expect(
   index.indexOf("v09.js") < index.indexOf("v10.js") &&
   index.indexOf("v10.js") < index.indexOf("v11.js") &&
   index.indexOf("v11.js") < index.indexOf("v12.js") &&
-  index.indexOf("v12.js") < index.indexOf("v13.js"),
-  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js -> v13.js"
+  index.indexOf("v12.js") < index.indexOf("v13.js") &&
+  index.indexOf("v13.js") < index.indexOf("v14.js"),
+  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js -> v13.js -> v14.js"
 );
 
-for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09], ["v1.0", v10], ["v1.1", v11], ["v1.2", v12], ["v1.3", v13]]) {
+for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09], ["v1.0", v10], ["v1.1", v11], ["v1.2", v12], ["v1.3", v13], ["v1.4", v14]]) {
   expect(source.includes("agent04-museum-of-almosts-v1"), name + " must share the Museum storage key");
 }
 
@@ -253,6 +256,23 @@ expect(!v13.includes("localStorage.setItem("), "v1.3 Cross-Reference Route must 
 expect(!v13.includes("innerHTML"), "v1.3 should construct route UI with safe DOM APIs");
 expect(v13css.includes("prefers-reduced-motion"), "v1.3 Cross-Reference styling must respect reduced-motion");
 
+for (const phrase of ["SECOND EDITION · v1.4", "PUBLICATION LOOP · v1.4", "prepareReissue", "reviewedRooms", "reissue-card-v14", "reissueNoticeV14"]) {
+  expect(v14.includes(phrase), "v1.4 missing Second Edition mechanic: " + phrase);
+}
+expect(v14.includes('["possibility", "provenance", "architecture"].includes(item.lens)'), "v1.4 must only reuse known Living Catalog editorial lenses");
+expect(v14.includes('event.target?.closest?.(".walking-footnote-v12")'), "v1.4 review completion must come from real Walking Footnote clicks");
+expect(v14.includes("const reviewedRooms = new Set()"), "v1.4 footnote-review progress must remain in-memory");
+expect(v14.includes('document.getElementById("openEditionV10")'), "v1.4 must hand off to the existing Living Catalog");
+expect(v14.includes('.edition-lens-v10[data-lens="') && v14.includes("lens.click()"), "v1.4 must preselect the prior edition lens through the existing v1.0 UI");
+expect(v14.includes('document.getElementById("printEditionV10")'), "v1.4 must identify the existing Print control for explicit visitor handoff");
+expect(!v14.includes("print.click()"), "v1.4 must never auto-click the Living Catalog Print button");
+expect(!v14.includes('getElementById("printEditionV10").click()'), "v1.4 must never directly trigger printing");
+expect(v14.includes("print.focus"), "v1.4 should focus/highlight Print rather than activate it");
+expect(!v14.includes("localStorage.setItem("), "v1.4 Second Edition must not create its own persistent state");
+expect(!v14.includes("innerHTML"), "v1.4 should construct reissue UI with safe DOM APIs");
+expect(v14css.includes("#printEditionV10.reissue-print-v14"), "v1.4 must visually mark the existing Print control when a reissue is prepared");
+expect(v14css.includes("prefers-reduced-motion"), "v1.4 Second Edition styling must respect reduced-motion");
+
 if (failures.length) {
   console.error("Museum of Almosts smoke check failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -260,4 +280,4 @@ if (failures.length) {
 }
 
 console.log("Museum of Almosts smoke check passed.");
-console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes + v1.3 Cross-Reference Route contract.");
+console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes + v1.3 Cross-Reference Route + v1.4 Second Edition contract.");
