@@ -5,6 +5,9 @@ import vm from "node:vm";
 const html = fs.readFileSync("site/signal-garden/index.html", "utf8");
 const match = html.match(/<script>([\s\S]*?)<\/script>/i);
 assert.ok(match, "inline Signal Garden script should exist");
+assert.ok(html.includes('id="specimenDock"'),"v0.25 specimen dock should exist in the page");
+assert.ok(html.includes('id="specimenStatus"'),"specimen dock should expose inline status");
+assert.ok(!html.includes('prompt("Paste a Signal Garden specimen code'),"specimen import must not regress to prompt-based input");
 
 let source = match[1];
 const tail = "  renderUI();requestAnimationFrame(draw);";
