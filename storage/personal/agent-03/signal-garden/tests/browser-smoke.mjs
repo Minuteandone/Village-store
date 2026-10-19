@@ -202,10 +202,27 @@ try{
   const glyphInitialStatus=await evaluate("document.getElementById('glyphStatus').textContent");
   assert.match(glyphInitialStatus,/3 more resonance/);
   const lifeBefore=Number(await evaluate("document.getElementById('lifeStat').textContent"));
+  const focusBeforeUndo=await evaluate("document.getElementById('focusChip').textContent");
+  const undoInitiallyDisabled=await evaluate("document.getElementById('undoBtn').disabled");
+  assert.equal(undoInitiallyDisabled,true,"fresh session should not offer Undo");
   await evaluate(`document.querySelector('[data-action="nurture"]').click()`);
   await evaluate("document.getElementById('applySelectedBtn').click()");
   const lifeAfter=Number(await evaluate("document.getElementById('lifeStat').textContent"));
   assert.ok(lifeAfter>lifeBefore,"Nurture should increase selected-island life");
+  assert.equal(await evaluate("document.getElementById('undoBtn').disabled"),false,"Nurture should enable Undo");
+  const undoLabel=await evaluate("document.getElementById('undoBtn').textContent");
+  assert.match(undoLabel,/Undo Nurture/);
+  await evaluate("document.getElementById('undoBtn').click()");
+  const lifeAfterUndo=Number(await evaluate("document.getElementById('lifeStat').textContent"));
+  const focusAfterUndo=await evaluate("document.getElementById('focusChip').textContent");
+  assert.equal(lifeAfterUndo,lifeBefore,"Undo should restore exact pre-Nurture life");
+  assert.equal(focusAfterUndo,focusBeforeUndo,"Undo should restore exact pre-Nurture focus");
+  assert.equal(await evaluate("document.getElementById('undoBtn').disabled"),true,"single-step Undo should consume its checkpoint");
+  const undoAnnouncement=await evaluate("document.getElementById('actionStatus').textContent");
+  assert.match(undoAnnouncement,/Undid Nurture/,"Undo should announce concise recovery feedback");
+  await evaluate("document.getElementById('applySelectedBtn').click()");
+  const lifeAfterRedo=Number(await evaluate("document.getElementById('lifeStat').textContent"));
+  assert.equal(lifeAfterRedo,lifeAfter,"redoing the same Nurture after Undo should reproduce the same life result");
   const actionAnnouncement=await evaluate("document.getElementById('actionStatus').textContent");
   assert.match(actionAnnouncement,/Nurtured/,"latest action status should announce concise Nurture feedback");
   const nurturedResearchCompass=await evaluate("document.getElementById('researchCompass').textContent");
@@ -311,6 +328,8 @@ try{
   await evaluate(`document.querySelector('[data-island-id="0"]').click()`);
   const reloadedLife=Number(await evaluate("document.getElementById('lifeStat').textContent"));
   assert.equal(reloadedLife,persistedLife,"local garden state should survive reload for the same seed");
+  const undoAfterReloadDisabled=await evaluate("document.getElementById('undoBtn').disabled");
+  assert.equal(undoAfterReloadDisabled,true,"Undo checkpoint must be session-only and disappear after reload");
 
   await evaluate(`document.querySelector('[data-action="nurture"]').click()`);
   for(let i=0;i<10;i++){
@@ -375,7 +394,7 @@ try{
   assert.equal(exceptions.length,0,"uncaught browser exceptions: "+JSON.stringify(exceptions));
 
   console.log("Signal Garden shared-mirror browser smoke passed.");
-  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,contrastChip,panelShadow,activeOutline,title,firstTabClass,controlsLabel,canvasRole,initialGuide,guideLive,fieldLogLive,actionStatusRole,researchSummary,researchCompass,observedResearchSummary,selectedAnnouncement,offscreenCanvasStable:offscreenCanvasA===offscreenCanvasB,offscreenSelectionDeferred:offscreenCanvasAfterSelection===offscreenCanvasB,resumeRenderedLatest:resumedCanvas!==offscreenCanvasAfterSelection,actionAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,germinationInitiallyDisabled,germinationInitialStatus,echoInitiallyDisabled,glyphInitialStatus,echoReady,glyphDescription,echoDisabledAfterSelection,initialTextMap,linkedTextMap,migratedTextMap,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,exhaustedFocus,nurtureApplyDisabled,exhaustedModeStatus,exhaustedGuide,freeArmText,zeroFocusPending,blockedCompletionStatus,freeCancelText,afterFreeCancel,canvasArmedStatus,canvasCancelledStatus,url:selectedUrl}));
+  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,contrastChip,panelShadow,activeOutline,title,firstTabClass,controlsLabel,canvasRole,initialGuide,guideLive,fieldLogLive,actionStatusRole,researchSummary,researchCompass,observedResearchSummary,selectedAnnouncement,offscreenCanvasStable:offscreenCanvasA===offscreenCanvasB,offscreenSelectionDeferred:offscreenCanvasAfterSelection===offscreenCanvasB,resumeRenderedLatest:resumedCanvas!==offscreenCanvasAfterSelection,actionAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,focusBeforeUndo,undoInitiallyDisabled,undoLabel,lifeAfterUndo,focusAfterUndo,undoAnnouncement,lifeAfterRedo,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,germinationInitiallyDisabled,germinationInitialStatus,echoInitiallyDisabled,glyphInitialStatus,echoReady,glyphDescription,echoDisabledAfterSelection,initialTextMap,linkedTextMap,migratedTextMap,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,undoAfterReloadDisabled,exhaustedFocus,nurtureApplyDisabled,exhaustedModeStatus,exhaustedGuide,freeArmText,zeroFocusPending,blockedCompletionStatus,freeCancelText,afterFreeCancel,canvasArmedStatus,canvasCancelledStatus,url:selectedUrl}));
 }finally{
   if(ws)try{ws.close()}catch{}
   proc.kill("SIGTERM");
