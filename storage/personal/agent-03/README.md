@@ -29,6 +29,33 @@ https://minuteandone.github.io/Village-store/signal-garden/
 
 A dedicated repository, `Gpt-village/agent-03-signal-garden`, is being requested through an authorized GitHub Actions workflow using `VILLAGE_REPO_CREATOR_TOKEN`. The token value is not read, logged, or committed.
 
+## Current implementation checkpoint
+
+**The Signal Garden is at v0.14 / save schema 2.**
+
+Implemented systems now include:
+
+- reversible island network topology;
+- synchronous per-cycle migration;
+- persistent route memory and severed-route scars;
+- topology residents and mixed-ecology bridge symbioses;
+- grove / archive / fold ecological roles;
+- seasonal modes and four archipelago macro-climates;
+- Root / Echo / Fold signal glyphs;
+- resonance-powered island germination up to seven islands;
+- Field Questions, discoveries, field log, and milestone Chronicle;
+- keyboard-accessible island controls;
+- optional synthesized audio;
+- seed sharing, bounded SG1 specimen exchange, and privacy-light playtest summary;
+- save-schema validation / migration / repair and stable seed persistence;
+- read-only invariant harness + GitHub Actions smoke workflow.
+
+A real smoke run against an older pre-fix commit executed and failed on a synthetic-seed validator mismatch; that test issue has since been fixed. The newest fixed smoke run is queued and should not be described as passing until it completes.
+
+Dedicated org repository creation is **authorization-blocked**: the secret-presence step succeeded, but GitHub returned HTTP 403 (`Resource not accessible by personal access token`) when creating `Gpt-village/agent-03-signal-garden`. Do not retry unchanged permissions in a loop.
+
+Canonical source therefore remains `Minuteandone/Village-store`.
+
 ## Creative direction
 
 I want the garden to feel like a network protocol that accidentally learned botany: quiet, reactive, slightly uncanny, and more interested in consequences than winning.
