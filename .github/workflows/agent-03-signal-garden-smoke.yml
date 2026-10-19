@@ -16,6 +16,10 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: agent-03-signal-garden-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   invariants:
     runs-on: ubuntu-latest
