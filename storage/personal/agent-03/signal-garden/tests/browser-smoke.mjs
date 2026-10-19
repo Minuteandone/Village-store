@@ -143,6 +143,20 @@ try{
   assert.equal(canvasRole,"img","canvas should identify itself as a visual map rather than the only gameplay control");
   const canvasDescription=await evaluate("document.getElementById('canvasHelp').textContent");
   assert.match(canvasDescription,/All gameplay actions are also available/);
+  const touchAction=await evaluate("getComputedStyle(document.getElementById('garden')).touchAction");
+  assert.match(touchAction,/pan-y/,"canvas should explicitly allow vertical touch panning");
+  assert.match(touchAction,/pinch-zoom/,"canvas should preserve pinch zoom");
+  const shortcutMeta=await evaluate(`({
+    nurture:document.querySelector('[data-action="nurture"]').getAttribute('aria-keyshortcuts'),
+    observe:document.querySelector('[data-action="observe"]').getAttribute('aria-keyshortcuts'),
+    connect:document.querySelector('[data-action="connect"]').getAttribute('aria-keyshortcuts'),
+    distort:document.querySelector('[data-action="distort"]').getAttribute('aria-keyshortcuts'),
+    undo:document.getElementById('undoBtn').getAttribute('aria-keyshortcuts'),
+    apply:document.getElementById('applySelectedBtn').getAttribute('aria-keyshortcuts'),
+    island1:document.querySelector('[data-island-id="0"]').getAttribute('aria-keyshortcuts'),
+    island2:document.querySelector('[data-island-id="1"]').getAttribute('aria-keyshortcuts')
+  })`);
+  assert.deepEqual(shortcutMeta,{nurture:"N",observe:"O",connect:"C",distort:"D",undo:"U",apply:"Enter",island1:"1",island2:"2"},"deployed controls should expose the same shortcuts implemented by the keyboard state machine");
 
   const initialGuide=await evaluate("document.getElementById('guidePanel').textContent");
   assert.match(initialGuide,/Select an island/,"fresh deployed garden should expose first-step guidance");
@@ -394,7 +408,7 @@ try{
   assert.equal(exceptions.length,0,"uncaught browser exceptions: "+JSON.stringify(exceptions));
 
   console.log("Signal Garden shared-mirror browser smoke passed.");
-  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,contrastChip,panelShadow,activeOutline,title,firstTabClass,controlsLabel,canvasRole,initialGuide,guideLive,fieldLogLive,actionStatusRole,researchSummary,researchCompass,observedResearchSummary,selectedAnnouncement,offscreenCanvasStable:offscreenCanvasA===offscreenCanvasB,offscreenSelectionDeferred:offscreenCanvasAfterSelection===offscreenCanvasB,resumeRenderedLatest:resumedCanvas!==offscreenCanvasAfterSelection,actionAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,focusBeforeUndo,undoInitiallyDisabled,undoLabel,lifeAfterUndo,focusAfterUndo,undoAnnouncement,lifeAfterRedo,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,germinationInitiallyDisabled,germinationInitialStatus,echoInitiallyDisabled,glyphInitialStatus,echoReady,glyphDescription,echoDisabledAfterSelection,initialTextMap,linkedTextMap,migratedTextMap,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,undoAfterReloadDisabled,exhaustedFocus,nurtureApplyDisabled,exhaustedModeStatus,exhaustedGuide,freeArmText,zeroFocusPending,blockedCompletionStatus,freeCancelText,afterFreeCancel,canvasArmedStatus,canvasCancelledStatus,url:selectedUrl}));
+  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,contrastChip,panelShadow,activeOutline,title,firstTabClass,controlsLabel,canvasRole,touchAction,shortcutMeta,initialGuide,guideLive,fieldLogLive,actionStatusRole,researchSummary,researchCompass,observedResearchSummary,selectedAnnouncement,offscreenCanvasStable:offscreenCanvasA===offscreenCanvasB,offscreenSelectionDeferred:offscreenCanvasAfterSelection===offscreenCanvasB,resumeRenderedLatest:resumedCanvas!==offscreenCanvasAfterSelection,actionAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,focusBeforeUndo,undoInitiallyDisabled,undoLabel,lifeAfterUndo,focusAfterUndo,undoAnnouncement,lifeAfterRedo,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,germinationInitiallyDisabled,germinationInitialStatus,echoInitiallyDisabled,glyphInitialStatus,echoReady,glyphDescription,echoDisabledAfterSelection,initialTextMap,linkedTextMap,migratedTextMap,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,undoAfterReloadDisabled,exhaustedFocus,nurtureApplyDisabled,exhaustedModeStatus,exhaustedGuide,freeArmText,zeroFocusPending,blockedCompletionStatus,freeCancelText,afterFreeCancel,canvasArmedStatus,canvasCancelledStatus,url:selectedUrl}));
 }finally{
   if(ws)try{ws.close()}catch{}
   proc.kill("SIGTERM");
