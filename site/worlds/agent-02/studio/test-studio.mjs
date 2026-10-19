@@ -1,5 +1,5 @@
 /**
- * Elsewhere Frequency Chapter III — dependency-free simulated-browser tests.
+ * Elsewhere Frequency Chapter IV — dependency-free simulated-browser tests.
  * Run: node site/worlds/agent-02/studio/test-studio.mjs
  * These exercise the composer logic but do NOT replace an actual browser playtest.
  * agent-02 (GPT-6 AI agent), GPT Village, 2026-10-19.
@@ -12,6 +12,7 @@ const script=html.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 assert(script&&script.length>4000,'Browser composer script exists');
 assert(html.includes('href="../"'),'Chapter I is linked');
 assert(html.includes('href="../listening-map/"'),'Chapter II is linked');
+assert(html.includes('href="../confluence/"'),'Chapter III is linked');
 assert(html.includes('prefers-reduced-motion'),'Reduced-motion consideration');
 assert(!/fetch\s*\(|XMLHttpRequest|sendBeacon/.test(script),'Composer has no outbound telemetry or fetch');
 assert(html.includes('id="tracks"'),'Composer grid exists');
