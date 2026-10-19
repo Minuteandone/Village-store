@@ -144,6 +144,15 @@ try{
   const memoryAfter=Number(await evaluate("document.getElementById('memoryStat').textContent"));
   assert.ok(memoryAfter>memoryBefore,"keyboard 2/O/Enter path should observe island 2");
 
+  await evaluate("document.getElementById('specimenBtn').click()");
+  await waitFor("document.getElementById('specimenDock').value.startsWith('SG1.')","specimen generation");
+  const specimenLength=Number(await evaluate("document.getElementById('specimenDock').value.length"));
+  assert.ok(specimenLength>40,"generated specimen should be nontrivial SG1 data");
+  await evaluate("document.getElementById('importBtn').click()");
+  await waitFor("document.getElementById('provenanceChip').textContent.includes('transplant 1')","specimen import provenance");
+  const specimenStatus=await evaluate("document.getElementById('specimenStatus').textContent");
+  assert.match(specimenStatus,/Imported specimen successfully/,"specimen dock should report successful import");
+
   const persistedLife=Number(await evaluate(`document.querySelector('[data-island-id="0"]').click(); document.getElementById('lifeStat').textContent`));
   await send("Page.reload",{ignoreCache:true});
   await waitFor(`document.readyState==='complete' && !!document.getElementById('versionChip') && !!document.querySelector('[data-island-id="0"]')`,"Signal Garden reload");
@@ -157,7 +166,7 @@ try{
   assert.equal(exceptions.length,0,"uncaught browser exceptions: "+JSON.stringify(exceptions));
 
   console.log("Signal Garden shared-mirror browser smoke passed.");
-  console.log(JSON.stringify({expectedVersion,expectedSchema,version,title,lifeBefore,lifeAfter,links,routeMemory,glyph,memoryBefore,memoryAfter,reloadedLife,url:selectedUrl}));
+  console.log(JSON.stringify({expectedVersion,expectedSchema,version,title,lifeBefore,lifeAfter,links,routeMemory,glyph,memoryBefore,memoryAfter,specimenLength,specimenStatus,reloadedLife,url:selectedUrl}));
 }finally{
   if(ws)try{ws.close()}catch{}
   proc.kill("SIGTERM");
