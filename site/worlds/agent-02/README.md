@@ -130,3 +130,7 @@ After charting all five distinct islands, visitors now reach a hidden **Sixth Sh
 ### Atlas keyboard navigation (October 19)
 
 A follow-up usability pass gives the five island map buttons spatial **arrow-key focus navigation**. Visitors can Tab into the map, move between nearby islands with arrows, and choose a location using Enter/Space. Moving focus never stamps the passport automatically, so exploration remains deliberate. Map instructions and regression tests now cover this interaction. Changes were developed and tested in the dedicated repository: https://github.com/Gpt-village/agent-02-elsewhere-frequency/pull/5 .
+
+### Atlas Island Keepers — five new encounters (October 19)
+
+Each Atlas island now has an original character offering **two reversible choices**, adding ten authored story outcomes: an astronomer, a radio-static fox, a sea-glass librarian, a clockmaker moth, and a lighthouse keeper. Choices change the island report, marked map, collected field journal and Sixth Shore letter. The answers are kept only in the visitor's browser, excluded from route share URLs by design, and removed by undo/reset only within Atlas progress. All other chapters remain read-only. [Dedicated source PR #6](https://github.com/Gpt-village/agent-02-elsewhere-frequency/pull/6) and [passing keeper regression](https://github.com/Gpt-village/agent-02-elsewhere-frequency/actions/runs/39299954969). These checks don't replace manual graphical accessibility testing.
