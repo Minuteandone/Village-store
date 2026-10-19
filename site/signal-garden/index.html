@@ -76,7 +76,8 @@
         <span class="chip" id="historyChip">Route memory 0</span>
         <span class="chip" id="researchChip">Research 0/7</span>
         <span class="chip" id="climateChip">Climate · Braided Sky</span>
-        <span class="chip" id="versionChip">v0.14 · save 2</span>
+        <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
+        <span class="chip" id="versionChip">v0.15 · save 3</span>
       </div>
     </section>
 
@@ -175,7 +176,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.14",SAVE_SCHEMA=2;
+  var APP_VERSION="0.15",SAVE_SCHEMA=3;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -201,7 +202,7 @@
   }
   function fresh(){
     randState=hash(seed);
-    return {schema:SAVE_SCHEMA,seed:seed,cycle:1,focus:8,resonance:0,mode:"Quiet",selected:null,action:"nurture",discoveries:[],log:[],chronicle:[],edgeMemory:{},climateSeen:{},lastClimate:null,islands:[
+    return {schema:SAVE_SCHEMA,seed:seed,cycle:1,focus:8,resonance:0,mode:"Quiet",selected:null,action:"nurture",discoveries:[],log:[],chronicle:[],edgeMemory:{},climateSeen:{},lastClimate:null,streakClimate:null,climateStreak:0,activePhenomenon:null,phenomenaSeen:{},islands:[
       makeIsland(0,.24,.31,58),makeIsland(1,.67,.27,48),makeIsland(2,.50,.62,66),makeIsland(3,.79,.69,42)
     ]};
   }
@@ -228,6 +229,13 @@
   if(!state.climateSeen||typeof state.climateSeen!=="object")state.climateSeen={};
   if(!Array.isArray(state.chronicle))state.chronicle=[];
   if(typeof state.lastClimate!=="string")state.lastClimate=null;
+  if(typeof state.streakClimate!=="string")state.streakClimate=null;
+  if(!Number.isInteger(state.climateStreak)||state.climateStreak<0)state.climateStreak=0;
+  if(typeof state.activePhenomenon!=="string")state.activePhenomenon=null;
+  if(!state.phenomenaSeen||typeof state.phenomenaSeen!=="object")state.phenomenaSeen={};
+  var repairedPhenomena={};
+  ["seed-rain","memory-dew","parallax-bloom","confluence-pulse"].forEach(function(k){if(state.phenomenaSeen[k])repairedPhenomena[k]=true});
+  state.phenomenaSeen=repairedPhenomena;
   state.islands.forEach(function(a){
     a.life=clampEarly(a.life);a.memory=clampEarly(a.memory);a.strange=clampEarly(a.strange);
     if(typeof a.arrivals!=="number"||a.arrivals<0)a.arrivals=0;
@@ -317,7 +325,7 @@
       var p=k.split("-").map(Number);return [p[0],p[1],state.edgeMemory[k]||0];
     }).filter(function(x){return x[2]>0});
     var payload={
-      v:1,seed:state.seed,cycle:state.cycle,focus:state.focus,resonance:state.resonance,mode:state.mode,climates:Object.keys(state.climateSeen).filter(function(k){return state.climateSeen[k]}),
+      v:1,seed:state.seed,cycle:state.cycle,focus:state.focus,resonance:state.resonance,mode:state.mode,climates:Object.keys(state.climateSeen).filter(function(k){return state.climateSeen[k]}),phenomena:Object.keys(state.phenomenaSeen).filter(function(k){return state.phenomenaSeen[k]}),streak:[state.streakClimate,state.climateStreak,state.activePhenomenon],
       traits:state.islands.map(function(a){return [Math.round(a.life),Math.round(a.memory),Math.round(a.strange),Math.round(a.arrivals||0)]}),
       glyphs:state.islands.map(function(a){return a.glyph||"none"}),
       edges:edges,memory:memory
@@ -341,6 +349,8 @@
     if(["Quiet","Bloom","Static","Storm"].indexOf(p.mode)<0)throw new Error("Specimen season is invalid.");
     if(!Array.isArray(p.edges)||p.edges.length>21||!Array.isArray(p.memory)||p.memory.length>21)throw new Error("Specimen network is too large.");
     if(p.climates!==undefined&&(!Array.isArray(p.climates)||p.climates.length>4||p.climates.some(function(k){return ["verdant","echo","fracture","braided"].indexOf(k)<0})))throw new Error("Specimen climate history is invalid.");
+    if(p.phenomena!==undefined&&(!Array.isArray(p.phenomena)||p.phenomena.length>4||p.phenomena.some(function(k){return ["seed-rain","memory-dew","parallax-bloom","confluence-pulse"].indexOf(k)<0})))throw new Error("Specimen phenomenon history is invalid.");
+    if(p.streak!==undefined&&(!Array.isArray(p.streak)||p.streak.length!==3||p.streak[0]!==null&&["verdant","echo","fracture","braided"].indexOf(p.streak[0])<0||!Number.isInteger(p.streak[1])||p.streak[1]<0||p.streak[1]>10000||p.streak[2]!==null&&["seed-rain","memory-dew","parallax-bloom","confluence-pulse"].indexOf(p.streak[2])<0))throw new Error("Specimen climate streak is invalid.");
     if(p.glyphs!==undefined&&(!Array.isArray(p.glyphs)||p.glyphs.length!==p.traits.length||p.glyphs.some(function(k){return ["none","life","memory","strange"].indexOf(k)<0})))throw new Error("Specimen glyph data is invalid.");
     var n=p.traits.length,seen={};
     p.edges.forEach(function(e){
@@ -370,6 +380,11 @@
     next.edgeMemory={};p.memory.forEach(function(e){next.edgeMemory[edgeKey(e[0],e[1])]=e[2]});
     next.climateSeen={};
     if(Array.isArray(p.climates))p.climates.slice(0,4).forEach(function(k){if(["verdant","echo","fracture","braided"].indexOf(k)>=0)next.climateSeen[k]=true});
+    next.phenomenaSeen={};
+    if(Array.isArray(p.phenomena))p.phenomena.slice(0,4).forEach(function(k){if(["seed-rain","memory-dew","parallax-bloom","confluence-pulse"].indexOf(k)>=0)next.phenomenaSeen[k]=true});
+    next.streakClimate=Array.isArray(p.streak)?p.streak[0]:null;
+    next.climateStreak=Array.isArray(p.streak)?p.streak[1]:0;
+    next.activePhenomenon=Array.isArray(p.streak)?p.streak[2]:null;
     next.cycle=p.cycle;next.focus=p.focus;next.resonance=p.resonance;next.mode=p.mode;next.selected=null;next.action="nurture";
     next.lastClimate=null;next.chronicle=[];
     next.discoveries=[];next.log=[{c:next.cycle,msg:"Imported a bounded Signal Garden specimen. Historical field-log and chronicle text were intentionally not transferred."}];
@@ -432,6 +447,32 @@
     var count=Object.keys(state.climateSeen).filter(function(k){return state.climateSeen[k]}).length;
     if(count>=3)d("weather-archive","Weather Archive","The garden has inhabited at least three distinct archipelago-scale climates.");
     return c;
+  }
+  function phenomenonForClimate(id){
+    if(id==="verdant")return {id:"seed-rain",name:"Seed Rain",text:"Verdant Air persisted long enough for airborne signal-seeds to fall across every island."};
+    if(id==="echo")return {id:"memory-dew",name:"Memory Dew",text:"Echo Haze condensed into droplets that preserve traces of previous signals."};
+    if(id==="fracture")return {id:"parallax-bloom",name:"Parallax Bloom",text:"Fracture Weather held steady until each island produced a second, slightly displaced ecological outline."};
+    return {id:"confluence-pulse",name:"Confluence Pulse",text:"Braided Sky persisted until competing signals synchronized for one shared pulse."};
+  }
+  function advanceClimatePhenomenon(){
+    var c=macroClimate();
+    if(state.streakClimate===c.id)state.climateStreak++;
+    else{state.streakClimate=c.id;state.climateStreak=1;state.activePhenomenon=null}
+    if(state.climateStreak<3)return null;
+    var p=phenomenonForClimate(c.id);
+    state.activePhenomenon=p.id;
+    if(state.climateStreak%3!==0)return p;
+    if(p.id==="seed-rain")state.islands.forEach(function(a){a.life=clamp(a.life+2)});
+    if(p.id==="memory-dew")state.islands.forEach(function(a){a.memory=clamp(a.memory+2)});
+    if(p.id==="parallax-bloom")state.islands.forEach(function(a){a.strange=clamp(a.strange+2)});
+    if(p.id==="confluence-pulse"){
+      state.islands.forEach(function(a){a.life=clamp(a.life+1);a.memory=clamp(a.memory+1);a.strange=clamp(a.strange+1)});
+      state.resonance=Math.min(10000,state.resonance+1);
+    }
+    state.phenomenaSeen[p.id]=true;
+    addChronicle("phenomenon",p.name+" crossed the archipelago after "+state.climateStreak+" sustained "+c.name+" cycles.");
+    d("phenomenon-"+p.id,p.name,p.text);
+    return p;
   }
   function researchPrompts(){
     var residents=topologySpecies();
@@ -602,7 +643,7 @@
     var n=state.cycle%8;
     state.mode=n===0?"Storm":n===4?"Bloom":n===6?"Static":"Quiet";
     migrateSignals();
-    evolve();recordClimate();cue("cycle");save();renderUI();
+    evolve();recordClimate();advanceClimatePhenomenon();cue("cycle");save();renderUI();
   }
   function pickIsland(px,py){
     var rect=canvas.getBoundingClientRect(),sx=canvas.width/rect.width,sy=canvas.height/rect.height;
@@ -660,7 +701,9 @@
     var questions=researchPrompts(),doneQuestions=questions.filter(function(q){return q.done}).length;
     document.getElementById("researchChip").textContent="Research "+doneQuestions+"/"+questions.length;
     var climate=macroClimate();
-    document.getElementById("climateChip").textContent="Climate · "+climate.name;
+    document.getElementById("climateChip").textContent="Climate · "+climate.name+" · "+state.climateStreak+"/3";
+    var activePhenomenon=state.activePhenomenon?phenomenonForClimate(state.streakClimate):null;
+    document.getElementById("phenomenonChip").textContent=activePhenomenon?"Phenomenon · "+activePhenomenon.name:"Phenomenon · dormant";
     document.getElementById("versionChip").textContent="v"+APP_VERSION+" · save "+SAVE_SCHEMA;
     var gb=document.getElementById("germinateBtn");
     gb.disabled=state.resonance<6||state.focus<2||state.islands.length>=7;
