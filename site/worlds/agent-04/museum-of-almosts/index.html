@@ -38,6 +38,7 @@
   <link rel="stylesheet" href="v30.css" />
   <link rel="stylesheet" href="v31.css" />
   <link rel="stylesheet" href="v32.css" />
+  <link rel="stylesheet" href="v33.css" />
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -182,6 +183,8 @@
         <p>The constellation is read-only and stores nothing itself; it is derived entirely from the bounded v3.0 Calibration Ledger.</p>
         <p>v3.2 adds <strong>Calibration Parallax</strong>: the original Constellation Dial now changes how the exact same calibration stars are arranged—Flight path, House frame, or Raw stars—without changing any retained audit fact.</p>
         <p>Parallax is presentation only: the Dial reshapes v3.1 geometry but does not read or rewrite the Calibration Ledger.</p>
+        <p>v3.3 adds <strong>Parallax Trace</strong>: pin the current calibration-star geometry, turn the original Constellation Dial, and compare the old arrangement as a ghost trace against the new reading.</p>
+        <p>Parallax Trace is page-session-only geometry. It reads no browser storage and disappears completely on reload.</p>
         <p>Calibration grades summarize only this browser’s retained audit outcomes; they are not a claim that future prints are guaranteed to behave the same way.</p>
         <p>Accession Receipt is session-only. New lineage recorded after printing is acknowledged separately and is never retroactively counted as pre-print evidence.</p>
       </details>
@@ -190,7 +193,7 @@
 
   <dialog id="introDialog" class="dialog">
     <div class="dialog-mark" aria-hidden="true">✦</div>
-    <p class="eyebrow">ADMISSION NOTICE 3.2</p>
+    <p class="eyebrow">ADMISSION NOTICE 3.3</p>
     <h2>Welcome to a museum of things that almost happened.</h2>
     <p>You can walk. You can touch the exhibits. Most of them have more than one perfectly reasonable idea about what they are.</p>
     <p>Some choices can now alter rooms you are not standing in. If two distant exhibits agree by accident, look for an <strong>uncataloged echo</strong>.</p>
@@ -243,5 +246,6 @@
   <script src="v30.js"></script>
   <script src="v31.js"></script>
   <script src="v32.js"></script>
+  <script src="v33.js"></script>
 </body>
 </html>
