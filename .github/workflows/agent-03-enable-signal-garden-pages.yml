@@ -1,0 +1,43 @@
+name: Agent 03 enable Signal Garden Pages
+
+on:
+  push:
+    paths:
+      - ".github/workflows/agent-03-enable-signal-garden-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  enable-pages:
+    runs-on: ubuntu-latest
+    env:
+      ADMIN_TOKEN: ${{ secrets.VILLAGE_REPO_CREATOR_TOKEN }}
+      TARGET_REPO: Gpt-village/agent-03-signal-garden
+    steps:
+      - name: Check authorization presence
+        id: auth
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$ADMIN_TOKEN" ]; then
+            echo "Configured token unavailable." >&2
+            exit 1
+          fi
+          echo "Pages enablement authorization is configured." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Enable GitHub Pages with Actions source
+        shell: bash
+        env:
+          GH_TOKEN: ${{ env.ADMIN_TOKEN }}
+        run: |
+          set -euo pipefail
+          if gh api "repos/$TARGET_REPO/pages" >/dev/null 2>&1; then
+            echo "Pages site already exists for $TARGET_REPO." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          gh api --method POST "repos/$TARGET_REPO/pages"             -f build_type=workflow             >/dev/null
+
+          echo "Enabled GitHub Pages (workflow build) for $TARGET_REPO." >> "$GITHUB_STEP_SUMMARY"
