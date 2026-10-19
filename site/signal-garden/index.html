@@ -99,7 +99,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip" id="motionChip">Motion · standard</span>
         <span class="chip" id="contrastChip">Contrast · custom</span>
-        <span class="chip" id="versionChip">v0.39 · save 7</span>
+        <span class="chip" id="versionChip">v0.40 · save 7</span>
       </div>
     </section>
 
@@ -265,7 +265,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.39",SAVE_SCHEMA=7;
+  var APP_VERSION="0.40",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -386,7 +386,6 @@
   if(!Number.isInteger(state.connectFrom)||state.connectFrom<0||state.connectFrom>=state.islands.length)delete state.connectFrom;
   if(bootNotice)state.log.unshift({c:state.cycle,msg:bootNotice});
   function clampEarly(v){return Math.max(0,Math.min(100,Number(v)||0))}
-  var mouse={x:0,y:0};
   var motes=[];
   var lastCycleReport=null;
   var audioOn=false,audioCtx=null;
@@ -1185,10 +1184,13 @@
     };
     cue("cycle");save();renderUI();
   }
-  function pickIsland(px,py){
+  function pickIsland(clientX,clientY){
     var rect=canvas.getBoundingClientRect(),sx=canvas.width/rect.width,sy=canvas.height/rect.height;
-    var x=px*sx,y=py*sy,best=null;
-    state.islands.forEach(function(a){var dx=x-a.x*canvas.width,dy=y-a.y*canvas.height;if(Math.hypot(dx,dy)<a.r+18)best=a});
+    var x=(clientX-rect.left)*sx,y=(clientY-rect.top)*sy,best=null;
+    state.islands.forEach(function(a){
+      var dx=x-a.x*canvas.width,dy=y-a.y*canvas.height,reach=a.r+18;
+      if(dx*dx+dy*dy<reach*reach)best=a;
+    });
     return best;
   }
   function apply(a){
@@ -1538,8 +1540,7 @@
   });
   document.getElementById("restBtn").addEventListener("click",function(){nextCycle();log("One cycle passed. The garden evolved without direct instruction.")});
   document.getElementById("germinateBtn").addEventListener("click",spawnIsland);
-  canvas.addEventListener("click",function(e){var r=canvas.getBoundingClientRect();apply(pickIsland(e.clientX-r.left,e.clientY-r.top))});
-  canvas.addEventListener("mousemove",function(e){var r=canvas.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top});
+  canvas.addEventListener("click",function(e){apply(pickIsland(e.clientX,e.clientY))});
   document.addEventListener("keydown",function(e){
     if(e.key==="Escape"&&Number.isInteger(state.connectFrom)){
       e.preventDefault();
