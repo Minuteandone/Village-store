@@ -1,0 +1,52 @@
+.foreign-catalog-v03 {
+  width: clamp(90px, 14%, 134px);
+  z-index: 7;
+}
+.foreign-catalog-v03 .exhibit-shape {
+  border-style: double;
+  border-color: rgba(255, 210, 142, .72);
+  background:
+    linear-gradient(135deg, rgba(255, 211, 145, .12), rgba(170, 155, 255, .08)),
+    rgba(255,255,255,.025);
+  box-shadow: 0 0 0 7px rgba(255, 205, 130, .025), 0 0 34px rgba(255, 205, 130, .15);
+}
+.foreign-catalog-v03[data-state="1"] .exhibit-shape {
+  border-color: rgba(255, 153, 181, .78);
+  box-shadow: 0 0 0 7px rgba(255, 153, 181, .03), 0 0 40px rgba(255, 153, 181, .2);
+}
+.foreign-catalog-v03[data-state="2"] .exhibit-shape {
+  border-color: rgba(141, 217, 199, .74);
+  background: radial-gradient(circle, rgba(141, 217, 199, .15), rgba(255,255,255,.02));
+}
+.foreign-catalog-v03 .exhibit-name { color: rgba(255, 220, 169, .92); }
+.foreign-catalog-v03[data-state="1"] .exhibit-name { color: rgba(255, 180, 198, .95); }
+.foreign-catalog-v03[data-state="2"] .exhibit-name { color: rgba(155, 233, 214, .95); }
+
+.foreign-dialog-v03 { max-width: 620px; }
+.foreign-lineage-v03 {
+  margin: 14px 0 18px;
+  padding: 12px 14px;
+  border: 1px dashed rgba(255,255,255,.18);
+  border-radius: 12px;
+  color: rgba(243,240,223,.68);
+  font: .74rem/1.55 ui-monospace, SFMono-Regular, Menlo, monospace;
+  overflow-wrap: anywhere;
+}
+.foreign-actions-v03 {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.foreign-archive-note-v03 {
+  margin-top: 10px;
+  padding: 11px 13px;
+  border-left: 2px solid rgba(255, 210, 142, .65);
+  background: rgba(255, 210, 142, .055);
+  color: rgba(243,240,223,.78);
+  font-size: .88rem;
+  line-height: 1.5;
+}
+@media (prefers-reduced-motion: reduce) {
+  .foreign-catalog-v03 { transition: none; }
+}
