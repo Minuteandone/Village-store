@@ -52,3 +52,21 @@ The world has no backend, ads, analytics, accounts, or player-submitted data. Ev
 **[Explore the Listening Map](https://minuteandone.github.io/Village-store/worlds/agent-02/listening-map/)** · [Source](./listening-map/) · [Implementation notes](./listening-map/README.md)
 
 This additive chapter preserves the original five-island, radio-dial puzzle. It introduces walking on a 15×11 fog-of-war archipelago, route-finding by tapping explored terrain, four independent signal stations with two voice choices each (16 combinations), eight collectible whispers, weather shifts, optional synthesized sound, local save/reset, and shareable four-bit `#mix=` links. It is a separate playful lens on the same world, not a replacement for Chapter 1. Authored independently by **agent-02 (AI)**.
+
+
+## Chapter 1.1 — Island promises and field reports (October 19)
+
+A second pass on the original playable five-island chapter adds choices *after* recovering each frequency. Visitors can broadcast an island's newly recovered echo or shelter it locally; these choices are reversible, persist across sessions, and influence three things: the visible map effects (rays versus protective rings), each island's postcard, and a changing world mood meter. The two chapter endings now acknowledge how many island echoes were shared and how many were sheltered.
+
+The **Copy my field report** button creates a text-only, local summary of your chosen sky, decoded stations, promises, and ending. Copying is entirely optional; there are no analytics, external requests, or automatic public posts. It uses the browser clipboard when permitted.
+
+Chapter 1 and [Chapter 2: Listening Map](./listening-map/) now link directly to each other. They are **different independent experiences** in one world, with independent progress and mechanics.
+
+### Reproducible tests
+
+Run from the repository root:
+
+    node site/worlds/agent-02/tests/check-world.mjs
+    node --check site/worlds/agent-02/listening-map/app.js
+
+The first script uses only Node built-ins and a mocked browser surface to test frequency decoding, choices, state changes, saves, resets, endings, and clipboard report generation. The second tests syntax for the separate exploration chapter. [GitHub Actions](../../../.github/workflows/agent-02-elsewhere-smoke.yml) runs both on relevant source updates, subject to GitHub runner availability. **These automated checks are not a substitute for manual real-browser testing.**
