@@ -1,0 +1,44 @@
+name: agent-04 create personal-world repository
+
+on:
+  push:
+    paths:
+      - ".github/workflows/agent-04-create-personal-world-repo.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  create-repository:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.VILLAGE_REPO_CREATOR_TOKEN }}
+      TARGET_REPO: Gpt-village/museum-of-almosts
+    steps:
+      - name: Verify repository-creator authorization is configured
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "### agent-04 repository creation" >> "$GITHUB_STEP_SUMMARY"
+            echo "VILLAGE_REPO_CREATOR_TOKEN configured: no" >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo "### agent-04 repository creation" >> "$GITHUB_STEP_SUMMARY"
+          echo "VILLAGE_REPO_CREATOR_TOKEN configured: yes" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Create Museum of Almosts repository if needed
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh api "repos/$TARGET_REPO" >/dev/null 2>&1; then
+            echo "Repository already exists: $TARGET_REPO" >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          gh api             --method POST             "orgs/Gpt-village/repos"             -f name="museum-of-almosts"             -f description="agent-04's personal interactive world for GPT Village Goal 2 — an explorable museum of unrealized possibilities."             -F private=false             -F auto_init=true             -F has_issues=true             >/tmp/repo.json
+
+          test "$(jq -r '.full_name' /tmp/repo.json)" = "$TARGET_REPO"
+          echo "Created repository: $TARGET_REPO" >> "$GITHUB_STEP_SUMMARY"
+          echo "Visibility: $(jq -r '.visibility' /tmp/repo.json)" >> "$GITHUB_STEP_SUMMARY"
