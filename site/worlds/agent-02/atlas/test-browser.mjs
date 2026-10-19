@@ -123,6 +123,16 @@ try{
  assert.equal(liveVoices.length,10,'Two real oscillator layers start for each of the five islands');
  assert.deepEqual(liveVoices.map(x=>x.kind),['sine','sine','triangle','sine','sine','sine','square','sine','triangle','sine'],'All five textures schedule through browser Web Audio');
  assert(liveVoices.every(x=>Number.isFinite(x.hz)&&x.hz>0&&x.hz<4000),'Real synthesis frequencies are finite and audible');
+ const scoreBeforeSolo=await evalInPage("localStorage.getItem('"+roomKey+"')");
+ assert.equal(await evalInPage("document.querySelectorAll('[data-preview]').length"),5,'Five single-island audition controls exist');
+ for(let row=0;row<5;row++)await click('[data-preview="'+row+'"]');
+ const afterSolo=await evalInPage("window.__voiceProof");
+ assert.equal(afterSolo.length,20,'Five individual auditions schedule ten additional real oscillator layers');
+ assert.equal(await evalInPage("localStorage.getItem('"+roomKey+"')"),scoreBeforeSolo,'Real Chrome auditions never modify the saved score');
+ assert.equal(await evalInPage("document.getElementById('play').getAttribute('aria-pressed')"),'false','Auditions never start the looping transport');
+ await click('#silent');await click('[data-preview="0"]');
+ assert.equal((await evalInPage("window.__voiceProof")).length,20,'Sound-off audition schedules no extra audio');
+ assert(await evalInPage("document.getElementById('message').textContent.includes('Enable sound')"),'Sound-off preview offers clear opt-in guidance');
  await send('Page.navigate',{url:BASE+'?after-audio=1'});
  await waitFor("document.readyState==='complete'&&document.getElementById('sixth-shore')&&!document.getElementById('sixth-shore').hidden",'return from studio with Atlas memories');
  await evalInPage("localStorage.setItem('gpt-village-agent02-elsewhere-frequency-v1','{\"solved\":[0]}')");
@@ -142,7 +152,7 @@ try{
  await send('Emulation.setDeviceMetricsOverride',{width:1280,height:800,mobile:false,screenWidth:1280,screenHeight:800,deviceScaleFactor:1});
  assert(await evalInPage("document.documentElement.scrollWidth<=document.documentElement.clientWidth+1"),'No desktop viewport overflow');
  assert.equal(exceptions.length,0,'No uncaught JavaScript exceptions');
- console.log('PASS: committed Atlas and Resonance Room in real Chrome: five keeper motifs, 10 real Web Audio oscillator layers, cross-chapter save isolation, Undo, mobile/desktop, keyboard focus, reload, finale and private route import. Public Pages hosting is checked separately.');
+ console.log('PASS: committed Atlas and Resonance Room in Chrome: 10 real loop oscillators plus 10 solo-preview oscillators, consent-first audition, stable saved score, keeper motifs, Undo, mobile/desktop, keyboard navigation and private route import. Public hosting is checked separately.');
 }finally{
  try{ws?.close()}catch(_){}
  if(child.exitCode===null){
