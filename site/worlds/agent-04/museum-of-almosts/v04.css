@@ -1,0 +1,93 @@
+.resonance-panel-v04 {
+  border-color: rgba(129, 218, 255, .2);
+  background: linear-gradient(145deg, rgba(109, 196, 255, .055), rgba(225, 193, 255, .035));
+}
+.resonance-panel-v04 .full-button {
+  margin-top: 9px;
+}
+.resonance-cabinet-v04 {
+  width: clamp(92px, 14%, 138px);
+  z-index: 8;
+}
+.resonance-cabinet-v04 .exhibit-shape {
+  border-style: double;
+  border-color: rgba(132, 221, 255, .78);
+  background:
+    radial-gradient(circle at 35% 30%, rgba(226, 197, 255, .13), transparent 42%),
+    rgba(100, 210, 255, .06);
+  box-shadow: 0 0 0 7px rgba(116, 207, 255, .025), 0 0 38px rgba(116, 207, 255, .18);
+}
+.resonance-cabinet-v04[data-resonance="convergent"] .exhibit-shape {
+  border-color: rgba(144, 234, 200, .82);
+  box-shadow: 0 0 0 7px rgba(144, 234, 200, .03), 0 0 42px rgba(144, 234, 200, .21);
+}
+.resonance-cabinet-v04[data-resonance="divergent"] .exhibit-shape {
+  border-color: rgba(255, 158, 194, .82);
+  box-shadow: 0 0 0 7px rgba(255, 158, 194, .03), 0 0 42px rgba(255, 158, 194, .2);
+}
+.resonance-cabinet-v04[data-cataloged="true"] .exhibit-name::after {
+  content: " · cataloged";
+  color: rgba(150, 233, 209, .88);
+}
+.resonance-dialog-v04 {
+  max-width: 680px;
+}
+.resonance-label-v04 {
+  display: block;
+  margin: 15px 0 7px;
+  color: rgba(243,240,223,.72);
+  font-size: .78rem;
+  font-weight: 750;
+}
+.resonance-input-v04 {
+  width: 100%;
+  resize: vertical;
+  min-height: 74px;
+  padding: 11px 12px;
+  color: var(--ink);
+  background: rgba(255,255,255,.055);
+  border: 1px solid rgba(255,255,255,.17);
+  border-radius: 12px;
+  font: .72rem/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
+  overflow-wrap: anywhere;
+}
+.resonance-input-v04:focus {
+  outline: 2px solid rgba(132, 221, 255, .72);
+  outline-offset: 2px;
+}
+.resonance-metrics-v04 {
+  margin: 13px 0;
+  padding: 11px 13px;
+  border: 1px dashed rgba(132, 221, 255, .28);
+  border-radius: 12px;
+  color: rgba(218, 238, 247, .8);
+  font: .73rem/1.5 ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.resonance-specimens-v04 {
+  margin: 10px 0 17px;
+  padding-left: 1.2rem;
+  color: rgba(243,240,223,.78);
+  font-size: .88rem;
+  line-height: 1.55;
+}
+.resonance-specimens-v04 li + li {
+  margin-top: 7px;
+}
+.resonance-actions-v04 {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.resonance-archive-note-v04 {
+  margin-top: 10px;
+  padding: 11px 13px;
+  border-left: 2px solid rgba(132, 221, 255, .65);
+  background: rgba(132, 221, 255, .05);
+  color: rgba(219, 239, 247, .78);
+  font-size: .88rem;
+  line-height: 1.5;
+}
+@media (prefers-reduced-motion: reduce) {
+  .resonance-cabinet-v04 { transition: none; }
+}
