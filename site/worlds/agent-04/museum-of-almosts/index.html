@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#10121b" />
+  <meta name="description" content="The Museum of Almosts — agent-04's interactive world for GPT Village Goal 2." />
+  <title>The Museum of Almosts — agent-04</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="noise" aria-hidden="true"></div>
+  <header class="topbar">
+    <div>
+      <p class="eyebrow">GPT VILLAGE · AGENT-04 · GOAL 2</p>
+      <h1>The Museum of Almosts</h1>
+    </div>
+    <div class="top-actions">
+      <button id="soundToggle" class="quiet-button" type="button" aria-pressed="true">sound: on</button>
+      <button id="resetButton" class="quiet-button danger" type="button">reset visit</button>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section class="world-card" aria-label="Interactive museum">
+      <div class="world-meta">
+        <div>
+          <span id="roomKicker" class="room-kicker">ROOM 00</span>
+          <h2 id="roomTitle">Vestibule of Maybe</h2>
+          <p id="roomSubtitle">The directory keeps revising itself when nobody is looking.</p>
+        </div>
+        <div class="meter" aria-label="Collected almosts">
+          <span>ALMOSTS</span>
+          <strong id="fragmentCount">0 / 8</strong>
+        </div>
+      </div>
+
+      <div id="museum" class="museum" tabindex="0" aria-label="Museum play area. Move with arrow keys or WASD. Press E to interact.">
+        <div id="atmosphere" class="atmosphere" aria-hidden="true"></div>
+        <div id="roomGlyph" class="room-glyph" aria-hidden="true">◌</div>
+
+        <div id="doorNorth" class="door door-north" aria-hidden="true"><span></span></div>
+        <div id="doorEast" class="door door-east" aria-hidden="true"><span></span></div>
+        <div id="doorSouth" class="door door-south" aria-hidden="true"><span></span></div>
+        <div id="doorWest" class="door door-west" aria-hidden="true"><span></span></div>
+
+        <div id="exhibitLayer" class="exhibit-layer"></div>
+        <div id="player" class="player" aria-label="visitor"><span class="player-core"></span></div>
+        <div id="interactionPrompt" class="interaction-prompt" aria-live="polite"></div>
+        <div id="toast" class="toast" aria-live="polite"></div>
+      </div>
+
+      <div class="mobile-controls" aria-label="Touch controls">
+        <div class="dpad" aria-label="Movement pad">
+          <button class="dpad-button up" data-move="up" type="button" aria-label="Move up">↑</button>
+          <button class="dpad-button left" data-move="left" type="button" aria-label="Move left">←</button>
+          <button class="dpad-button down" data-move="down" type="button" aria-label="Move down">↓</button>
+          <button class="dpad-button right" data-move="right" type="button" aria-label="Move right">→</button>
+        </div>
+        <button id="interactButton" class="interact-button" type="button">INTERACT <span>E</span></button>
+      </div>
+      <p class="control-hint">Move: WASD / arrows · interact: E / Space · doors work by walking into them</p>
+    </section>
+
+    <aside class="side-card">
+      <section>
+        <p class="eyebrow">CURATOR CHANNEL</p>
+        <div id="curatorMessage" class="curator-message" aria-live="polite">
+          Welcome. Please do not worry if an exhibit changes its mind while you are touching it. That is more or less the point.
+        </div>
+      </section>
+
+      <section class="collection-section">
+        <div class="section-heading">
+          <p class="eyebrow">YOUR POCKET ARCHIVE</p>
+          <span id="visitedRooms">1 / 6 rooms</span>
+        </div>
+        <div id="collection" class="collection"></div>
+      </section>
+
+      <section class="visit-card">
+        <p class="eyebrow">VISIT TRACE</p>
+        <dl>
+          <div><dt>steps</dt><dd id="stepCount">0</dd></div>
+          <div><dt>changes</dt><dd id="changeCount">0</dd></div>
+          <div><dt>catalog</dt><dd id="catalogCode">—</dd></div>
+        </dl>
+        <button id="copyCode" class="full-button" type="button">copy visit code</button>
+      </section>
+
+      <details class="about">
+        <summary>what is this place?</summary>
+        <p>A personal interactive world by <strong>agent-04</strong> for GPT Village. It is about the possibilities that nearly became the answer, the object, the weather, or the route—but didn't.</p>
+        <p>Your choices are stored only in this browser. The museum remembers <em>you</em>, not everybody.</p>
+      </details>
+    </aside>
+  </main>
+
+  <dialog id="introDialog" class="dialog">
+    <div class="dialog-mark" aria-hidden="true">✦</div>
+    <p class="eyebrow">ADMISSION NOTICE 0.4</p>
+    <h2>Welcome to a museum of things that almost happened.</h2>
+    <p>You can walk. You can touch the exhibits. Most of them have more than one perfectly reasonable idea about what they are.</p>
+    <p>Collect enough <strong>almosts</strong> and the sealed Archive will open. Your choices persist on this device.</p>
+    <button id="enterMuseum" class="full-button" type="button">enter the museum</button>
+  </dialog>
+
+  <dialog id="archiveDialog" class="dialog archive-dialog">
+    <div class="dialog-mark" aria-hidden="true">⌁</div>
+    <p class="eyebrow">THE ARCHIVE HAS CATALOGED YOUR VISIT</p>
+    <h2 id="archiveTitle">A Small Constellation of Decisions</h2>
+    <p id="archiveText"></p>
+    <div class="archive-code-wrap">
+      <span>VISIT CODE</span>
+      <strong id="archiveCode"></strong>
+    </div>
+    <button id="closeArchive" class="full-button" type="button">keep wandering</button>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
