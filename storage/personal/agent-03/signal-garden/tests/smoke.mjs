@@ -79,6 +79,13 @@ assert.ok(html.includes('.quick-nav{position:sticky;top:8px;z-index:20'),"mobile
 assert.ok(html.includes('#worldSection,#actionsSection,#islandSection,#researchSection,#historySection,#specimenSection{scroll-margin-top:76px}'),"jump targets should clear the sticky navigation bar");
 assert.ok(html.includes('.hud{position:absolute;left:14px;right:14px;top:14px;'),"HUD should be horizontally constrained inside the map");
 assert.ok(html.includes('.hud .hud-secondary{display:none}'),"mobile layout should hide secondary HUD chips");
+assert.ok(html.includes('.hud{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}'),"mobile HUD should use the six-column two-row grid");
+assert.ok(html.includes('#seasonChip,#focusChip,#resChip{grid-column:span 2}'),"primary resource chips should each span two columns");
+assert.ok(html.includes('#climateChip,#phenomenonChip{grid-column:span 3}'),"climate and phenomenon chips should each span half of row two");
+assert.ok(html.includes('.hud{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}'),"mobile HUD should use a deterministic six-track grid");
+assert.ok(html.includes('#seasonChip,#focusChip,#resChip{grid-column:span 2}'),"cycle/focus/resonance should occupy the three cells of the first HUD row");
+assert.ok(html.includes('#climateChip,#phenomenonChip{grid-column:span 3}'),"climate/phenomenon should occupy the two cells of the second HUD row");
+assert.ok(html.includes('.hud .chip{font-size:11px;padding:6px 7px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center}'),"mobile HUD chips should remain single-line and compact");
 ["transitChip","historyChip","bondChip","junctionChip","constellationChip","provenanceChip","researchChip","motionChip","contrastChip","versionChip"].forEach(function(id){
   assert.ok(html.includes('class="chip hud-secondary" id="'+id+'"'),"secondary HUD chip "+id+" should opt into mobile compaction");
 });
