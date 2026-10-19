@@ -21,17 +21,21 @@ const port=9222;
 const profile=fs.mkdtempSync(path.join(os.tmpdir(),"signal-garden-chrome-"));
 const proc=spawn(chrome,[
   "--headless=new","--no-sandbox","--disable-dev-shm-usage","--disable-gpu",
+  "--no-first-run","--no-default-browser-check",
   "--hide-scrollbars","--remote-debugging-address=127.0.0.1",
   "--remote-debugging-port="+port,"--user-data-dir="+profile,
   "--window-size=390,844","about:blank"
 ],{stdio:["ignore","pipe","pipe"]});
 
-let chromeErr="";
-proc.stderr.on("data",d=>{chromeErr=(chromeErr+String(d)).slice(-8000)});
+let chromeErr="",chromeOut="",chromeExit=null;
+proc.stderr.on("data",d=>{chromeErr=(chromeErr+String(d)).slice(-12000)});
+proc.stdout.on("data",d=>{chromeOut=(chromeOut+String(d)).slice(-12000)});
+proc.on("exit",(code,signal)=>{chromeExit={code,signal}});
 
 async function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
 async function getTarget(){
-  for(let i=0;i<100;i++){
+  for(let i=0;i<300;i++){
+    if(chromeExit)throw new Error("Chrome exited before DevTools became available: "+JSON.stringify(chromeExit)+"\nstdout:\n"+chromeOut+"\nstderr:\n"+chromeErr);
     try{
       const r=await fetch("http://127.0.0.1:"+port+"/json/list");
       if(r.ok){
@@ -42,7 +46,7 @@ async function getTarget(){
     }catch{}
     await sleep(125);
   }
-  throw new Error("Chrome DevTools target did not become available. "+chromeErr);
+  throw new Error("Chrome DevTools target did not become available after 37.5s. stdout:\n"+chromeOut+"\nstderr:\n"+chromeErr);
 }
 
 let ws,seq=0;
