@@ -41,6 +41,8 @@ source = source.replace(
     routeBonds:routeBonds,
     junctionEcologies:junctionEcologies,
     applyJunctionEcologies:applyJunctionEcologies,
+    networkConstellation:networkConstellation,
+    applyNetworkConstellation:applyNetworkConstellation,
     getState:function(){return state},
     setState:function(next){state=next;motes=[]}
   };`
@@ -77,10 +79,10 @@ const canvas = element({
 const ids = new Map();
 ids.set("garden", canvas);
 [
-  "seasonChip","focusChip","resChip","transitChip","historyChip","bondChip","junctionChip","researchChip","climateChip","germinateBtn",
+  "seasonChip","focusChip","resChip","transitChip","historyChip","bondChip","junctionChip","constellationChip","researchChip","climateChip","germinateBtn",
   "islandNav","applySelectedBtn","selectedName","selectedLore","lifeStat",
   "memoryStat","strangeStat","linksStat","arrivalsStat","trafficStat","glyphStat","lineageStat","successionStat","lifeMeter",
-  "research","bonds","junctions","species","discoveries","chronicle","log","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
+  "research","bonds","constellation","junctions","species","discoveries","chronicle","log","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
 ].forEach(id => ids.set(id, element()));
 
 const actionButtons = ["nurture","observe","connect","distort"].map(action =>
@@ -256,6 +258,47 @@ api.applyJunctionEcologies();
 assert.equal(api.getState().islands[0].life,triuneBefore.life+1);
 assert.equal(api.getState().islands[0].memory,triuneBefore.memory+1);
 assert.equal(api.getState().islands[0].strange,triuneBefore.strange+1);
+
+setGraph([
+  island(0,[1,2,3],80,10,5),
+  island(1,[0]),island(2,[0]),island(3,[0])
+]);
+assert.equal(api.networkConstellation().kind,"star-crown","one hub with three leaves should form Star Crown");
+const starLife=api.getState().islands[0].life;
+api.applyNetworkConstellation();
+assert.equal(api.getState().islands[0].life,starLife+1,"Star Crown should amplify the hub's present dominant trait");
+
+setGraph([
+  island(0,[1,2]),island(1,[0,2]),island(2,[0,1]),island(3)
+]);
+assert.equal(api.networkConstellation().kind,"halo-circuit","one connected degree-two ring should form Halo Circuit");
+const haloBefore=api.getState().islands.slice(0,3).map(x=>x.memory);
+api.applyNetworkConstellation();
+api.getState().islands.slice(0,3).forEach((x,i)=>assert.equal(x.memory,haloBefore[i]+1,"Halo Circuit should add memory to every active island"));
+
+setGraph([
+  island(0,[1]),island(1,[0,2]),island(2,[1,3]),island(3,[2])
+]);
+assert.equal(api.networkConstellation().kind,"living-arbor","connected acyclic non-star graph should form Living Arbor");
+const leaf0=api.getState().islands[0].life,leaf3=api.getState().islands[3].life;
+api.applyNetworkConstellation();
+assert.equal(api.getState().islands[0].life,leaf0+1);
+assert.equal(api.getState().islands[3].life,leaf3+1);
+
+setGraph([
+  island(0,[1,2,3]),island(1,[0,2,3]),island(2,[0,1,3]),island(3,[0,1,2])
+]);
+assert.equal(api.networkConstellation().kind,"mesh-choir","dense connected graph should form Mesh Choir");
+assert.equal(api.researchPrompts().find(x=>x.id==="constellation").done,true,"Mesh Choir should complete its Field Question");
+api.getState().discoveries=[{id:"constellation-mesh-choir",title:"Mesh Choir",text:"already observed",cycle:1}];
+const meshRes=api.getState().resonance;
+api.applyNetworkConstellation();
+assert.equal(api.getState().resonance,meshRes+1,"repeat Mesh Choir pulse should add exactly one garden resonance");
+
+setGraph([
+  island(0,[1]),island(1,[0]),island(2,[3]),island(3,[2])
+]);
+assert.equal(api.networkConstellation(),null,"disconnected active components must not impersonate a whole-network constellation");
 
 setGraph([
   island(0, [], 80, 20, 10),
@@ -471,6 +514,7 @@ assert.ok(cycleReport,"advancing a cycle should produce a Last Cycle Report");
 assert.equal(cycleReport.cycle,3);
 assert.ok(Array.isArray(cycleReport.transfers)&&cycleReport.transfers.length===2,"report should include exact migration transfers");
 assert.ok(Array.isArray(cycleReport.junctions),"report should include a junction-ecology list");
+assert.ok("constellation" in cycleReport,"report should include network-constellation state");
 assert.ok(Array.isArray(cycleReport.roleChanges),"report should include a role-change list");
 
 setGraph(
@@ -485,6 +529,15 @@ setGraph(
 api.nextCycle();
 const junctionReport=api.getLastCycleReport();
 assert.ok(junctionReport.junctions.some(x=>x.kind==="triune-loom"),"Last Cycle Report should name a pulsing Triune Loom");
+
+setGraph([
+  island(0,[1,2,3],80,10,5),
+  island(1,[0]),island(2,[0]),island(3,[0])
+]);
+api.nextCycle();
+const starReport=api.getLastCycleReport();
+assert.equal(starReport.constellation.kind,"star-crown","Last Cycle Report should name the pulsing whole-network constellation");
+assert.ok(starReport.constellation.effect.includes("hub"),"constellation report should include its causal effect");
 
 setGraph([
   island(0, [1], 85, 10, 5),
