@@ -31,7 +31,7 @@
     .side h2,.side h3{font-family:system-ui,sans-serif;margin:0}
     details{border-top:1px dashed #294738;padding-top:8px}
     summary{cursor:pointer;font-family:system-ui,sans-serif;font-weight:700;margin-bottom:8px}
-    summary:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid #9ee7ef;outline-offset:2px}
+    summary:focus-visible,button:focus-visible,a:focus-visible,textarea:focus-visible{outline:2px solid #9ee7ef;outline-offset:2px}
     .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
     .island-nav{display:grid;grid-template-columns:1fr;gap:6px;max-height:190px;overflow:auto}
     .island-nav button{text-align:left;padding:8px 10px;font-size:12px}
@@ -51,6 +51,7 @@
     .discoveries{max-height:180px;overflow:auto;padding-right:4px}
     .discovery{padding:8px 0;border-top:1px dashed #294738;font-size:12px;line-height:1.45}
     .log{max-height:210px;overflow:auto;border:1px solid #223c2e;border-radius:12px;background:#06100b;padding:10px;font-size:12px;line-height:1.5}
+    .specimen-dock textarea{width:100%;min-height:110px;resize:vertical;border:1px solid #365743;border-radius:12px;background:#06100b;color:var(--text);padding:10px;font:11px/1.45 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere}
     .log p{margin:0 0 7px}.log time{color:#78a98a}
     .footer-note{grid-column:1/-1;color:#7f9f8b;font-size:12px;text-align:center;padding-top:4px}
     .kbd{border:1px solid #4a6c58;border-bottom-width:2px;padding:1px 5px;border-radius:5px;color:#cfe9d6}
@@ -81,7 +82,7 @@
         <span class="chip" id="researchChip">Research 0/14</span>
         <span class="chip" id="climateChip">Climate · Braided Sky</span>
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
-        <span class="chip" id="versionChip">v0.24 · save 7</span>
+        <span class="chip" id="versionChip">v0.25 · save 7</span>
       </div>
     </section>
 
@@ -198,12 +199,22 @@
         <div class="log" id="log" aria-live="polite"></div>
       </details>
 
+      <details open class="specimen-dock">
+        <summary>Specimen dock</summary>
+        <div class="small">Generate the current SG1 specimen here, or paste one from another Signal Garden. Import validates bounded game state before replacing this local garden.</div>
+        <textarea id="specimenDock" aria-label="Signal Garden specimen code" spellcheck="false" autocomplete="off" placeholder="SG1…"></textarea>
+        <div class="actions" style="margin-top:8px">
+          <button id="specimenBtn">📦 Generate + copy</button>
+          <button id="importBtn">🌱 Import pasted</button>
+          <button id="clearSpecimenBtn">× Clear dock</button>
+        </div>
+        <div class="small" id="specimenStatus" aria-live="polite">Dock empty. No specimen data leaves this browser unless you copy it.</div>
+      </details>
+
       <div class="actions">
         <button id="soundBtn" aria-pressed="false">🔇 Sound off</button>
         <button id="summaryBtn">📋 Copy summary</button>
         <button id="exportBtn">Copy garden seed</button>
-        <button id="specimenBtn">Copy specimen</button>
-        <button id="importBtn">Import specimen</button>
         <button id="resetBtn">Reset same seed</button>
         <button id="newGardenBtn">New random garden</button>
       </div>
@@ -217,7 +228,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.24",SAVE_SCHEMA=7;
+  var APP_VERSION="0.25",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -1284,16 +1295,35 @@
     try{await navigator.clipboard.writeText(url);log("Copied the garden seed URL to the clipboard.");}
     catch(e){prompt("Copy this garden seed URL:",url)}
   });
+  function specimenStatus(msg){
+    document.getElementById("specimenStatus").textContent=msg;
+  }
   document.getElementById("specimenBtn").addEventListener("click",async function(){
-    var code=specimenCode();
-    try{await navigator.clipboard.writeText(code);log("Copied a bounded specimen code. It contains game state, not the field log or other browser data.");}
-    catch(e){prompt("Copy this Signal Garden specimen code:",code)}
+    var code=specimenCode(),dock=document.getElementById("specimenDock");
+    dock.value=code;
+    try{
+      await navigator.clipboard.writeText(code);
+      log("Copied a bounded specimen code. It contains game state, not the field log or other browser data.");
+      specimenStatus("Current specimen generated and copied · "+code.length+" characters.");
+    }catch(e){
+      log("Generated a bounded specimen code in the dock; clipboard access was unavailable.");
+      specimenStatus("Current specimen generated in the dock. Select and copy it manually · "+code.length+" characters.");
+    }
   });
   document.getElementById("importBtn").addEventListener("click",function(){
-    var code=prompt("Paste a Signal Garden specimen code (SG1…):");
-    if(!code)return;
-    try{importSpecimenCode(code);log("Specimen imported successfully.");}
-    catch(e){alert("Could not import specimen: "+e.message)}
+    var dock=document.getElementById("specimenDock"),code=String(dock.value||"").trim();
+    if(!code){specimenStatus("Paste an SG1 specimen into the dock before importing.");return}
+    try{
+      importSpecimenCode(code);
+      log("Specimen imported successfully.");
+      specimenStatus("Imported specimen successfully · transplant hop "+state.transplantCount+".");
+    }catch(e){
+      specimenStatus("Could not import specimen: "+e.message);
+    }
+  });
+  document.getElementById("clearSpecimenBtn").addEventListener("click",function(){
+    document.getElementById("specimenDock").value="";
+    specimenStatus("Dock cleared. The current garden was not changed.");
   });
   document.getElementById("resetBtn").addEventListener("click",function(){
     if(confirm("Reset this garden to the beginning of the same seed? This clears its local history.")){
