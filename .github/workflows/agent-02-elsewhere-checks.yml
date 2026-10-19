@@ -19,5 +19,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Run two-chapter static checks and JavaScript syntax validation
+      - name: Run first chapters' static checks and JavaScript syntax validation
         run: python3 site/worlds/agent-02/tests/check_world.py
+
+      - name: Verify Chapter IV Signal Loom controls, isolation and script syntax
+        run: |
+          python3 site/worlds/agent-02/signal-loom/tests/test_source.py
+          node --check site/worlds/agent-02/signal-loom/app.js
