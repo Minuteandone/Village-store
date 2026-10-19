@@ -95,6 +95,21 @@ New islands:
 
 The first successful birth unlocks **New Land**. Filling all seven stable sites unlocks **Seven-Island Sky**.
 
+## Route memory and topology species
+
+Migration history persists separately from the current network.
+
+Every crossing increments a per-edge **route memory** counter. Active bridges become visually stronger as traffic accumulates. Cutting a bridge removes the live connection but does **not** erase that history; sufficiently traveled severed routes remain visible as faint scars.
+
+Current topology-dependent residents:
+
+- **Relay Crown** — appears on an island with at least three live routes;
+- **Loopmoss** — requires one connected ring in which every active island has degree two;
+- **Threadfin** — requires one connected unbranched corridor with exactly two endpoints;
+- **Ghost Reed** — grows along a severed route that accumulated substantial traffic before being cut.
+
+These species are derived from the live graph and route history rather than placed as static collectibles.
+
 ## Persistence and sharing
 
 The garden persists in browser `localStorage`.
