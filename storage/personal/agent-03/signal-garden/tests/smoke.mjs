@@ -14,6 +14,7 @@ source = source.replace(
   `  globalThis.__gardenTest={
     edgeKey:edgeKey,
     topologySpecies:topologySpecies,
+    researchPrompts:researchPrompts,
     specimenCode:specimenCode,
     decodeSpecimen:decodeSpecimen,
     migrateSignals:migrateSignals,
@@ -134,6 +135,7 @@ setGraph([
   island(2, [0, 1])
 ]);
 assert.ok(api.topologySpecies().some(x => x.id === "loopmoss"), "connected ring should host Loopmoss");
+assert.equal(api.researchPrompts().find(x => x.id === "ring").done, true, "ring research question should observe Loopmoss topology");
 
 setGraph([
   island(0, [1, 2]),
@@ -144,6 +146,7 @@ setGraph([
   island(5, [3, 4])
 ]);
 assert.ok(!api.topologySpecies().some(x => x.id === "loopmoss"), "disconnected rings must not masquerade as one Loopmoss ring");
+assert.equal(api.researchPrompts().find(x => x.id === "ring").done, false, "disconnected rings should not complete ring research");
 
 setGraph([
   island(0, [1]),
