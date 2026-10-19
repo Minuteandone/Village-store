@@ -24,6 +24,7 @@ const v14 = read("v14.js");
 const v15 = read("v15.js");
 const v16 = read("v16.js");
 const v17 = read("v17.js");
+const v18 = read("v18.js");
 const v02css = read("v02.css");
 const v03css = read("v03.css");
 const v04css = read("v04.css");
@@ -40,13 +41,14 @@ const v14css = read("v14.css");
 const v15css = read("v15.css");
 const v16css = read("v16.css");
 const v17css = read("v17.css");
+const v18css = read("v18.css");
 
 const failures = [];
 const expect = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "v13.css", "v14.css", "v15.css", "v16.css", "v17.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js", "v13.js", "v14.js", "v15.js", "v16.js", "v17.js"]) {
+for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "v13.css", "v14.css", "v15.css", "v16.css", "v17.css", "v18.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js", "v13.js", "v14.js", "v15.js", "v16.js", "v17.js", "v18.js"]) {
   expect(index.includes(asset), "index.html must reference " + asset);
 }
 
@@ -66,11 +68,12 @@ expect(
   index.indexOf("v13.js") < index.indexOf("v14.js") &&
   index.indexOf("v14.js") < index.indexOf("v15.js") &&
   index.indexOf("v15.js") < index.indexOf("v16.js") &&
-  index.indexOf("v16.js") < index.indexOf("v17.js"),
-  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js -> v13.js -> v14.js -> v15.js -> v16.js -> v17.js"
+  index.indexOf("v16.js") < index.indexOf("v17.js") &&
+  index.indexOf("v17.js") < index.indexOf("v18.js"),
+  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js -> v13.js -> v14.js -> v15.js -> v16.js -> v17.js -> v18.js"
 );
 
-for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09], ["v1.0", v10], ["v1.1", v11], ["v1.2", v12], ["v1.3", v13], ["v1.4", v14], ["v1.5", v15], ["v1.6", v16], ["v1.7", v17]]) {
+for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09], ["v1.0", v10], ["v1.1", v11], ["v1.2", v12], ["v1.3", v13], ["v1.4", v14], ["v1.5", v15], ["v1.6", v16], ["v1.7", v17], ["v1.8", v18]]) {
   expect(source.includes("agent04-museum-of-almosts-v1"), name + " must share the Museum storage key");
 }
 
@@ -326,6 +329,23 @@ expect(!v17.includes("localStorage.setItem("), "v1.7 Fossil Citations must remai
 expect(!v17.includes("innerHTML"), "v1.7 should construct fossil UI with safe DOM APIs");
 expect(v17css.includes("prefers-reduced-motion"), "v1.7 Fossil Citations styling must respect reduced-motion");
 
+for (const phrase of ["SIBLING MARGINS · v1.8", "TWO CHILDREN, ONE PARENT · v1.8", "siblingPairs", "classifyPair", "shared-change", "divergence", "sibling-frame-v18"]) {
+  expect(v18.includes(phrase), "v1.8 missing Sibling Margins mechanic: " + phrase);
+}
+expect(v18.includes("const key = relation.parentCode + \"|\" + relation.lens"), "v1.8 must group explicit children by the same parent and editorial lens");
+expect(v18.includes("if (list.length < 2) return"), "v1.8 must require at least two children before a sibling pair exists");
+expect(v18.includes("const parent = shelf.get(pair.parentCode) || null"), "v1.8 must read the actual retained parent summary from the Living Catalog shelf");
+expect(v18.includes("const childA = shelf.get(pair.childA) || null"), "v1.8 must read the first actual retained child summary");
+expect(v18.includes("const childB = shelf.get(pair.childB) || null"), "v1.8 must read the second actual retained child summary");
+expect(v18.includes("if (!parent || !childA || !childB)"), "v1.8 must stop detailed comparison when any required summary is unavailable");
+expect(v18.includes("a === b && a !== p"), "v1.8 must distinguish a shared sibling change from parent retention");
+expect(v18.includes("else if (a !== b) classification = \"divergence\""), "v1.8 must explicitly classify sibling disagreement as divergence");
+expect(v18.includes("slice(-MAX_PAIRS)"), "v1.8 derived sibling-pair display must remain bounded");
+expect(v18.includes("Aged-off summaries are never reconstructed from lineage codes"), "v1.8 must disclose its no-reconstruction boundary");
+expect(!v18.includes("localStorage.setItem("), "v1.8 Sibling Margins must remain read-only");
+expect(!v18.includes("innerHTML"), "v1.8 should construct sibling UI with safe DOM APIs");
+expect(v18css.includes("prefers-reduced-motion"), "v1.8 Sibling Margins styling must respect reduced-motion");
+
 if (failures.length) {
   console.error("Museum of Almosts smoke check failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -333,4 +353,4 @@ if (failures.length) {
 }
 
 console.log("Museum of Almosts smoke check passed.");
-console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes + v1.3 Cross-Reference Route + v1.4 Second Edition + v1.5 Edition Lineage + v1.6 Inheritance Notes + v1.7 Fossil Citations contract.");
+console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes + v1.3 Cross-Reference Route + v1.4 Second Edition + v1.5 Edition Lineage + v1.6 Inheritance Notes + v1.7 Fossil Citations + v1.8 Sibling Margins contract.");
