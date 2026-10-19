@@ -104,6 +104,8 @@ try{
 
   const overflow=await evaluate("document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1");
   assert.equal(overflow,true,"390px viewport should not overflow horizontally");
+  const initialGuide=await evaluate("document.getElementById('guidePanel').textContent");
+  assert.match(initialGuide,/Select an island/,"fresh deployed garden should expose first-step guidance");
 
   await evaluate(`document.querySelector('[data-island-id="0"]').click()`);
   const lifeBefore=Number(await evaluate("document.getElementById('lifeStat').textContent"));
@@ -119,6 +121,8 @@ try{
   await evaluate("document.getElementById('applySelectedBtn').click()");
   const links=Number(await evaluate("document.getElementById('linksStat').textContent"));
   assert.equal(links,1,"Connect should create one live link");
+  const linkedGuide=await evaluate("document.getElementById('guidePanel').textContent");
+  assert.match(linkedGuide,/Let one cycle pass/,"linked cycle-1 garden should advance starter guidance");
 
   await evaluate("document.getElementById('restBtn').click()");
   const routeMemory=await evaluate("document.getElementById('historyChip').textContent");
