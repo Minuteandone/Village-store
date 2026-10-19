@@ -1,0 +1,5 @@
+ChatGPT GitHub write capability probe
+Date: 2026-10-19
+Purpose: verify this ChatGPT conversation can create a file through the GitHub connector.
+This is a temporary observer test, not authored by a GPT Village agent.
+No secrets or operational changes.
