@@ -10,7 +10,8 @@ const chromePath=process.argv[2];
 assert(chromePath,'Pass the installed Chrome/Chromium executable as argument 1');
 const html=fs.readFileSync(new URL('./index.html',import.meta.url),'utf8');
 assert(html.includes('id="keeper-card"')&&html.includes('const KEEPERS=['),'Checked-out Atlas contains five keepers');
-const server=http.createServer((req,res)=>{res.writeHead(200,{'content-type':'text/html; charset=utf-8'});res.end(html)});
+const studioHtml=fs.readFileSync(new URL('../studio/index.html',import.meta.url),'utf8');
+const server=http.createServer((req,res)=>{res.writeHead(200,{'content-type':'text/html; charset=utf-8'});res.end(req.url?.startsWith('/studio/')?studioHtml:html)});
 await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
 const BASE='http://127.0.0.1:'+server.address().port+'/atlas/';
 const SAVE='gpt-village-agent02-field-atlas-v1';
@@ -95,6 +96,23 @@ try{
  await waitFor("document.readyState==='complete'&&document.getElementById('sixth-shore')&&!document.getElementById('sixth-shore').hidden",'localStorage restoration');
  assert.equal((await getSave()).echoes[0],0);
  assert.equal((await getSave()).ending,'anchor');
+ assert.equal(await evalInPage("document.getElementById('keeper-audio-link').hidden"),false,'An answered Atlas keeper offers a music link');
+ assert.equal(await evalInPage("document.getElementById('keeper-audio-link').getAttribute('href')"),'../studio/');
+ const atlasBeforeWeave=await evalInPage("localStorage.getItem('"+SAVE+"')");
+ await send('Page.navigate',{url:BASE.replace('/atlas/','/studio/')});
+ await waitFor("document.readyState==='complete'&&document.getElementById('keepers')&&document.getElementById('tracks').children.length===5",'cross-chapter Resonance Room loaded');
+ assert.equal(await evalInPage("document.getElementById('silent').getAttribute('aria-pressed')"),'false','Studio still starts with sound muted');
+ const roomKey='gpt-village-elsewhere-resonance-room-v1';
+ const scoreBeforeWeave=await evalInPage("localStorage.getItem('"+roomKey+"')");
+ await click('#keepers');
+ assert(await evalInPage("document.getElementById('source-note').textContent.includes('5 Atlas keeper answers')"));
+ const importedMotifs=await evalInPage("JSON.parse(localStorage.getItem('"+roomKey+"')).matrix.map(row=>row.flatMap((on,i)=>on?[i]:[]))");
+ assert.deepEqual(importedMotifs,[[0,3],[3,7],[4,7],[3,7],[0,3]],'Chrome weaves the exact five keeper rhythms');
+ assert.equal(await evalInPage("localStorage.getItem('"+SAVE+"')"),atlasBeforeWeave,'Studio import does not modify Atlas progress');
+ await click('#undo-edit');
+ assert.equal(await evalInPage("localStorage.getItem('"+roomKey+"')"),scoreBeforeWeave,'Real Chrome Undo restores earlier composition');
+ await send('Page.navigate',{url:BASE+'?after-audio=1'});
+ await waitFor("document.readyState==='complete'&&document.getElementById('sixth-shore')&&!document.getElementById('sixth-shore').hidden",'return from studio with Atlas memories');
  await evalInPage("localStorage.setItem('gpt-village-agent02-elsewhere-frequency-v1','{\"solved\":[0]}')");
  await click('#reset');
  state=await getSave();
@@ -112,7 +130,7 @@ try{
  await send('Emulation.setDeviceMetricsOverride',{width:1280,height:800,mobile:false,screenWidth:1280,screenHeight:800,deviceScaleFactor:1});
  assert(await evalInPage("document.documentElement.scrollWidth<=document.documentElement.clientWidth+1"),'No desktop viewport overflow');
  assert.equal(exceptions.length,0,'No uncaught JavaScript exceptions');
- console.log('PASS: committed Atlas in real Chrome mobile/desktop, spatial keyboard focus, five keeper encounters, actual save/reload, finale, privacy-safe route import and reset isolation. The separate public Pages smoke verifies live deployment.');
+ console.log('PASS: committed Atlas and Resonance Room in real Chrome: five keepers, five musical motifs, cross-chapter save isolation, Undo, mobile/desktop, keyboard focus, reload, finale and private route import. Public Pages hosting is checked separately.');
 }finally{
  try{ws?.close()}catch(_){}
  if(child.exitCode===null){
