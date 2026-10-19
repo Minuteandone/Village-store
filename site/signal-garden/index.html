@@ -306,8 +306,24 @@
       {id:"pollination",done:state.islands.every(function(a){return a.arrivals>0}),text:"Can every current island receive at least one signal born somewhere else?"},
       {id:"scar",done:residents.some(function(x){return x.id==="ghostreed"}),text:"Can a well-traveled route be severed without erasing its ecological memory?"},
       {id:"ecologies",done:traits.life&&traits.memory&&traits.strange,text:"Can grove-, archive-, and fold-minds coexist in one archipelago?"},
-      {id:"climate",done:Object.keys(state.climateSeen).filter(function(k){return state.climateSeen[k]}).length>=3,text:"Can the garden pass through at least three different archipelago-scale climates?"}
+      {id:"climate",done:Object.keys(state.climateSeen).filter(function(k){return state.climateSeen[k]}).length>=3,text:"Can the garden pass through at least three different archipelago-scale climates?"},
+      {id:"symbiosis",done:["scribevine","glassmycelium","dreamwire"].every(function(kind){return residents.some(function(x){return x.kind===kind})}),text:"Can all three mixed-ecology bridge symbioses coexist at once?"}
     ];
+  }
+  function symbiosisSpecies(){
+    var out=[];
+    state.islands.forEach(function(a){
+      a.links.forEach(function(id){
+        if(id<a.id)return;
+        var b=state.islands[id],mem=state.edgeMemory[edgeKey(a.id,id)]||0;
+        if(!b||mem<4)return;
+        var pair=[dominantTrait(a),dominantTrait(b)].sort().join("-");
+        if(pair==="life-memory")out.push({id:"scribevine-"+edgeKey(a.id,id),kind:"scribevine",name:"Scribevine",edge:[a.id,id],text:"A mature grove/archive route grows Scribevine: living tissue that records every crossing."});
+        if(pair==="life-strange")out.push({id:"glassmycelium-"+edgeKey(a.id,id),kind:"glassmycelium",name:"Glass Mycelium",edge:[a.id,id],text:"A mature grove/fold route grows Glass Mycelium, translating unstable geometry into branching growth."});
+        if(pair==="memory-strange")out.push({id:"dreamwire-"+edgeKey(a.id,id),kind:"dreamwire",name:"Dreamwire",edge:[a.id,id],text:"A mature archive/fold route grows Dreamwire, carrying remembered patterns through impossible angles."});
+      });
+    });
+    return out;
   }
   function topologySpecies(){
     var active=state.islands.filter(function(a){return a.links.length>0});
@@ -337,7 +353,7 @@
       return (state.edgeMemory[k]||0)>=6&&!hasEdge(p[0],p[1]);
     });
     if(old.length)species.push({id:"ghostreed",name:"Ghost Reed",text:"A severed high-traffic route still carries enough memory for pale Ghost Reed to grow along the scar."});
-    return species;
+    return species.concat(symbiosisSpecies());
   }
   function spawnIsland(){
     if(state.islands.length>=7){log("The current sky can support only seven islands.");return}
@@ -418,6 +434,9 @@
       if(sp.id==="loopmoss")d("species-loopmoss","Loopmoss","A closed signal ring produced a species that depends on circulation without endpoints.");
       if(sp.id==="threadfin")d("species-threadfin","Threadfin","A long chain topology produced a migratory species specialized for corridor networks.");
       if(sp.id==="ghostreed")d("species-ghostreed","Ghost Reed","A heavily used bridge was cut, but its accumulated traffic remained as habitat.");
+      if(sp.kind==="scribevine")d("species-scribevine","Scribevine","A mature bridge between grove- and archive-minds produced a living record organism.");
+      if(sp.kind==="glassmycelium")d("species-glassmycelium","Glass Mycelium","A mature bridge between grove- and fold-minds produced a geometry-feeding colony.");
+      if(sp.kind==="dreamwire")d("species-dreamwire","Dreamwire","A mature bridge between archive- and fold-minds produced a memory-carrying filament.");
     });
   }
   function nextCycle(){
@@ -548,6 +567,15 @@
         ctx.lineWidth=Math.min(5,1.4+mem*.22);ctx.setLineDash(mem>=8?[]:[5,7]);
         ctx.beginPath();ctx.moveTo(a.x*w,a.y*h);ctx.quadraticCurveTo((a.x+b.x)*w/2,h*.42,b.x*w,b.y*h);ctx.stroke();ctx.setLineDash([]);
       });
+    });
+    symbiosisSpecies().forEach(function(sp){
+      var a=state.islands[sp.edge[0]],b=state.islands[sp.edge[1]];
+      if(!a||!b)return;
+      var x0=a.x*w,y0=a.y*h,x2=b.x*w,y2=b.y*h,x1=(x0+x2)/2,y1=h*.42,p=.5,inv=.5;
+      var x=inv*inv*x0+2*inv*p*x1+p*p*x2,y=inv*inv*y0+2*inv*p*y1+p*p*y2;
+      ctx.textAlign="center";ctx.font="15px system-ui,sans-serif";
+      ctx.fillStyle=sp.kind==="scribevine"?"#d8f3b0":sp.kind==="glassmycelium"?"#e2c2ff":"#a7e8f0";
+      ctx.fillText(sp.kind==="scribevine"?"✤":sp.kind==="glassmycelium"?"✣":"✧",x,y-8);
     });
     motes=motes.filter(function(m){return t-m.start<m.duration});
     motes.forEach(function(m){
