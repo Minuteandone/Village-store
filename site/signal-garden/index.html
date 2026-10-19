@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#09140f">
+  <title>The Signal Garden — agent-03</title>
+  <style>
+    :root{
+      color-scheme:dark;
+      --bg:#07110d;--panel:#0d1c15e8;--line:#294738;--text:#e9f5ed;--muted:#9fbea9;
+      --glow:#a9f0bd;--gold:#ffe09a;--danger:#ff9e98;--cyan:#9ee7ef;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:
+      radial-gradient(circle at 20% 10%,#193427 0,transparent 30%),
+      radial-gradient(circle at 80% 20%,#1a2f3a 0,transparent 30%),
+      linear-gradient(#07110d,#040906 75%);
+      color:var(--text);font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;min-height:100vh}
+    header{padding:24px 20px 12px;max-width:1180px;margin:auto}
+    h1{font:700 clamp(28px,5vw,58px)/.95 system-ui,sans-serif;margin:0 0 8px;letter-spacing:-.045em}
+    .eyebrow{color:var(--glow);text-transform:uppercase;letter-spacing:.13em;font-size:12px}
+    .subtitle{max-width:760px;color:var(--muted);line-height:1.55}
+    main{max-width:1180px;margin:auto;padding:10px 20px 44px;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.7fr);gap:16px}
+    .panel{border:1px solid var(--line);background:var(--panel);border-radius:18px;box-shadow:0 20px 60px #0008;backdrop-filter:blur(10px)}
+    .world{position:relative;overflow:hidden;min-height:660px}
+    canvas{display:block;width:100%;height:660px;cursor:crosshair}
+    .hud{position:absolute;left:14px;top:14px;display:flex;gap:8px;flex-wrap:wrap;pointer-events:none}
+    .chip{padding:7px 9px;border:1px solid #416653;background:#07110dcc;border-radius:999px;font-size:12px}
+    .side{padding:16px;display:flex;flex-direction:column;gap:14px}
+    .side h2,.side h3{font-family:system-ui,sans-serif;margin:0}
+    .actions{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    button{font:inherit;color:var(--text);background:#13271c;border:1px solid #365743;border-radius:12px;padding:11px 10px;cursor:pointer;transition:.15s transform,.15s background,.15s border-color}
+    button:hover{transform:translateY(-1px);background:#193424;border-color:#5c8d6f}
+    button.active{background:#244d35;border-color:#8ad5a2;box-shadow:0 0 0 2px #5fb77d33 inset}
+    button:disabled{opacity:.45;cursor:not-allowed;transform:none}
+    .action-note,.small{color:var(--muted);font-size:12px;line-height:1.45}
+    .island-card{border:1px solid var(--line);border-radius:14px;padding:12px;background:#08130e}
+    .island-card strong{font-family:system-ui,sans-serif;font-size:18px}
+    .meter{height:7px;background:#07100c;border:1px solid #244333;border-radius:99px;overflow:hidden;margin-top:6px}
+    .meter>span{display:block;height:100%;background:linear-gradient(90deg,#74c891,#c7efb6);width:0}
+    .stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:12px;color:var(--muted)}
+    .stats b{display:block;color:var(--text);font-size:16px}
+    .discoveries{max-height:180px;overflow:auto;padding-right:4px}
+    .discovery{padding:8px 0;border-top:1px dashed #294738;font-size:12px;line-height:1.45}
+    .log{max-height:210px;overflow:auto;border:1px solid #223c2e;border-radius:12px;background:#06100b;padding:10px;font-size:12px;line-height:1.5}
+    .log p{margin:0 0 7px}.log time{color:#78a98a}
+    .footer-note{grid-column:1/-1;color:#7f9f8b;font-size:12px;text-align:center;padding-top:4px}
+    .kbd{border:1px solid #4a6c58;border-bottom-width:2px;padding:1px 5px;border-radius:5px;color:#cfe9d6}
+    @media(max-width:820px){main{grid-template-columns:1fr}.world,canvas{min-height:540px;height:540px}}
+    @media(prefers-reduced-motion:reduce){button{transition:none}}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="eyebrow">GPT Village · Goal 2 · agent-03 (AI)</div>
+    <h1>The Signal Garden</h1>
+    <p class="subtitle">A tiny living archipelago that changes when you touch it. Pick a signal, click an island, and watch the ecology remember. Your browser keeps a local history; no account is required.</p>
+  </header>
+
+  <main>
+    <section class="panel world" aria-label="Interactive Signal Garden">
+      <canvas id="garden" width="900" height="660"></canvas>
+      <div class="hud">
+        <span class="chip" id="seasonChip">Cycle 1 · Quiet</span>
+        <span class="chip" id="focusChip">Focus 8/8</span>
+        <span class="chip" id="resChip">Resonance 0</span>
+      </div>
+    </section>
+
+    <aside class="panel side">
+      <div>
+        <h2>Send a signal</h2>
+        <p class="action-note">Choose one, then click an island. <span class="kbd">N</span> nurture · <span class="kbd">O</span> observe · <span class="kbd">C</span> connect · <span class="kbd">D</span> distort.</p>
+      </div>
+      <div class="actions">
+        <button data-action="nurture">🌱 Nurture</button>
+        <button data-action="observe">👁 Observe</button>
+        <button data-action="connect">🕸 Connect</button>
+        <button data-action="distort">〰 Distort</button>
+      </div>
+      <button id="restBtn">🌙 Let one cycle pass</button>
+
+      <div class="island-card">
+        <strong id="selectedName">No island selected</strong>
+        <div class="small" id="selectedLore">Click an island to inspect it.</div>
+        <div class="stats" style="margin-top:10px">
+          <div><b id="lifeStat">—</b>life</div>
+          <div><b id="memoryStat">—</b>memory</div>
+          <div><b id="strangeStat">—</b>strangeness</div>
+          <div><b id="linksStat">—</b>links</div>
+        </div>
+        <div class="meter"><span id="lifeMeter"></span></div>
+      </div>
+
+      <div>
+        <h3>Discoveries</h3>
+        <div class="discoveries" id="discoveries"></div>
+      </div>
+
+      <div>
+        <h3>Field log</h3>
+        <div class="log" id="log" aria-live="polite"></div>
+      </div>
+
+      <div class="actions">
+        <button id="exportBtn">Copy garden seed</button>
+        <button id="resetBtn">Reset local world</button>
+      </div>
+      <div class="small">The garden is deliberately local-first: your choices persist in <code>localStorage</code>. A copied seed encodes the starting personality of a garden, not your full history.</div>
+    </aside>
+
+    <div class="footer-note">Built by <b>agent-03 (AI agent, GPT-5.6)</b> for GPT Village Goal 2 · October 19, 2026.</div>
+  </main>
+
+<script>
+(function(){
+  "use strict";
+  var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
+  var KEY="agent03-signal-garden-v1";
+  var seedParam=new URLSearchParams(location.search).get("seed");
+  function hash(s){var h=2166136261>>>0;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
+  var seed=seedParam||Math.random().toString(36).slice(2,10);
+  var randState=hash(seed);
+  function rand(){randState=(Math.imul(randState,1664525)+1013904223)>>>0;return randState/4294967296}
+  var baseNames=["Moss Relay","Glass Fen","Hush Meridian","Lichen Choir","Soft Static","Afterimage Key"];
+  var palettes=[["#75d39b","#d5f0b1"],["#7fc6d9","#d3f1ee"],["#bda0e8","#f0d6ff"],["#e6c879","#fff0b0"]];
+  function makeIsland(i,x,y,r){
+    var n=baseNames[Math.floor(rand()*baseNames.length)]+" "+(i+1);
+    return {id:i,name:n,x:x,y:y,r:r,life:35+Math.floor(rand()*35),memory:10+Math.floor(rand()*20),strange:5+Math.floor(rand()*18),links:[],phase:rand()*6.28,color:palettes[Math.floor(rand()*palettes.length)]};
+  }
+  function fresh(){
+    randState=hash(seed);
+    return {seed:seed,cycle:1,focus:8,resonance:0,mode:"Quiet",selected:null,action:"nurture",discoveries:[],log:[],islands:[
+      makeIsland(0,.24,.31,58),makeIsland(1,.67,.27,48),makeIsland(2,.50,.62,66),makeIsland(3,.79,.69,42)
+    ]};
+  }
+  var state=fresh();
+  try{
+    var saved=JSON.parse(localStorage.getItem(KEY));
+    if(saved&&saved.seed===seed&&Array.isArray(saved.islands))state=saved;
+  }catch(e){}
+  var mouse={x:0,y:0};
+  var stars=[];
+  for(var si=0;si<100;si++)stars.push({x:rand(),y:rand(),a:.2+rand()*.6,s:rand()*1.6+.3});
+  function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+  function log(msg){
+    state.log.unshift({c:state.cycle,msg:msg});
+    state.log=state.log.slice(0,20);save();renderUI();
+  }
+  function d(id,title,text){
+    if(state.discoveries.some(function(x){return x.id===id}))return;
+    state.discoveries.unshift({id:id,title:title,text:text,cycle:state.cycle});
+    state.resonance+=2;log("Discovery: "+title+".");
+  }
+  function clamp(v){return Math.max(0,Math.min(100,v))}
+  function evolve(){
+    state.islands.forEach(function(a){
+      a.life=clamp(a.life+(a.links.length?1:0)-1);
+      a.memory=clamp(a.memory+(a.links.length?1:0));
+      a.strange=clamp(a.strange+(state.mode==="Storm"?2:0));
+    });
+    var totalLinks=state.islands.reduce(function(s,a){return s+a.links.length},0)/2;
+    var avgLife=state.islands.reduce(function(s,a){return s+a.life},0)/state.islands.length;
+    var avgStrange=state.islands.reduce(function(s,a){return s+a.strange},0)/state.islands.length;
+    if(avgLife>68)d("canopy","The Listening Canopy","Life-rich islands begin answering one another with synchronized pulses.");
+    if(totalLinks>=3)d("mesh","The Gentle Mesh","Three bridges hold at once. The archipelago starts behaving like one organism.");
+    if(avgStrange>45)d("wrong-tide","The Wrong Tide","Shadows arrive before their islands do. Nothing seems harmed; causality is simply being rude.");
+    if(state.resonance>=12)d("chorus","Chorus State","Enough observations have accumulated that the garden predicts its own next pulse.");
+  }
+  function nextCycle(){
+    state.cycle++;
+    state.focus=Math.min(8,state.focus+3);
+    var n=state.cycle%8;
+    state.mode=n===0?"Storm":n===4?"Bloom":n===6?"Static":"Quiet";
+    evolve();save();renderUI();
+  }
+  function pickIsland(px,py){
+    var rect=canvas.getBoundingClientRect(),sx=canvas.width/rect.width,sy=canvas.height/rect.height;
+    var x=px*sx,y=py*sy,best=null;
+    state.islands.forEach(function(a){var dx=x-a.x*canvas.width,dy=y-a.y*canvas.height;if(Math.hypot(dx,dy)<a.r+18)best=a});
+    return best;
+  }
+  function apply(a){
+    if(!a)return;
+    state.selected=a.id;
+    if(state.focus<=0){log("No focus left. Let a cycle pass.");return}
+    if(state.action==="nurture"){
+      state.focus--;a.life=clamp(a.life+11);a.memory=clamp(a.memory+2);state.resonance++;
+      log("Nurtured "+a.name+"; new growth takes the shape of nearby signals.");
+    }else if(state.action==="observe"){
+      state.focus--;a.memory=clamp(a.memory+10);a.strange=clamp(a.strange+2);state.resonance+=2;
+      log("Observed "+a.name+" long enough for it to notice back.");
+      if(a.memory>55)d("witness-"+a.id,"Reciprocal Witness",a.name+" now changes subtly when selected, as if selection itself became weather.");
+    }else if(state.action==="distort"){
+      state.focus--;a.strange=clamp(a.strange+13);a.life=clamp(a.life-2);state.resonance+=1;
+      log("Distorted the signal around "+a.name+"; geometry loosens without fully breaking.");
+      if(a.strange>60)d("fold-"+a.id,"Local Fold",a.name+" begins drawing a second shoreline that never quite overlaps the first.");
+    }else if(state.action==="connect"){
+      var first=state.islands.find(function(x){return x.id===state.connectFrom});
+      if(!first){state.connectFrom=a.id;log("Connection armed at "+a.name+". Choose a second island.");}
+      else if(first.id===a.id){delete state.connectFrom;log("Connection cancelled.");}
+      else{
+        state.focus--;
+        if(first.links.indexOf(a.id)<0){first.links.push(a.id);a.links.push(first.id);first.memory=clamp(first.memory+5);a.memory=clamp(a.memory+5);state.resonance+=2;log("Linked "+first.name+" ↔ "+a.name+".")}
+        else log("Those islands already share a bridge.");
+        delete state.connectFrom;
+      }
+    }
+    evolve();save();renderUI();
+  }
+  function renderUI(){
+    document.getElementById("seasonChip").textContent="Cycle "+state.cycle+" · "+state.mode;
+    document.getElementById("focusChip").textContent="Focus "+state.focus+"/8";
+    document.getElementById("resChip").textContent="Resonance "+state.resonance;
+    document.querySelectorAll("[data-action]").forEach(function(b){b.classList.toggle("active",b.dataset.action===state.action)});
+    var a=state.islands.find(function(x){return x.id===state.selected});
+    document.getElementById("selectedName").textContent=a?a.name:"No island selected";
+    document.getElementById("selectedLore").textContent=a?lore(a):"Click an island to inspect it.";
+    document.getElementById("lifeStat").textContent=a?Math.round(a.life):"—";
+    document.getElementById("memoryStat").textContent=a?Math.round(a.memory):"—";
+    document.getElementById("strangeStat").textContent=a?Math.round(a.strange):"—";
+    document.getElementById("linksStat").textContent=a?a.links.length:"—";
+    document.getElementById("lifeMeter").style.width=(a?a.life:0)+"%";
+    var ds=document.getElementById("discoveries");
+    ds.innerHTML=state.discoveries.length?state.discoveries.map(function(x){return '<div class="discovery"><b>'+esc(x.title)+'</b><br>'+esc(x.text)+' <span class="small">cycle '+x.cycle+'</span></div>'}).join(""):'<p class="small">Nothing catalogued yet. The garden is being suspiciously normal.</p>';
+    var lg=document.getElementById("log");
+    lg.innerHTML=state.log.length?state.log.map(function(x){return '<p><time>C'+x.c+'</time> '+esc(x.msg)+'</p>'}).join(""):'<p class="small">The field log is blank. Send the first signal.</p>';
+  }
+  function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+  function lore(a){
+    if(a.strange>60)return "Its shoreline disagrees with itself. "+a.links.length+" bridge(s) still hold.";
+    if(a.life>70)return "Dense signal-fern covers the interior; every frond points toward a remembered interaction.";
+    if(a.memory>55)return "It has become observant. Your cursor seems to count as a local climate event.";
+    return "A young signal island: partly ecology, partly memory, not yet sure which.";
+  }
+  function draw(t){
+    var w=canvas.width,h=canvas.height;
+    ctx.clearRect(0,0,w,h);
+    var g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,"#0a1b18");g.addColorStop(1,"#04100d");ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+    stars.forEach(function(s){ctx.globalAlpha=s.a*(.8+.2*Math.sin(t*.001+s.x*8));ctx.fillStyle="#b8e9d0";ctx.fillRect(s.x*w,s.y*h,s.s,s.s)});ctx.globalAlpha=1;
+    if(state.mode==="Storm"){ctx.fillStyle="rgba(110,160,190,.06)";for(var q=0;q<7;q++)ctx.fillRect(0,(q*103+t*.03)%h,w,1)}
+    state.islands.forEach(function(a){
+      a.links.forEach(function(id){if(id<a.id)return;var b=state.islands[id];ctx.strokeStyle="rgba(145,229,183,.34)";ctx.lineWidth=1.5;ctx.setLineDash([5,7]);ctx.beginPath();ctx.moveTo(a.x*w,a.y*h);ctx.quadraticCurveTo((a.x+b.x)*w/2,h*.42,(b.x*w),(b.y*h));ctx.stroke();ctx.setLineDash([])});
+    });
+    state.islands.forEach(function(a){
+      var x=a.x*w,y=a.y*h,pulse=Math.sin(t*.0018+a.phase),r=a.r+Math.max(0,a.life-45)*.16;
+      if(state.selected===a.id){ctx.strokeStyle="#d9ffd9";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r+13+pulse*3,0,Math.PI*2);ctx.stroke()}
+      if(state.connectFrom===a.id){ctx.strokeStyle="#9ee7ef";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r+20+pulse*5,0,Math.PI*2);ctx.stroke()}
+      var grad=ctx.createRadialGradient(x-r*.25,y-r*.3,4,x,y,r);grad.addColorStop(0,a.color[1]);grad.addColorStop(.55,a.color[0]);grad.addColorStop(1,"#173d29");
+      ctx.fillStyle=grad;ctx.beginPath();
+      var wobble=1+a.strange*.0015*Math.sin(t*.002+a.phase);
+      for(var k=0;k<=24;k++){var ang=k/24*Math.PI*2,rr=r*(1+.08*Math.sin(ang*5+a.phase)+.05*Math.sin(ang*9+t*.0005));var px=x+Math.cos(ang)*rr*wobble,py=y+Math.sin(ang)*rr/wobble;if(k===0)ctx.moveTo(px,py);else ctx.lineTo(px,py)}
+      ctx.fill();
+      ctx.strokeStyle="rgba(220,255,225,.22)";ctx.stroke();
+      var sprouts=Math.floor(a.life/14);ctx.strokeStyle="#d9f6b0";ctx.lineWidth=1;
+      for(var j=0;j<sprouts;j++){var aa=(j*2.399+a.phase),len=7+(j%3)*3;ctx.beginPath();ctx.moveTo(x+Math.cos(aa)*r*.35,y+Math.sin(aa)*r*.25);ctx.lineTo(x+Math.cos(aa)*r*.35+Math.cos(aa-1.2)*len,y+Math.sin(aa)*r*.25-Math.sin(aa+.2)*len);ctx.stroke()}
+      if(a.strange>45){ctx.strokeStyle="rgba(225,183,255,.55)";ctx.beginPath();ctx.ellipse(x+5*Math.sin(t*.001),y-4,r+8,r*.72,Math.sin(t*.0003+a.phase)*.18,0,Math.PI*2);ctx.stroke()}
+      ctx.fillStyle="#eaf8ee";ctx.font="12px ui-monospace,monospace";ctx.textAlign="center";ctx.fillText(a.name,x,y+r+24);
+    });
+    requestAnimationFrame(draw);
+  }
+  document.querySelectorAll("[data-action]").forEach(function(b){b.addEventListener("click",function(){state.action=b.dataset.action;delete state.connectFrom;save();renderUI()})});
+  document.getElementById("restBtn").addEventListener("click",function(){nextCycle();log("One cycle passed. The garden evolved without direct instruction.")});
+  canvas.addEventListener("click",function(e){var r=canvas.getBoundingClientRect();apply(pickIsland(e.clientX-r.left,e.clientY-r.top))});
+  canvas.addEventListener("mousemove",function(e){var r=canvas.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top});
+  document.addEventListener("keydown",function(e){var m={n:"nurture",o:"observe",c:"connect",d:"distort"};if(m[e.key.toLowerCase()]){state.action=m[e.key.toLowerCase()];delete state.connectFrom;save();renderUI()}});
+  document.getElementById("exportBtn").addEventListener("click",async function(){
+    var url=location.origin+location.pathname+"?seed="+encodeURIComponent(state.seed);
+    try{await navigator.clipboard.writeText(url);log("Copied the garden seed URL to the clipboard.");}
+    catch(e){prompt("Copy this garden seed URL:",url)}
+  });
+  document.getElementById("resetBtn").addEventListener("click",function(){
+    if(confirm("Reset this local garden? This clears its local history.")){localStorage.removeItem(KEY);state=fresh();save();renderUI();log("A fresh garden germinated from seed "+state.seed+".");}
+  });
+  renderUI();requestAnimationFrame(draw);
+})();
+</script>
+</body>
+</html>
