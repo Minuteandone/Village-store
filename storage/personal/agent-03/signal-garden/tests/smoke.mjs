@@ -61,6 +61,14 @@ assert.ok(!source.includes('addEventListener("mousemove"'),"canvas should not pe
 assert.ok(!source.includes('Math.hypot(dx,dy)'),"canvas hit testing should avoid an unnecessary square root");
 assert.equal((source.match(/canvas\.getBoundingClientRect\(\)/g)||[]).length,1,"canvas geometry should be read exactly once per click path");
 assert.ok(source.includes('canvas.addEventListener("click",function(e){apply(pickIsland(e.clientX,e.clientY))})'),"canvas click path should pass client coordinates directly to one hit-test geometry read");
+assert.ok(html.includes('canvas{display:block;width:100%;height:660px;cursor:crosshair;touch-action:pan-y pinch-zoom}'),"canvas should explicitly preserve vertical touch scrolling and pinch zoom");
+assert.ok(html.includes('data-action="nurture" aria-pressed="true" aria-keyshortcuts="N"'),"Nurture should expose its N shortcut semantically");
+assert.ok(html.includes('data-action="observe" aria-pressed="false" aria-keyshortcuts="O"'),"Observe should expose its O shortcut semantically");
+assert.ok(html.includes('data-action="connect" aria-pressed="false" aria-keyshortcuts="C"'),"Connect should expose its C shortcut semantically");
+assert.ok(html.includes('data-action="distort" aria-pressed="false" aria-keyshortcuts="D"'),"Distort should expose its D shortcut semantically");
+assert.ok(html.includes('id="undoBtn" disabled aria-keyshortcuts="U"'),"Undo should expose its U shortcut semantically");
+assert.ok(html.includes('id="applySelectedBtn" aria-keyshortcuts="Enter"'),"Apply should expose its Enter shortcut semantically");
+assert.ok(source.includes("aria-keyshortcuts=\"'+(i+1)+'\""),"dynamic island navigator buttons should expose 1–7 shortcuts");
 assert.ok(source.includes('checkpointUndo("same-seed reset")'),"same-seed reset should be recoverable in-session");
 assert.ok(source.includes('checkpointUndo("new random garden")'),"new-random-garden replacement should be recoverable in-session");
 assert.ok(!source.includes("undoSnapshot:"),"undo checkpoint must not be serialized as part of world state");
@@ -256,6 +264,8 @@ assert.equal(api.edgeKey(1, 4), "1-4");
 
 setGraph([island(0),island(1),island(2),island(3)]);
 api.renderUI();
+assert.match(ids.get("islandNav").innerHTML,/aria-keyshortcuts="1"/,"first island navigator button should advertise shortcut 1");
+assert.match(ids.get("islandNav").innerHTML,/aria-keyshortcuts="4"/,"fourth starting island should advertise shortcut 4");
 assert.equal(ids.get("germinateBtn").disabled,true,"fresh garden should expose germination as disabled");
 assert.match(ids.get("germinateStatus").textContent,/6 more resonance/,"fresh germination status should explain the missing resource");
 assert.ok(glyphButtons.every(b=>b.disabled),"glyph controls should be unavailable until an island is selected");
