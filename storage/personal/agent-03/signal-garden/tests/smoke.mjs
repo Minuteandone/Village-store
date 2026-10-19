@@ -25,6 +25,8 @@ assert.ok(html.includes('A textual topology equivalent is available in the Text 
 assert.ok(html.includes('@media(prefers-reduced-motion:reduce){button{transition:none}button:hover{transform:none}}'),"reduced-motion CSS should suppress button transition/hover movement");
 assert.ok(html.includes('id="modeStatus" role="status" aria-live="polite"'),"signal mode should expose a polite status line");
 assert.ok(html.includes('id="actionCostNote"'),"primary actions should expose a resource-cost explanation");
+assert.ok(html.includes('id="researchCompass"'),"Field Questions should expose a Research Compass");
+assert.ok(html.includes('id="researchObserved"'),"observed Field Questions should have a separate archive surface");
 assert.ok(html.includes('aria-describedby="actionCostNote modeStatus"'),"primary action controls should reference cost/status guidance");
 assert.ok(html.includes('data-action="nurture" aria-pressed="true"'),"default nurture mode should expose pressed state");
 assert.ok(html.includes('data-action="connect" aria-pressed="false"'),"inactive signal modes should expose unpressed state");
@@ -69,6 +71,7 @@ source = source.replace(
     inscribeGlyph:inscribeGlyph,
     gardenSummary:gardenSummary,
     researchPrompts:researchPrompts,
+    researchCompassModel:researchCompassModel,
     specimenCode:specimenCode,
     decodeSpecimen:decodeSpecimen,
     importSpecimenCode:importSpecimenCode,
@@ -134,7 +137,7 @@ ids.set("garden", canvas);
   "seasonChip","focusChip","resChip","transitChip","historyChip","bondChip","junctionChip","constellationChip","provenanceChip","researchChip","climateChip","motionChip","contrastChip","germinateBtn","germinateStatus",
   "islandNav","applySelectedBtn","selectedName","selectedLore","lifeStat",
   "memoryStat","strangeStat","linksStat","arrivalsStat","trafficStat","glyphStat","lineageStat","successionStat","lifeMeter",
-  "research","bonds","provenance","constellation","junctions","species","discoveries","chronicle","log","guidePanel","textMap","modeStatus","actionCostNote","glyphCostNote","glyphStatus","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
+  "research","researchSummary","researchCompass","observedResearchDetails","observedResearchSummary","researchObserved","bonds","provenance","constellation","junctions","species","discoveries","chronicle","log","guidePanel","textMap","modeStatus","actionCostNote","glyphCostNote","glyphStatus","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
 ].forEach(id => ids.set(id, element()));
 
 const actionButtons = ["nurture","observe","connect","distort"].map(action =>
@@ -286,6 +289,28 @@ assert.match(ids.get("germinateStatus").textContent,/all seven stable island sit
 assert.equal(api.chooseBootSeed("urlseed",{seed:"savedseed"}),"urlseed","explicit URL seed should win");
 assert.equal(api.chooseBootSeed(null,{seed:"savedseed"}),"savedseed","saved seed should stabilize ordinary reloads");
 assert.equal(api.chooseBootSeed(null,{seed:"bad seed with spaces"}),null,"invalid saved seed should not be trusted");
+
+setGraph([island(0),island(1),island(2),island(3)]);
+let compass=api.researchCompassModel();
+assert.equal(compass.total,14);
+assert.equal(compass.open.length,14,"fresh garden should start with all Field Questions open");
+assert.equal(compass.observed.length,0);
+assert.equal(compass.next.id,"new-land","fresh Research Compass should point to the first research-sequence question");
+api.renderUI();
+assert.match(ids.get("researchSummary").textContent,/14 open/);
+assert.match(ids.get("researchCompass").innerHTML,/Research compass/);
+assert.match(ids.get("research").innerHTML,/not part of the starting map/);
+assert.match(ids.get("researchObserved").innerHTML,/Nothing archived yet/);
+
+api.getState().islands.push(island(4));
+compass=api.researchCompassModel();
+assert.equal(compass.observed.length,1,"germinated-land state should archive the New Land question");
+assert.equal(compass.observed[0].id,"new-land");
+assert.equal(compass.next.id,"ring","compass should advance to the next still-open research question");
+api.renderUI();
+assert.match(ids.get("observedResearchSummary").textContent,/Observed archive · 1/);
+assert.ok(!ids.get("research").innerHTML.includes("not part of the starting map"),"observed New Land question should leave the open list");
+assert.match(ids.get("researchObserved").innerHTML,/not part of the starting map/,"observed New Land question should enter the collapsed archive");
 
 setGraph([island(0),island(1),island(2),island(3)]);
 api.getState().cycle=1;
