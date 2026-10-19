@@ -75,10 +75,11 @@
         <span class="chip" id="transitChip">Transit quiet</span>
         <span class="chip" id="historyChip">Route memory 0</span>
         <span class="chip" id="bondChip">Bonds 0</span>
-        <span class="chip" id="researchChip">Research 0/11</span>
+        <span class="chip" id="junctionChip">Junctions 0</span>
+        <span class="chip" id="researchChip">Research 0/12</span>
         <span class="chip" id="climateChip">Climate · Braided Sky</span>
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
-        <span class="chip" id="versionChip">v0.20 · save 6</span>
+        <span class="chip" id="versionChip">v0.21 · save 6</span>
       </div>
     </section>
 
@@ -156,6 +157,11 @@
       </details>
 
       <details open>
+        <summary>Junction ecologies</summary>
+        <div class="discoveries" id="junctions"></div>
+      </details>
+
+      <details open>
         <summary>Resident anomalies</summary>
         <div class="discoveries" id="species"></div>
       </details>
@@ -194,7 +200,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.20",SAVE_SCHEMA=6;
+  var APP_VERSION="0.21",SAVE_SCHEMA=6;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -354,6 +360,7 @@
       "Research observed: "+questions.filter(function(q){return q.done}).length+"/"+questions.length,
       "Live routes: "+(edges.length?edges.join(", "):"none"),
       "Route bonds: "+(routeBonds().length?routeBonds().map(function(b){return b.name+" "+b.key+(b.active?"":" (severed)")}).join(", "):"none"),
+      "Junction ecologies: "+(junctionEcologies().length?junctionEcologies().map(function(j){return j.name+" @ "+state.islands[j.island].name}).join(", "):"none"),
       "Residents: "+(residents.length?residents.map(function(x){return x.name}).join(", "):"none"),
       "Islands:"
     ];
@@ -521,6 +528,40 @@
     if(bond&&bond.kind==="braided")rgb="255,224,154";
     return "rgba("+rgb+","+alpha+")";
   }
+  function junctionEcologies(){
+    var active=routeBonds().filter(function(b){return b.active}),out=[];
+    state.islands.forEach(function(center){
+      var incident=active.filter(function(b){return b.a===center.id||b.b===center.id});
+      if(incident.length<2)return;
+      var kinds={};
+      incident.forEach(function(b){kinds[b.kind]=true});
+      var j=null;
+      if(kinds.rootway&&kinds["echo-span"]&&kinds["fold-thread"]){
+        j={kind:"triune-loom",name:"Triune Loom",life:1,memory:1,strange:1,text:"Rootway, Echo Span, and Fold Thread converge here. Three relationship histories weave one local ecology."};
+      }else if(kinds.braided){
+        j={kind:"confluence-knot",name:"Confluence Knot",life:1,memory:1,strange:1,text:"A Braided Bond meets another mature relationship, knotting several signal histories into one center."};
+      }else if(kinds.rootway&&kinds["echo-span"]){
+        j={kind:"scribe-orchard",name:"Scribe Orchard",life:1,memory:1,strange:0,text:"Growth-bearing and archive-bearing routes meet here, producing a grove that records its own branching."};
+      }else if(kinds.rootway&&kinds["fold-thread"]){
+        j={kind:"prism-nursery",name:"Prism Nursery",life:1,memory:0,strange:1,text:"Growth and unstable geometry meet here, germinating forms that develop along impossible angles."};
+      }else if(kinds["echo-span"]&&kinds["fold-thread"]){
+        j={kind:"dream-estuary",name:"Dream Estuary",life:0,memory:1,strange:1,text:"Memory and folded geometry drain into one center, where remembered patterns acquire impossible routes."};
+      }
+      if(j){j.island=center.id;j.bonds=incident.map(function(b){return b.key});out.push(j)}
+    });
+    return out;
+  }
+  function applyJunctionEcologies(){
+    var junctions=junctionEcologies();
+    junctions.forEach(function(j){
+      var a=state.islands[j.island];if(!a)return;
+      a.life=clamp(a.life+j.life);
+      a.memory=clamp(a.memory+j.memory);
+      a.strange=clamp(a.strange+j.strange);
+      d("junction-"+j.kind,j.name,j.text);
+    });
+    return junctions;
+  }
   function globalImprints(){
     var out={life:0,memory:0,strange:0,total:0};
     state.islands.forEach(function(a){
@@ -627,7 +668,8 @@
       {id:"phenomenon",done:Object.keys(state.phenomenaSeen).some(function(k){return state.phenomenaSeen[k]}),text:"Can one macro-climate persist long enough to trigger an archipelago-wide sky phenomenon?"},
       {id:"lineage",done:state.islands.some(function(a){return a.lineage&&a.lineage!=="none"}),text:"Can enough migration history accumulate for a newborn island to inherit an echo lineage?"},
       {id:"succession",done:state.islands.some(function(a){return a.palimpsest}),text:"Can one island genuinely live through grove-, archive-, and fold-mind roles and become a Palimpsest Mind?"},
-      {id:"bond",done:routeBonds().some(function(b){return b.kind==="braided"}),text:"Can one relationship remember all three signal families strongly enough to become a Braided Bond?"}
+      {id:"bond",done:routeBonds().some(function(b){return b.kind==="braided"}),text:"Can one relationship remember all three signal families strongly enough to become a Braided Bond?"},
+      {id:"junction",done:junctionEcologies().some(function(j){return j.kind==="triune-loom"}),text:"Can Rootway, Echo Span, and Fold Thread all converge on one island to form a Triune Loom?"}
     ];
   }
   function symbiosisSpecies(){
@@ -822,6 +864,7 @@
     state.mode=n===0?"Storm":n===4?"Bloom":n===6?"Static":"Quiet";
     var transfers=migrateSignals();
     evolve();
+    var junctions=applyJunctionEcologies();
     var afterClimate=recordClimate();
     var phenomenon=advanceClimatePhenomenon();
     updateRoleHistories();
@@ -837,6 +880,7 @@
       climateBefore:beforeClimate.name,
       climateAfter:afterClimate.name,
       phenomenon:phenomenon&&state.climateStreak%3===0?phenomenon.name:null,
+      junctions:junctions.map(function(j){return {island:j.island,name:j.name,kind:j.kind,bonds:j.bonds.slice()}}),
       roleChanges:roleChanges
     };
     cue("cycle");save();renderUI();
@@ -896,6 +940,8 @@
     document.getElementById("historyChip").textContent="Route memory "+routeTotal;
     var bonds=routeBonds();
     document.getElementById("bondChip").textContent="Bonds "+bonds.length;
+    var junctions=junctionEcologies();
+    document.getElementById("junctionChip").textContent="Junctions "+junctions.length;
     var questions=researchPrompts(),doneQuestions=questions.filter(function(q){return q.done}).length;
     document.getElementById("researchChip").textContent="Research "+doneQuestions+"/"+questions.length;
     var climate=macroClimate();
@@ -944,9 +990,11 @@
         return (from?from.name:"island "+x.from)+" → "+(to?to.name:"island "+x.to)+": "+x.type+" +"+x.amount+(x.lineageBonus?" (echo lineage +1)":"")+(x.bondBonus?" ("+esc(x.bondName)+" +1)":"")+(x.sourcePalimpsest?" (remembered self)":"");
       }).join("<br>"):"No migrations crossed live routes.";
       var roleText=lastCycleReport.roleChanges.length?lastCycleReport.roleChanges.map(function(x){return esc(x.name)+": "+x.from+" → "+x.to}).join("<br>"):"No island changed dominant role.";
+      var junctionText=lastCycleReport.junctions&&lastCycleReport.junctions.length?lastCycleReport.junctions.map(function(x){var a=state.islands[x.island];return esc(x.name)+" @ "+esc(a?a.name:"island "+x.island)}).join("<br>"):"No junction ecology pulsed this cycle.";
       var climateText=lastCycleReport.climateBefore===lastCycleReport.climateAfter?lastCycleReport.climateAfter:lastCycleReport.climateBefore+" → "+lastCycleReport.climateAfter;
       cr.innerHTML='<div class="discovery"><b>Cycle '+lastCycleReport.cycle+' · '+esc(lastCycleReport.mode)+'</b><br><b>Climate:</b> '+esc(climateText)+(lastCycleReport.phenomenon?'<br><b>Phenomenon:</b> '+esc(lastCycleReport.phenomenon):'')+'</div>'+
         '<div class="discovery"><b>Migrations</b><br>'+transferText+'</div>'+
+        '<div class="discovery"><b>Junction ecologies</b><br>'+junctionText+'</div>'+
         '<div class="discovery"><b>Role changes</b><br>'+roleText+'</div>';
     }
     var rq=document.getElementById("research");
@@ -956,6 +1004,11 @@
       var a=state.islands[x.a],b=state.islands[x.b],status=x.active?"active":"severed memory";
       return '<div class="discovery"><b>'+esc(x.name)+'</b> · '+esc(status)+'<br>'+esc(a?a.name:"island "+x.a)+' ↔ '+esc(b?b.name:"island "+x.b)+' · L'+x.counts.life+' M'+x.counts.memory+' S'+x.counts.strange+'<br>'+esc(x.text)+'</div>';
     }).join(""):'<p class="small">No route has accumulated enough typed crossing history to form a bond.</p>';
+    var jp=document.getElementById("junctions");
+    jp.innerHTML=junctions.length?junctions.map(function(j){
+      var a=state.islands[j.island];
+      return '<div class="discovery"><b>'+esc(j.name)+'</b><br>'+esc(a?a.name:"island "+j.island)+' · '+esc(j.text)+'</div>';
+    }).join(""):'<p class="small">No island currently joins a qualifying combination of mature route bonds.</p>';
     var sp=document.getElementById("species"), residents=topologySpecies();
     sp.innerHTML=residents.length?residents.map(function(x){return '<div class="discovery"><b>'+esc(x.name)+'</b><br>'+esc(x.text)+'</div>'}).join(""):'<p class="small">No topology-dependent species currently resident.</p>';
     var ds=document.getElementById("discoveries");
@@ -1074,6 +1127,10 @@
       }
       if(a.palimpsest){
         ctx.fillStyle="#d9b2ff";ctx.font="16px system-ui,sans-serif";ctx.textAlign="center";ctx.fillText("✶",x+18,y-r-14);
+      }
+      var junction=junctionEcologies().find(function(j){return j.island===a.id});
+      if(junction){
+        ctx.fillStyle="#ffe09a";ctx.font="15px system-ui,sans-serif";ctx.textAlign="center";ctx.fillText("⌘",x-18,y-r-14);
       }
       if(a.glyph!=="none"){
         ctx.strokeStyle=a.glyph==="life"?"#d8f3b0":a.glyph==="memory"?"#a7e8f0":"#e2c2ff";
