@@ -58,6 +58,16 @@
     archive: "Archive of the Version You Made"
   };
 
+  const allowedExhibitIds = new Set([
+    "directory", "weatherJar", "forecastDesk", "almostEngine", "spareDrawer",
+    "constellationDial", "maybeSeed", "rootMap", "finalIndex"
+  ]);
+  const allowedFragments = new Set([
+    "direction", "forecast", "uncertainty", "purpose", "reuse",
+    "pattern", "growth", "route", "trace"
+  ]);
+  const allowedWeather = new Set(["drizzle", "amber", "snow"]);
+
   const baseSubtitles = {
     vestibule: "The directory keeps revising itself when nobody is looking.",
     weather: "Forecasts rejected by reality are stored under glass.",
@@ -377,11 +387,11 @@
       room: roomTitles[s.room] ? s.room : "vestibule",
       exhibitStates: Object.fromEntries(
         Object.entries(s.exhibitStates || {})
-          .filter(([, value]) => Number.isInteger(value) && value >= 0 && value <= 6)
+          .filter(([key, value]) => allowedExhibitIds.has(key) && Number.isInteger(value) && value >= 0 && value <= 6)
       ),
-      fragments: Array.isArray(s.fragments) ? s.fragments.filter(value => typeof value === "string").slice(0, 24) : [],
+      fragments: Array.isArray(s.fragments) ? unique(s.fragments.filter(value => allowedFragments.has(value))).slice(0, allowedFragments.size) : [],
       visited: Array.isArray(s.visited) ? unique(s.visited.filter(id => roomTitles[id])).slice(0, 12) : ["vestibule"],
-      weather: typeof s.weather === "string" ? s.weather.slice(0, 20) : "drizzle",
+      weather: allowedWeather.has(s.weather) ? s.weather : "drizzle",
       seed: Number.isFinite(Number(s.seed)) ? Number(s.seed) : 0,
       changes: Math.max(0, Math.min(99999, Number(s.changes || 0))),
       echoes: overlay.echoes.filter(id => echoes.some(echo => echo.id === id)),
@@ -405,7 +415,7 @@
     const safeStates = {};
     if (payload.exhibitStates && typeof payload.exhibitStates === "object") {
       Object.entries(payload.exhibitStates).slice(0, 40).forEach(([key, value]) => {
-        if (/^[A-Za-z0-9_-]{1,40}$/.test(key) && Number.isInteger(value) && value >= 0 && value <= 6) safeStates[key] = value;
+        if (allowedExhibitIds.has(key) && Number.isInteger(value) && value >= 0 && value <= 6) safeStates[key] = value;
       });
     }
     const safeVisited = Array.isArray(payload.visited) ? unique(payload.visited.filter(id => roomTitles[id])).slice(0, 12) : ["vestibule"];
@@ -424,11 +434,11 @@
       room: roomTitles[payload.room] ? payload.room : "vestibule",
       player: { x: 500, y: 445 },
       exhibitStates: safeStates,
-      fragments: Array.isArray(payload.fragments) ? payload.fragments.filter(value => typeof value === "string" && value.length <= 40).slice(0, 24) : [],
+      fragments: Array.isArray(payload.fragments) ? unique(payload.fragments.filter(value => allowedFragments.has(value))).slice(0, allowedFragments.size) : [],
       visited: safeVisited.length ? safeVisited : ["vestibule"],
       steps: 0,
       changes: Math.max(0, Math.min(99999, Number(payload.changes || 0))),
-      weather: typeof payload.weather === "string" ? payload.weather.slice(0, 20) : "drizzle",
+      weather: allowedWeather.has(payload.weather) ? payload.weather : "drizzle",
       seed: Number.isFinite(Number(payload.seed)) ? Number(payload.seed) : 0,
       sound: true,
       introSeen: true,
