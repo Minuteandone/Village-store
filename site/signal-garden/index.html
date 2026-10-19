@@ -72,7 +72,7 @@
 
   <main>
     <section class="panel world" aria-label="Signal Garden visual map">
-      <p class="sr-only" id="canvasHelp">Visual overview of islands, routes, and animated signals. All gameplay actions are also available through the keyboard-accessible controls and Island navigator.</p>
+      <p class="sr-only" id="canvasHelp">Visual overview of islands, routes, and animated signals. All gameplay actions are also available through the keyboard-accessible controls and Island navigator. A textual topology equivalent is available in the Text map panel.</p>
       <canvas id="garden" width="900" height="660" role="img" aria-label="Visual map of the Signal Garden islands and routes" aria-describedby="canvasHelp"></canvas>
       <div class="hud">
         <span class="chip" id="seasonChip">Cycle 1 · Quiet</span>
@@ -88,7 +88,7 @@
         <span class="chip" id="climateChip">Climate · Braided Sky</span>
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip" id="motionChip">Motion · standard</span>
-        <span class="chip" id="versionChip">v0.29 · save 7</span>
+        <span class="chip" id="versionChip">v0.30 · save 7</span>
       </div>
     </section>
 
@@ -145,6 +145,11 @@
           <button data-glyph="none" aria-pressed="false">× Clear</button>
         </div>
       </div>
+
+      <details open>
+        <summary>Text map</summary>
+        <div id="textMap" class="discoveries" role="region" aria-label="Text map of islands and live routes"></div>
+      </details>
 
       <details>
         <summary>Distant signals</summary>
@@ -239,7 +244,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.29",SAVE_SCHEMA=7;
+  var APP_VERSION="0.30",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -693,6 +698,30 @@
     if(a.rolesSeen&&a.rolesSeen.strange)names.push("fold");
     return a.palimpsest?"palimpsest · "+names.join(" → "):(names.length?names.join(" → "):"unrecorded");
   }
+  function textMapModel(){
+    var constellation=networkConstellation(),junctions=junctionEcologies();
+    return {
+      summary:"Network constellation: "+(constellation?constellation.name:"none")+". Active junction ecologies: "+(junctions.length?junctions.map(function(j){return j.name+" at "+((state.islands[j.island]&&state.islands[j.island].name)||("island "+j.island))}).join("; "):"none")+".",
+      islands:state.islands.map(function(a){
+        var role=dominantTrait(a)==="life"?"grove-mind":dominantTrait(a)==="memory"?"archive-mind":"fold-mind";
+        var extras=[];
+        if(a.lineage&&a.lineage!=="none")extras.push(a.lineage+" echo lineage");
+        if(a.palimpsest)extras.push("Palimpsest Mind");
+        var junction=junctions.find(function(j){return j.island===a.id});
+        if(junction)extras.push(junction.name+" junction");
+        var routes=a.links.slice().sort(function(x,y){return x-y}).map(function(id){
+          var b=state.islands[id],key=edgeKey(a.id,id),bond=bondForEdgeKey(key),mem=state.edgeMemory[key]||0;
+          return "live route to "+((b&&b.name)||("island "+id))+" via "+(bond?bond.name:"young bridge")+"; route memory "+mem;
+        });
+        return {
+          id:a.id,
+          name:a.name||("island "+a.id),
+          role:role,
+          text:(a.name||("island "+a.id))+" — "+role+(extras.length?"; "+extras.join("; "):"")+"; "+(routes.length?routes.join(". "):"isolated")
+        };
+      })
+    };
+  }
   function recordRoleHistory(a){
     if(!a.rolesSeen)a.rolesSeen={life:false,memory:false,strange:false};
     a.rolesSeen[dominantTrait(a)]=true;
@@ -1075,6 +1104,8 @@
     document.getElementById("versionChip").textContent="v"+APP_VERSION+" · save "+SAVE_SCHEMA;
     var guide=suggestedMove();
     document.getElementById("guidePanel").innerHTML="<b>"+esc(guide.title)+"</b><br>"+esc(guide.text);
+    var textMap=textMapModel(),textMapEl=document.getElementById("textMap");
+    textMapEl.innerHTML='<p class="small">'+esc(textMap.summary)+'</p><ul>'+textMap.islands.map(function(row){return '<li>'+esc(row.text)+'</li>'}).join("")+'</ul>';
     var gb=document.getElementById("germinateBtn");
     gb.disabled=state.resonance<6||state.focus<2||state.islands.length>=7;
     gb.textContent=state.islands.length>=7?"🌿 Germination sites full":"🌿 Germinate island · 6 resonance + 2 focus";
