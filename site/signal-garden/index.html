@@ -81,6 +81,7 @@
         <button data-action="distort">〰 Distort</button>
       </div>
       <button id="restBtn">🌙 Let one cycle pass</button>
+      <button id="germinateBtn">🌿 Germinate island · 6 resonance + 2 focus</button>
       <div class="small">Connected islands exchange their strongest trait when a cycle passes. Bloom favors life, Static favors memory, and Storm favors strangeness. Use Connect on an existing pair to cut that bridge.</div>
 
       <div class="island-card">
@@ -126,8 +127,9 @@
   var seed=seedParam||Math.random().toString(36).slice(2,10);
   var randState=hash(seed);
   function rand(){randState=(Math.imul(randState,1664525)+1013904223)>>>0;return randState/4294967296}
-  var baseNames=["Moss Relay","Glass Fen","Hush Meridian","Lichen Choir","Soft Static","Afterimage Key"];
+  var baseNames=["Moss Relay","Glass Fen","Hush Meridian","Lichen Choir","Soft Static","Afterimage Key","Relay Orchard","Quiet Aperture","Spore Archive"];
   var palettes=[["#75d39b","#d5f0b1"],["#7fc6d9","#d3f1ee"],["#bda0e8","#f0d6ff"],["#e6c879","#fff0b0"]];
+  var spawnSlots=[{x:.16,y:.72,r:39},{x:.88,y:.46,r:41},{x:.44,y:.14,r:37}];
   function makeIsland(i,x,y,r){
     var n=baseNames[Math.floor(rand()*baseNames.length)]+" "+(i+1);
     return {id:i,name:n,x:x,y:y,r:r,life:35+Math.floor(rand()*35),memory:10+Math.floor(rand()*20),strange:5+Math.floor(rand()*18),links:[],arrivals:0,phase:rand()*6.28,color:palettes[Math.floor(rand()*palettes.length)]};
@@ -164,6 +166,27 @@
     if(a.strange>=a.life&&a.strange>=a.memory)return "strange";
     if(a.memory>=a.life)return "memory";
     return "life";
+  }
+  function spawnIsland(){
+    if(state.islands.length>=7){log("The current sky can support only seven islands.");return}
+    if(state.resonance<6||state.focus<2){log("Germination needs 6 resonance and 2 focus.");return}
+    var slot=spawnSlots[state.islands.length-4];
+    if(!slot){log("No stable germination site remains in this archipelago.");return}
+    state.resonance-=6;state.focus-=2;
+    var id=state.islands.length;
+    var oldRand=randState;
+    randState=hash(state.seed+":spawn:"+id);
+    var a=makeIsland(id,slot.x,slot.y,slot.r);
+    randState=oldRand;
+    a.life=clamp(a.life+(state.mode==="Bloom"?10:0));
+    a.memory=clamp(a.memory+(state.mode==="Static"?10:0));
+    a.strange=clamp(a.strange+(state.mode==="Storm"?10:0));
+    state.islands.push(a);
+    state.selected=a.id;
+    log("A new island germinated: "+a.name+". It begins unlinked and remembers the season of its birth.");
+    d("new-land","New Land","Resonance condensed into a new island. The map is no longer a fixed starting condition.");
+    if(state.islands.length===7)d("seven-islands","Seven-Island Sky","The archipelago has filled every stable germination site in the current field.");
+    save();renderUI();
   }
   function migrateSignals(){
     var transfers=[];
@@ -269,6 +292,9 @@
     document.getElementById("focusChip").textContent="Focus "+state.focus+"/8";
     document.getElementById("resChip").textContent="Resonance "+state.resonance;
     document.getElementById("transitChip").textContent=motes.length?"Transit "+motes.length:"Transit quiet";
+    var gb=document.getElementById("germinateBtn");
+    gb.disabled=state.resonance<6||state.focus<2||state.islands.length>=7;
+    gb.textContent=state.islands.length>=7?"🌿 Germination sites full":"🌿 Germinate island · 6 resonance + 2 focus";
     document.querySelectorAll("[data-action]").forEach(function(b){b.classList.toggle("active",b.dataset.action===state.action)});
     var a=state.islands.find(function(x){return x.id===state.selected});
     document.getElementById("selectedName").textContent=a?a.name:"No island selected";
@@ -337,6 +363,7 @@
   }
   document.querySelectorAll("[data-action]").forEach(function(b){b.addEventListener("click",function(){state.action=b.dataset.action;delete state.connectFrom;save();renderUI()})});
   document.getElementById("restBtn").addEventListener("click",function(){nextCycle();log("One cycle passed. The garden evolved without direct instruction.")});
+  document.getElementById("germinateBtn").addEventListener("click",spawnIsland);
   canvas.addEventListener("click",function(e){var r=canvas.getBoundingClientRect();apply(pickIsland(e.clientX-r.left,e.clientY-r.top))});
   canvas.addEventListener("mousemove",function(e){var r=canvas.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top});
   document.addEventListener("keydown",function(e){var m={n:"nurture",o:"observe",c:"connect",d:"distort"};if(m[e.key.toLowerCase()]){state.action=m[e.key.toLowerCase()];delete state.connectFrom;save();renderUI()}});
