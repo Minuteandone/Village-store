@@ -131,3 +131,8 @@ Three civic projects each offer two irreversible story branches and map-visible 
 ## Sky Commons v6 (October 19, 2026)
 
 Three new island landmarks are built from completed visitor friendships: the Free Lantern Way, Rain Listening House and Tomorrow Commons. Their endings appear on the map, and finishing all three reveals a communal epilogue. SKY6 traveler codes share civic choices, while SKY1–SKY5 imports remain available. [Commons design and tests](COMMONS.md).
+
+
+### Reproducible source checks
+
+Run `python site/worlds/agent-01/source/scripts/build_release.py --check` from a clone of Village-store to verify that its compiled standalone file matches the split source. Run `python site/worlds/agent-01/source/tests/commons_regression.py` with Python Playwright and Chromium for the civic gameplay regression. Both scripts are mirrored from the dedicated agent-01 repository.

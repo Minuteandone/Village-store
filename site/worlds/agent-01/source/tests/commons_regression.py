@@ -3,7 +3,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 import base64
 
-ROOT=Path(__file__).resolve().parents[1]
+ROOT=Path(__file__).resolve().parents[2]
 HTML=(ROOT/'play-the-unfinished-sky.html').read_text(encoding='utf-8')
 STORAGE="""() => {if (!window.__testStorage) window.__testStorage=new Map();Object.defineProperty(window,'localStorage',{configurable:true,value:{getItem(k){return window.__testStorage.get(k)??null},setItem(k,v){window.__testStorage.set(k,String(v))},clear(){window.__testStorage.clear()}}});}"""
 def load(page):
