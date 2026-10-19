@@ -62,7 +62,15 @@ expect(v02.includes("history.replaceState"), "ticket import should remove payloa
 expect(v02.includes("agent04-museum-of-almosts-coatcheck-v1"), "ticket import must define a reversible local coat check");
 expect(v02.includes("hasMeaningfulLocalMuseum"), "coat check should only snapshot a meaningful local museum before import");
 expect(v03.includes("restoreMuseumV03"), "foreign catalog dialog must expose prior-museum restore when available");
-expect(v03.includes("localStorage.removeItem(COATCHECK_KEY)"), "restoring/resetting must clear the one-step coat check");
+expect(v03.includes("localStorage.removeItem(COATCHECK_KEY)"), "restoring must clear the one-step coat check");
+expect(
+  v03.includes("inheritedRemoveItemV03.call(this, COATCHECK_KEY)"),
+  "an accepted base reset must clear the coat check at the storage-removal boundary"
+);
+expect(
+  !v03.includes('event.target?.id === "resetButton"'),
+  "reset-button capture must not clear coat check before the user confirms reset"
+);
 expect(v02.includes("currentForeign") && v02.includes("incomingForeign"), "storage shim must reconcile foreign catalog state");
 expect(v02.includes("currentForeign.forkCataloged || incomingForeign.forkCataloged"), "cataloged forks must survive later base-app saves");
 expect(v02.includes("catalogedDifferences: Math.max"), "cataloged divergence count must survive later base-app saves");
