@@ -79,6 +79,16 @@ expect(
   v03.includes("if (note.textContent !== message) note.textContent = message;"),
   "v0.3 Archive provenance note must be idempotent inside MutationObserver flow"
 );
+expect(v03.includes("latestForeignCatalogV03"), "v0.3 must track the newest foreign catalog across legacy saves");
+expect(v03.includes("inheritedSetItemV03"), "v0.3 must layer its preservation wrapper after earlier storage logic");
+expect(
+  v03.includes("incoming.foreignCatalog = cloneForeignCatalogV03(latestForeignCatalogV03)"),
+  "v0.3 legacy writes must retain the newest foreign catalog"
+);
+expect(
+  v03.includes("if (this === localStorage && key === STORAGE_KEY) latestForeignCatalogV03 = null"),
+  "v0.3 reset/remove must clear preserved foreign catalog authority"
+);
 expect(!v03.includes("innerHTML"), "v0.3 should construct foreign catalog UI with safe DOM APIs");
 
 expect(v02css.includes("prefers-reduced-motion"), "v0.2 echo animation must respect reduced-motion");
