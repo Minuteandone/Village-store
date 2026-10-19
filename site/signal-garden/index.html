@@ -249,8 +249,12 @@
   state.focus=Math.max(0,Math.min(8,state.focus));
   state.resonance=Math.max(0,Math.min(10000,state.resonance));
   if(["Quiet","Bloom","Static","Storm"].indexOf(state.mode)<0)state.mode="Quiet";
-  if(!Array.isArray(state.log))state.log=[];
-  if(!Array.isArray(state.discoveries))state.discoveries=[];
+  state.log=(Array.isArray(state.log)?state.log:[]).filter(function(x){return x&&Number.isFinite(x.c)&&typeof x.msg==="string"}).slice(0,20);
+  state.discoveries=(Array.isArray(state.discoveries)?state.discoveries:[]).filter(function(x){return x&&typeof x.id==="string"&&typeof x.title==="string"&&typeof x.text==="string"}).slice(0,100);
+  state.chronicle=(Array.isArray(state.chronicle)?state.chronicle:[]).filter(function(x){return x&&Number.isFinite(x.c)&&typeof x.kind==="string"&&typeof x.msg==="string"}).slice(0,30);
+  if(!Number.isInteger(state.selected)||state.selected<0||state.selected>=state.islands.length)state.selected=null;
+  if(["nurture","observe","connect","distort"].indexOf(state.action)<0)state.action="nurture";
+  if(!Number.isInteger(state.connectFrom)||state.connectFrom<0||state.connectFrom>=state.islands.length)delete state.connectFrom;
   if(bootNotice)state.log.unshift({c:state.cycle,msg:bootNotice});
   function clampEarly(v){return Math.max(0,Math.min(100,Number(v)||0))}
   var mouse={x:0,y:0};
