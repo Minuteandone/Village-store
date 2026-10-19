@@ -99,7 +99,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip" id="motionChip">Motion · standard</span>
         <span class="chip" id="contrastChip">Contrast · custom</span>
-        <span class="chip" id="versionChip">v0.35 · save 7</span>
+        <span class="chip" id="versionChip">v0.36 · save 7</span>
       </div>
     </section>
 
@@ -123,7 +123,7 @@
 
       <details open>
         <summary>Suggested next move</summary>
-        <div class="discovery" id="guidePanel" aria-live="polite"></div>
+        <div class="discovery" id="guidePanel"></div>
       </details>
 
       <div>
@@ -228,9 +228,10 @@
         <div class="log" id="chronicle"></div>
       </details>
 
+      <div class="sr-only" id="actionStatus" role="status" aria-live="polite" aria-atomic="true"></div>
       <details>
         <summary>Field log</summary>
-        <div class="log" id="log" aria-live="polite"></div>
+        <div class="log" id="log"></div>
       </details>
 
       <details open class="specimen-dock">
@@ -264,7 +265,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.35",SAVE_SCHEMA=7;
+  var APP_VERSION="0.37",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -555,7 +556,10 @@
   }
   function log(msg){
     state.log.unshift({c:state.cycle,msg:msg});
-    state.log=state.log.slice(0,20);save();renderUI();
+    state.log=state.log.slice(0,20);
+    var actionStatus=document.getElementById("actionStatus");
+    if(actionStatus)actionStatus.textContent=msg;
+    save();renderUI();
   }
   function d(id,title,text){
     if(state.discoveries.some(function(x){return x.id===id}))return;
@@ -835,11 +839,106 @@
       {id:"transplant",done:state.discoveries.some(function(x){return x.id==="transplant-bloom"}),text:"Can an imported specimen germinate genuinely new land after arriving in a new host?"}
     ];
   }
+  function researchHint(question){
+    var id=typeof question==="string"?question:question&&question.id;
+    if(!id)return "";
+    if(id==="new-land"){
+      if(state.islands.length>4)return "New land is already part of this garden.";
+      if(state.resonance<6)return "Current resources: "+state.resonance+"/6 resonance and "+state.focus+"/2 focus. Build resonance through observation or other signals, while leaving room to recover focus.";
+      if(state.focus<2)return "Current resources: "+state.resonance+"/6 resonance and "+state.focus+"/2 focus. The garden has enough resonance; let a cycle pass until at least 2 focus is available for germination.";
+      return "Current resources: "+state.resonance+"/6 resonance and "+state.focus+"/2 focus. Germination is affordable now whenever you want the map to expand.";
+    }
+    if(id==="ring"){
+      var activeRing=state.islands.filter(function(a){return a.links.length>0});
+      if(activeRing.length<3)return "Link at least three islands before trying to close an endpoint-free circuit.";
+      var ends=activeRing.filter(function(a){return a.links.length===1}).length;
+      var branches=activeRing.filter(function(a){return a.links.length>2}).length;
+      if(branches)return "The active network still has branching islands. Rewire until each island in the intended circuit has exactly two live neighbors.";
+      if(ends)return "The active network still has "+ends+" endpoint"+(ends===1?"":"s")+". Close the circuit without adding a branch.";
+      return "The degree pattern is close. Keep the intended ring in one connected component and let the resident ecology update.";
+    }
+    if(id==="pollination"){
+      var untouched=state.islands.filter(function(a){return !a.arrivals}).length;
+      return untouched?untouched+" current island"+(untouched===1?" has":"s have")+" no foreign arrivals yet. Link them into migration routes and advance cycles.":"Every current island already has a foreign arrival.";
+    }
+    if(id==="scar"){
+      var activeKeys=[];
+      state.islands.forEach(function(a){a.links.forEach(function(b){if(a.id<b)activeKeys.push(edgeKey(a.id,b))})});
+      if(!activeKeys.length)return "Create at least one bridge, then let signals cross it for several cycles before considering a cut.";
+      var best=activeKeys.reduce(function(m,k){return Math.max(m,state.edgeMemory[k]||0)},0);
+      if(best===0)return "Your live routes are still fresh. Let linked islands migrate across them for a few cycles first.";
+      return "Your most-used live route remembers "+best+" crossing"+(best===1?"":"s")+". Keep building history, then sever a route whose past should remain visible.";
+    }
+    if(id==="ecologies"){
+      var present={life:false,memory:false,strange:false};
+      state.islands.forEach(function(a){present[dominantTrait(a)]=true});
+      var missing=[];
+      if(!present.life)missing.push("grove");
+      if(!present.memory)missing.push("archive");
+      if(!present.strange)missing.push("fold");
+      return missing.length?"Missing role"+(missing.length===1?"":"s")+": "+missing.join(", ")+". Shape different islands with Nurture, Observe, and Distort rather than pushing the whole archipelago the same way.":"All three ecological roles currently coexist.";
+    }
+    if(id==="climate"){
+      var seen=Object.keys(state.climateSeen).filter(function(k){return state.climateSeen[k]}).length;
+      return "You have recorded "+seen+" of 3 needed climate families. Change the archipelago's overall trait balance, then advance a cycle so the new climate is recorded.";
+    }
+    if(id==="symbiosis"){
+      var residentKinds=topologySpecies().map(function(x){return x.kind}).filter(Boolean);
+      var label={"scribevine":"Scribevine","glassmycelium":"Glass Mycelium","dreamwire":"Dreamwire"},missingKinds=["scribevine","glassmycelium","dreamwire"].filter(function(k){return residentKinds.indexOf(k)<0});
+      return missingKinds.length?"Still missing: "+missingKinds.map(function(k){return label[k]}).join(", ")+". Mature bridges between islands with different dominant ecological roles.":"All three bridge symbioses currently coexist.";
+    }
+    if(id==="phenomenon"){
+      var c=macroClimate();
+      return "Current climate: "+c.name+", sustained for "+state.climateStreak+"/3 cycles. Keep the whole-garden balance stable long enough for the same climate to persist.";
+    }
+    if(id==="lineage"){
+      var ancestry=globalImprints(),dominant=ancestralSignal();
+      if(ancestry.total<8)return "Migration ancestry is still light. Keep connected islands exchanging signals before germinating the next island.";
+      if(dominant==="none")return "The accumulated ancestry is too balanced to inherit one clear echo. Let one signal family dominate several more migrations.";
+      if(state.islands.length>=7)return "A "+dominant+" ancestry is available, but every germination site is occupied. A smaller transplanted specimen or new garden can test inheritance.";
+      if(state.resonance<6||state.focus<2)return "A "+dominant+" ancestry is ready. Build the resources needed for germination without erasing that migration bias.";
+      return "A "+dominant+" ancestry is ready and germination is affordable. New land can now test whether history precedes birth.";
+    }
+    if(id==="succession"){
+      var ranked=state.islands.map(function(a){
+        var r=a.rolesSeen||{},seen=(r.life?1:0)+(r.memory?1:0)+(r.strange?1:0);
+        return {a:a,seen:seen,missing:[!r.life&&"grove",!r.memory&&"archive",!r.strange&&"fold"].filter(Boolean)};
+      }).sort(function(x,y){return y.seen-x.seen});
+      var close=ranked[0];
+      return close?close.a.name+" has lived through "+close.seen+"/3 roles. Reshape that same island toward "+close.missing.join(" then ")+" rather than switching targets.":"Let one island experience strongly different ecological roles over time.";
+    }
+    if(id==="bond"){
+      var signalKeys=Object.keys(state.edgeSignals||{});
+      if(!signalKeys.length)return "Start with one durable relationship and let several migrations cross it.";
+      var richest=signalKeys.map(function(k){var c=edgeSignalCounts(k);return {key:k,total:c.life+c.memory+c.strange,c:c}}).sort(function(a,b){return b.total-a.total})[0];
+      return "Route "+richest.key+" has "+richest.total+" typed crossing"+(richest.total===1?"":"s")+" (L"+richest.c.life+" M"+richest.c.memory+" S"+richest.c.strange+"). Keep one relationship active while varying the signal families it carries.";
+    }
+    if(id==="junction"){
+      var kinds=routeBonds().filter(function(b){return b.active}).map(function(b){return b.kind});
+      var need=[];
+      if(kinds.indexOf("rootway")<0)need.push("Rootway");
+      if(kinds.indexOf("echo-span")<0)need.push("Echo Span");
+      if(kinds.indexOf("fold-thread")<0)need.push("Fold Thread");
+      return need.length?"Mature bond families still missing: "+need.join(", ")+". Build those histories before trying to converge them.":"All three specialized bond families exist. Rewire so one island touches one Rootway, one Echo Span, and one Fold Thread.";
+    }
+    if(id==="constellation"){
+      var active=state.islands.filter(function(a){return a.links.length>0}),edges=active.reduce(function(n,a){return n+a.links.length},0)/2;
+      if(active.length<4)return "Bring at least four islands into one active connected network before trying to make it densely redundant.";
+      return "Current active graph: "+active.length+" islands and "+edges+" live edges. Add cross-links while keeping every active island in one connected component.";
+    }
+    if(id==="transplant"){
+      if(state.transplantCount===0)return "Import a valid SG1 specimen first. The provenance marker should change from local to transplanted.";
+      if(state.islands.length>=7)return "This transplanted garden has no open germination site. Use a transplanted specimen with fewer than seven islands to test new growth after arrival.";
+      if(state.resonance<6||state.focus<2)return "This is already transplant hop "+state.transplantCount+". Build 6 resonance and 2 focus, then germinate genuinely new land.";
+      return "This garden is transplanted and germination is affordable. Grow new land now to test whether exchange becomes ecological history.";
+    }
+    return "Keep changing the garden and watch which derived states respond.";
+  }
   function researchCompassModel(){
     var questions=researchPrompts();
     var open=questions.filter(function(q){return !q.done});
     var observed=questions.filter(function(q){return q.done});
-    return {open:open,observed:observed,next:open.length?open[0]:null,total:questions.length};
+    return {open:open,observed:observed,next:open.length?open[0]:null,nextHint:open.length?researchHint(open[0]):"",total:questions.length};
   }
   function symbiosisSpecies(){
     var out=[];
@@ -1117,7 +1216,7 @@
     if(state.islands.length===4&&state.focus<2)return {title:"5 · Restore germination focus",text:"You have enough resonance for new land, but germination needs 2 focus. Let a cycle pass to restore 3 focus, or keep exploring before you germinate."};
     if(state.islands.length===4)return {title:"5 · Germinate new land",text:"You have enough resonance and focus to expand the map. Germinate an island now, or keep shaping the original four."};
     var compass=researchCompassModel();
-    return {title:"Open research",text:compass.next?"The garden is now yours. The Research Compass currently points to: "+compass.next.text:"Every Field Question is observed. Keep reshaping the garden, export a specimen, or invent your own experiment."};
+    return {title:"Open research",text:compass.next?"The garden is now yours. Research Compass: "+compass.next.text+" Hint: "+compass.nextHint:"Every Field Question is observed. Keep reshaping the garden, export a specimen, or invent your own experiment."};
   }
   function renderUI(){
     document.getElementById("seasonChip").textContent="Cycle "+state.cycle+" · "+state.mode;
@@ -1239,8 +1338,8 @@
     var researchModel=researchCompassModel(),rq=document.getElementById("research"),ro=document.getElementById("researchObserved");
     document.getElementById("researchSummary").textContent="Field questions · "+researchModel.open.length+" open";
     document.getElementById("observedResearchSummary").textContent="Observed archive · "+researchModel.observed.length;
-    document.getElementById("researchCompass").innerHTML=researchModel.next?'<b>Research compass</b><br>'+esc(researchModel.next.text)+'<br><span class="small">First still-open question in the research sequence.</span>':'<b>Research complete</b><br>Every current Field Question has been observed.';
-    rq.innerHTML=researchModel.open.length?researchModel.open.map(function(q){return '<div class="discovery"><b>◇ open</b><br>'+esc(q.text)+'</div>'}).join(""):'<p class="small">No open Field Questions remain.</p>';
+    document.getElementById("researchCompass").innerHTML=researchModel.next?'<b>Research compass</b><br>'+esc(researchModel.next.text)+'<br><span class="small"><b>Experiment hint:</b> '+esc(researchModel.nextHint)+'</span>':'<b>Research complete</b><br>Every current Field Question has been observed.';
+    rq.innerHTML=researchModel.open.length?researchModel.open.map(function(q){return '<div class="discovery"><b>◇ open</b><br>'+esc(q.text)+'<br><span class="small"><b>Hint:</b> '+esc(researchHint(q))+'</span></div>'}).join(""):'<p class="small">No open Field Questions remain.</p>';
     ro.innerHTML=researchModel.observed.length?researchModel.observed.map(function(q){return '<div class="discovery"><b>✓ observed</b><br>'+esc(q.text)+'</div>'}).join(""):'<p class="small">Nothing archived yet.</p>';
     var bp=document.getElementById("bonds");
     bp.innerHTML=bonds.length?bonds.map(function(x){
