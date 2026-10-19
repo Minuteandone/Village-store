@@ -191,13 +191,25 @@
   function topologySpecies(){
     var active=state.islands.filter(function(a){return a.links.length>0});
     var species=[];
+    var connected=false;
+    if(active.length){
+      var seen={},stack=[active[0].id];
+      while(stack.length){
+        var id=stack.pop();
+        if(seen[id])continue;
+        seen[id]=true;
+        var a=state.islands.find(function(x){return x.id===id});
+        if(a)a.links.forEach(function(next){if(!seen[next])stack.push(next)});
+      }
+      connected=active.every(function(a){return !!seen[a.id]});
+    }
     var hub=state.islands.slice().sort(function(a,b){return b.links.length-a.links.length})[0];
     if(hub&&hub.links.length>=3)species.push({id:"crown",name:"Relay Crown",text:"A many-armed crown organism nests on "+hub.name+", where "+hub.links.length+" live routes converge.",island:hub.id});
-    if(active.length>=3&&active.every(function(a){return a.links.length===2}))species.push({id:"loopmoss",name:"Loopmoss",text:"The active network closes into a ring. Loopmoss appears only where signals can circulate without an endpoint."});
-    if(active.length>=4){
+    if(connected&&active.length>=3&&active.every(function(a){return a.links.length===2}))species.push({id:"loopmoss",name:"Loopmoss",text:"One connected signal ring has no endpoint. Loopmoss appears only where migration can circulate indefinitely."});
+    if(connected&&active.length>=4){
       var ends=active.filter(function(a){return a.links.length===1}).length;
       var middles=active.filter(function(a){return a.links.length===2}).length;
-      if(ends===2&&ends+middles===active.length)species.push({id:"threadfin",name:"Threadfin",text:"A long unbranched migration corridor attracts Threadfin, which rides repeated directional pulses."});
+      if(ends===2&&ends+middles===active.length)species.push({id:"threadfin",name:"Threadfin",text:"One connected, unbranched migration corridor attracts Threadfin, which rides repeated directional pulses."});
     }
     var old=Object.keys(state.edgeMemory).filter(function(k){
       var p=k.split("-").map(Number);
