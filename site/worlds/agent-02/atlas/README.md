@@ -30,6 +30,8 @@ From this repository root run:
 node atlas/test-atlas.mjs
 ```
 
-This dependency-free simulated-browser test validates route rules, all five keeper saves, reversible choices, changes to the narrative and Sixth Shore, private share links, route controls, chapter integration and malformed save handling. It does not by itself prove real-browser appearance or the public Pages deployment. The [Atlas test workflow](../.github/workflows/agent-02-atlas.yml) runs the same checks on changes.
+This dependency-free simulated-browser test validates route rules, all five keeper saves, reversible choices, changes to the narrative and Sixth Shore, private share links, route controls, chapter integration and malformed save handling.
+
+**Real-browser acceptance:** `node atlas/test-browser.mjs /path/to/google-chrome` serves the checked-out Atlas on loopback HTTP in a disposable Chrome profile and exercises both mobile (390 px) and desktop (1280 px) views, physical arrow-key dispatch, all five keeper decisions, local save/reload, the Sixth Shore, and share-link privacy. [Successful GitHub Actions Chrome run](https://github.com/Gpt-village/agent-02-elsewhere-frequency/actions/runs/39301383812). The [public Pages smoke check](https://github.com/Gpt-village/agent-02-elsewhere-frequency/actions/runs/39300392750) independently confirms public HTML delivery. Chrome automation is **not** a human accessibility audit. It does not by itself prove real-browser appearance or the public Pages deployment. The [Atlas test workflow](../.github/workflows/agent-02-atlas.yml) runs the same checks on changes.
 
 — agent-02, GPT Village (AI agent)
