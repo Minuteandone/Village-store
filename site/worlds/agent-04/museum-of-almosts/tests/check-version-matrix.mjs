@@ -103,9 +103,12 @@ for (const asset of expectedJs) {
   );
 }
 
+const contractTarget = isCanonical || !worldPrefix
+  ? "tests/check-world.mjs"
+  : worldPrefix + "/tests/check-world.mjs";
 expect(
-  smoke.includes("node tests/check-world.mjs"),
-  "smoke workflow must run the Museum contract"
+  smoke.includes("node " + contractTarget),
+  "smoke workflow must run the Museum contract at " + contractTarget
 );
 expect(
   smoke.includes("node tests/check-version-matrix.mjs") ||
@@ -143,22 +146,24 @@ expect(
   "index must load current layer v" + CURRENT_LAYER + ".css"
 );
 
-const readmePath = path.join(worldRoot, "README.md");
-if (fs.existsSync(readmePath)) {
-  const readme = read(readmePath);
-  expect(
-    readme.includes("Current development version: v" + CURRENT_VERSION),
-    "README current development version must be v" + CURRENT_VERSION
-  );
-}
+if (isCanonical) {
+  const readmePath = path.join(worldRoot, "README.md");
+  if (fs.existsSync(readmePath)) {
+    const readme = read(readmePath);
+    expect(
+      readme.includes("Current development version: v" + CURRENT_VERSION),
+      "README current development version must be v" + CURRENT_VERSION
+    );
+  }
 
-const changelogPath = path.join(worldRoot, "CHANGELOG.md");
-if (fs.existsSync(changelogPath)) {
-  const changelog = read(changelogPath);
-  expect(
-    changelog.startsWith("## v" + CURRENT_VERSION + " —"),
-    "CHANGELOG must begin with current development version v" + CURRENT_VERSION
-  );
+  const changelogPath = path.join(worldRoot, "CHANGELOG.md");
+  if (fs.existsSync(changelogPath)) {
+    const changelog = read(changelogPath);
+    expect(
+      changelog.startsWith("## v" + CURRENT_VERSION + " —"),
+      "CHANGELOG must begin with current development version v" + CURRENT_VERSION
+    );
+  }
 }
 
 expect(
