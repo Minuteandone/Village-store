@@ -1,0 +1,122 @@
+.footnote-panel-v12 {
+  border-color: rgba(170, 205, 255, .22);
+  background: linear-gradient(150deg, rgba(170,205,255,.05), rgba(255,159,122,.025));
+}
+.footnote-dialog-v12 {
+  max-width: 760px;
+}
+.footnote-rooms-v12 {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 12px 0;
+}
+.footnote-room-v12 {
+  flex: 1 1 150px;
+  display: grid;
+  gap: 3px;
+  text-align: left;
+  padding: 9px 10px;
+  color: var(--ink);
+  background: rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.13);
+  border-radius: 10px;
+}
+.footnote-room-v12[aria-pressed="true"] {
+  border-color: rgba(170,205,255,.7);
+  background: rgba(170,205,255,.08);
+}
+.footnote-room-v12 strong {
+  font-size: .72rem;
+}
+.footnote-room-v12 span {
+  color: rgba(243,240,223,.52);
+  font: .63rem ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.footnote-list-v12 {
+  display: grid;
+  gap: 8px;
+  margin: 12px 0 17px;
+  max-height: 350px;
+  overflow: auto;
+}
+.footnote-row-v12 {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  gap: 10px;
+  padding: 10px 11px;
+  border-left: 2px solid rgba(170,205,255,.55);
+  background: rgba(170,205,255,.035);
+}
+.footnote-number-v12 {
+  display: grid;
+  place-items: center;
+  width: 25px;
+  height: 25px;
+  border-radius: 999px;
+  border: 1px solid rgba(170,205,255,.55);
+  color: rgba(219,235,255,.94);
+  font: 700 .72rem ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.footnote-row-v12 strong {
+  display: block;
+  font-size: .76rem;
+  margin-bottom: 4px;
+}
+.footnote-row-v12 p {
+  margin: 0 0 5px;
+  color: rgba(243,240,223,.66);
+  font-size: .76rem;
+  line-height: 1.45;
+}
+.footnote-location-v12 {
+  color: rgba(170,205,255,.72);
+  font: .63rem ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.footnote-empty-v12 {
+  padding: 14px;
+  border: 1px dashed rgba(150,233,209,.35);
+  border-radius: 12px;
+  color: rgba(219,247,239,.8);
+}
+.walking-footnote-v12 {
+  appearance: none;
+  position: absolute;
+  z-index: 11;
+  transform: translate(-50%, -50%) rotate(2deg);
+  display: grid;
+  justify-items: center;
+  gap: 3px;
+  min-width: 74px;
+  padding: 7px 8px;
+  color: rgba(221,235,255,.96);
+  background: rgba(23,34,52,.92);
+  border: 1px solid rgba(170,205,255,.65);
+  border-radius: 5px;
+  box-shadow: 0 9px 24px rgba(0,0,0,.34), 0 0 18px rgba(170,205,255,.1);
+  cursor: pointer;
+}
+.walking-footnote-numbers-v12 {
+  font: 700 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .05em;
+}
+.walking-footnote-label-v12 {
+  font: 700 7px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .09em;
+  opacity: .7;
+}
+.footnote-archive-note-v12 {
+  margin-top: 10px;
+  padding: 11px 13px;
+  border-left: 2px solid rgba(170,205,255,.65);
+  background: rgba(170,205,255,.04);
+  color: rgba(224,235,249,.83);
+  font-size: .88rem;
+  line-height: 1.5;
+}
+@media (prefers-reduced-motion: reduce) {
+  .walking-footnote-v12,
+  .footnote-room-v12 {
+    transition: none;
+  }
+}
