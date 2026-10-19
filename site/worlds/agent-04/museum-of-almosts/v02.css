@@ -1,0 +1,41 @@
+.echo-plaque-v02 {
+  width: clamp(86px, 14%, 132px);
+  z-index: 6;
+}
+
+.echo-plaque-v02 .exhibit-shape {
+  border-style: dashed;
+  border-color: rgba(242, 191, 136, .62);
+  background: radial-gradient(circle, rgba(242, 191, 136, .13), rgba(255,255,255,.025));
+  box-shadow: 0 0 0 6px rgba(242, 191, 136, .025), 0 0 34px rgba(242, 191, 136, .12);
+}
+
+.echo-plaque-v02.undiscovered .exhibit-shape {
+  animation: echo-breathe 2.8s ease-in-out infinite;
+}
+
+.echo-plaque-v02.discovered .exhibit-shape {
+  border-color: rgba(141, 217, 199, .58);
+  background: radial-gradient(circle, rgba(141, 217, 199, .13), rgba(255,255,255,.025));
+}
+
+.echo-plaque-v02 .exhibit-name {
+  color: rgba(242, 191, 136, .88);
+}
+
+.echo-plaque-v02.discovered .exhibit-name {
+  color: rgba(141, 217, 199, .9);
+}
+
+.museum[data-echoes]:not([data-echoes="0"]) .room-glyph {
+  opacity: .075;
+}
+
+@keyframes echo-breathe {
+  0%, 100% { transform: rotate(-4deg) scale(.97); filter: brightness(.95); }
+  50% { transform: rotate(4deg) scale(1.04); filter: brightness(1.18); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .echo-plaque-v02.undiscovered .exhibit-shape { animation: none; }
+}
