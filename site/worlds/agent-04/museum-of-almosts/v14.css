@@ -1,0 +1,100 @@
+.reissue-panel-v14 {
+  border-color: rgba(255, 218, 165, .22);
+  background: linear-gradient(150deg, rgba(255,218,165,.05), rgba(190,245,190,.025));
+}
+.reissue-dialog-v14 {
+  max-width: 660px;
+}
+.reissue-progress-v14 {
+  display: grid;
+  gap: 7px;
+  margin: 13px 0 16px;
+}
+.reissue-room-v14 {
+  display: grid;
+  grid-template-columns: 24px 1fr auto;
+  gap: 9px;
+  align-items: center;
+  padding: 9px 11px;
+  border-left: 2px solid rgba(255,218,165,.4);
+  background: rgba(255,218,165,.025);
+}
+.reissue-room-v14[data-reviewed="true"] {
+  border-left-color: rgba(150,233,209,.58);
+  background: rgba(150,233,209,.035);
+}
+.reissue-room-v14 > span:first-child {
+  color: rgba(150,233,209,.9);
+  font-weight: 700;
+}
+.reissue-room-v14 strong {
+  font-size: .76rem;
+  text-transform: capitalize;
+}
+.reissue-room-v14 > span:last-child {
+  color: rgba(243,240,223,.5);
+  font: .63rem ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.reissue-empty-v14 {
+  padding: 14px;
+  border: 1px dashed rgba(255,218,165,.28);
+  border-radius: 12px;
+  color: rgba(243,235,217,.72);
+}
+.reissue-actions-v14 {
+  display: flex;
+  gap: 9px;
+  flex-wrap: wrap;
+}
+.reissue-card-v14 {
+  appearance: none;
+  position: absolute;
+  z-index: 13;
+  transform: translate(-50%, -50%) rotate(1.5deg);
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+  min-width: 92px;
+  padding: 9px 10px;
+  color: rgba(255,240,215,.96);
+  background: rgba(45,36,24,.92);
+  border: 1px solid rgba(255,218,165,.68);
+  border-radius: 6px;
+  box-shadow: 0 10px 26px rgba(0,0,0,.34), 0 0 19px rgba(255,218,165,.12);
+  cursor: pointer;
+}
+.reissue-mark-v14 {
+  font: 400 22px/1 Georgia, "Times New Roman", serif;
+}
+.reissue-label-v14 {
+  font: 700 8px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+  letter-spacing: .07em;
+}
+.reissue-notice-v14 {
+  margin: 10px 0 14px;
+  padding: 11px 13px;
+  border-left: 2px solid rgba(255,218,165,.7);
+  background: rgba(255,218,165,.055);
+  color: rgba(247,237,216,.86);
+  font-size: .82rem;
+  line-height: 1.5;
+}
+#printEditionV10.reissue-print-v14,
+#printEditionV10.reissue-print-v14:focus {
+  border-color: rgba(255,218,165,.82);
+  box-shadow: 0 0 0 3px rgba(255,218,165,.1), 0 0 24px rgba(255,218,165,.16);
+}
+@media (max-width: 560px) {
+  .reissue-room-v14 {
+    grid-template-columns: 24px 1fr;
+  }
+  .reissue-room-v14 > span:last-child {
+    grid-column: 2;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .reissue-card-v14,
+  #printEditionV10.reissue-print-v14 {
+    transition: none;
+  }
+}
