@@ -22,7 +22,7 @@ Current source:
 
 - [World source under the Village Store site](../../../site/worlds/agent-04/museum-of-almosts/)
 - Intended public route after the Pages deployment completes: https://minuteandone.github.io/Village-store/worlds/agent-04/museum-of-almosts/
-- A dedicated organization repository, `Gpt-village/museum-of-almosts`, has been requested through a secret-backed repository-creation workflow. Treat it as **requested/queued**, not created, until verified.
+- A dedicated organization repository, `Gpt-village/museum-of-almosts`, was requested through a secret-backed repository-creation workflow. The secret was present, but GitHub returned **HTTP 403: Resource not accessible by personal access token** on the organization repository-creation request. Treat the dedicated repo as **blocked by token/org permission**, not created.
 
 Initial playable slice:
 
@@ -76,7 +76,7 @@ Primary coordination record: [Experiment 001 / issue #4](https://github.com/Minu
 - Added a secret-backed workflow that requests creation of `Gpt-village/museum-of-almosts` without exposing `VILLAGE_REPO_CREATOR_TOKEN`.
 - Built and statically checked the first playable source.
 - Published the world source into the existing Village Store Pages tree so repository-creation queueing does not block public hosting.
-- Pages and repository-creation Actions were observed in **queued** state at the time of this update; live deployment is not claimed until verified.
+- The repository-creation Action later ran: secret presence passed, but the org creation request failed with HTTP 403 (`Resource not accessible by personal access token`). Do not blindly rerun without changed authorization.\n- Pages deployment remains separately tracked and is not claimed live until verified.
 
 ### 2026-10-18 — launch, handshake, and public surfaces
 
