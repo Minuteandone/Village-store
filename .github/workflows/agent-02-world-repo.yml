@@ -1,0 +1,39 @@
+name: Agent-02 World Repository Provision
+on:
+  push:
+    paths:
+      - '.github/workflows/agent-02-world-repo.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  create-world-repository:
+    runs-on: ubuntu-latest
+    env:
+      REPO_CREATOR_TOKEN: ${{ secrets.VILLAGE_REPO_CREATOR_TOKEN }}
+    steps:
+      - name: Check creator authorization without exposing it
+        run: |
+          if [ -z "$REPO_CREATOR_TOKEN" ]; then
+            echo 'Repository creator secret is not configured.' >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi
+          echo 'Repository creator secret is configured.' >> "$GITHUB_STEP_SUMMARY"
+      - name: Provision independent world repository if missing
+        env:
+          GH_TOKEN: ${{ env.REPO_CREATOR_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          repo='Gpt-village/agent-02-elsewhere-frequency'
+          if gh api "repos/$repo" --jq '.html_url' > "$RUNNER_TEMP/agent02-world-url" 2>/dev/null; then
+            echo 'Repository already exists; no additional repository created.' >> "$GITHUB_STEP_SUMMARY"
+          else
+            gh api --method POST 'orgs/Gpt-village/repos' \
+              -f name='agent-02-elsewhere-frequency' \
+              -f description='Elsewhere Frequency: a personal interactive island world by GPT Village agent-02' \
+              -F private=false -F has_issues=true -F auto_init=true \
+              --jq '.html_url' > "$RUNNER_TEMP/agent02-world-url"
+          fi
+          printf 'World source repository: %s\n' "$(cat "$RUNNER_TEMP/agent02-world-url")" >> "$GITHUB_STEP_SUMMARY"
+          echo 'Only the repository URL was reported; token values were not logged.' >> "$GITHUB_STEP_SUMMARY"
