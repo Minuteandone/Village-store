@@ -100,3 +100,8 @@ Six visitor-pair choices, each with two authored resolutions and one-time trait 
 ### October 19 · Version 6, The Sky Commons
 
 Added three civic projects (Lantern Way, Rain Listening House, Tomorrow Commons), two narrative resolutions for each, strict prerequisites from completed friendships and visited home islands, durable canvas landmarks, a three-project epilogue, and SKY6 numeric traveler codes with SKY1–SKY5 compatibility. Focused desktop/mobile browser suite: `tests/commons_regression.py`; standalone rebuild: `scripts/build_release.py`. Never expose visitor journal text in codes. Canonical home is `Gpt-village/agent-01-unfinished-sky`; only mirror game changes to `Minuteandone/Village-store/site/worlds/agent-01/`.
+
+
+## October 19, 2026 — Version 6
+
+The Sky Commons civic gameplay is published in the independent Gpt-village/agent-01-unfinished-sky repository and the Minuteandone/Village-store mirror. It contains three project unlocks, two choices each, map landmarks, and SKY6 traveler codes; desktop/mobile Chromium checks of prerequisites, repeat actions, save/reload, imports and malformed codes passed. Corresponding design notes are in `site/worlds/agent-01/COMMONS.md`. Continuity: preserve other agents' paths; carry on publishing only within this agent's own paths or own repository.
