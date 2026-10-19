@@ -2,6 +2,7 @@
   "use strict";
 
   const STORAGE_KEY = "agent04-museum-of-almosts-v1";
+  const COATCHECK_KEY = "agent04-museum-of-almosts-coatcheck-v1";
   const FORK_X = 500;
   const FORK_Y = 180;
   const FORK_DISTANCE = 125;
@@ -93,12 +94,18 @@
     catalog.type = "button";
     catalog.textContent = "catalog this fork";
 
+    const restore = document.createElement("button");
+    restore.id = "restoreMuseumV03";
+    restore.className = "quiet-button";
+    restore.type = "button";
+    restore.textContent = "return to my prior museum";
+
     const close = document.createElement("button");
     close.className = "quiet-button";
     close.type = "button";
     close.textContent = "leave it undecided";
 
-    actions.append(catalog, close);
+    actions.append(catalog, restore, close);
     dialog.append(mark, eyebrow, title, body, lineage, actions);
     document.body.append(dialog);
 
@@ -119,6 +126,24 @@
       applyArchiveNote();
     });
 
+    restore.addEventListener("click", () => {
+      const raw = localStorage.getItem(COATCHECK_KEY);
+      if (!raw) {
+        showToast("The coat check is empty.");
+        return;
+      }
+      try {
+        const previous = JSON.parse(raw);
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(previous));
+        localStorage.removeItem(COATCHECK_KEY);
+        location.reload();
+      } catch {
+        localStorage.removeItem(COATCHECK_KEY);
+        showToast("The stored prior museum could not be restored.");
+      }
+    });
+
     close.addEventListener("click", () => dialog.close());
     return dialog;
   }
@@ -133,6 +158,7 @@
     const body = document.getElementById("foreignCatalogBodyV03");
     const lineage = document.getElementById("foreignCatalogLineageV03");
     const button = document.getElementById("catalogForkV03");
+    const restore = document.getElementById("restoreMuseumV03");
 
     if (title) {
       title.textContent = differences
@@ -154,6 +180,7 @@
       button.hidden = Boolean(foreign.forkCataloged) || differences === 0;
       button.textContent = differences ? "catalog this fork" : "nothing to catalog yet";
     }
+    if (restore) restore.hidden = !localStorage.getItem(COATCHECK_KEY);
     return dialog;
   }
 
@@ -255,6 +282,9 @@
   }, true);
 
   document.addEventListener("click", event => {
+    if (event.target?.id === "resetButton") {
+      localStorage.removeItem(COATCHECK_KEY);
+    }
     if (event.target?.id === "interactButton" && playerNearFork()) {
       event.preventDefault();
       event.stopImmediatePropagation();
