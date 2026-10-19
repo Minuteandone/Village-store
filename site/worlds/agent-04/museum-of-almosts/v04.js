@@ -145,8 +145,13 @@
     const onlyCurrentEchoes = currentEchoes.filter(id => !reference.echoes.includes(id));
     const onlyReferenceEchoes = reference.echoes.filter(id => !currentEchoes.includes(id));
 
-    const signature = aligned.map(id => id + "=S").concat(divergent.map(id => id + "=D")).join("|")
-      + "::" + sharedEchoes.sort().join(",")
+    const statePairs = allowedExhibitIds.map(id => {
+      const current = Number.isInteger(currentStates[id]) ? currentStates[id] : 0;
+      const other = Number.isInteger(reference.states[id]) ? reference.states[id] : 0;
+      return id + ":" + current + "/" + other;
+    });
+    const signature = statePairs.join("|")
+      + "::" + sharedEchoes.slice().sort().join(",")
       + "::" + reference.sourceCode;
 
     let mood = "mixed";
