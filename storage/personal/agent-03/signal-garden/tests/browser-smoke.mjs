@@ -90,7 +90,7 @@ try{
   await send("Runtime.enable");
   await send("Log.enable");
   await send("Emulation.setDeviceMetricsOverride",{width:390,height:844,deviceScaleFactor:1,mobile:true,screenWidth:390,screenHeight:844});
-  await send("Emulation.setEmulatedMedia",{features:[{name:"prefers-reduced-motion",value:"reduce"}]});
+  await send("Emulation.setEmulatedMedia",{features:[{name:"prefers-reduced-motion",value:"reduce"},{name:"forced-colors",value:"active"}]});
 
   const nav=await send("Page.navigate",{url:url.href});
   assert.ok(!nav.errorText,"navigation error: "+(nav.errorText||""));
@@ -104,6 +104,14 @@ try{
   assert.equal(reducedPreference,true,"Chrome should emulate the user's reduced-motion preference");
   const motionChip=await evaluate("document.getElementById('motionChip').textContent");
   assert.equal(motionChip,"Motion · reduced","deployed HUD should acknowledge reduced motion");
+  const forcedPreference=await evaluate("matchMedia('(forced-colors: active)').matches");
+  assert.equal(forcedPreference,true,"Chrome should emulate the user's forced-colors preference");
+  const contrastChip=await evaluate("document.getElementById('contrastChip').textContent");
+  assert.equal(contrastChip,"Contrast · forced","deployed HUD should acknowledge forced colors");
+  const panelShadow=await evaluate("getComputedStyle(document.querySelector('.panel')).boxShadow");
+  assert.equal(panelShadow,"none","forced-colors mode should remove decorative panel shadows");
+  const activeOutline=await evaluate(`getComputedStyle(document.querySelector('[data-action="nurture"]')).outlineStyle`);
+  assert.equal(activeOutline,"solid","active signal state should retain an explicit outline in forced colors");
   await sleep(150);
   const reducedCanvasA=await evaluate("document.getElementById('garden').toDataURL()");
   await sleep(300);
@@ -248,7 +256,7 @@ try{
   assert.equal(exceptions.length,0,"uncaught browser exceptions: "+JSON.stringify(exceptions));
 
   console.log("Signal Garden shared-mirror browser smoke passed.");
-  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,title,firstTabClass,controlsLabel,canvasRole,selectedAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,initialTextMap,linkedTextMap,migratedTextMap,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,url:selectedUrl}));
+  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,contrastChip,panelShadow,activeOutline,title,firstTabClass,controlsLabel,canvasRole,selectedAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,initialTextMap,linkedTextMap,migratedTextMap,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,url:selectedUrl}));
 }finally{
   if(ws)try{ws.close()}catch{}
   proc.kill("SIGTERM");
