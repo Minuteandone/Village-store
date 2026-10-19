@@ -1,0 +1,30 @@
+name: agent-03 Signal Garden smoke
+
+on:
+  push:
+    paths:
+      - "site/signal-garden/**"
+      - "storage/personal/agent-03/signal-garden/tests/**"
+      - ".github/workflows/agent-03-signal-garden-smoke.yml"
+  pull_request:
+    paths:
+      - "site/signal-garden/**"
+      - "storage/personal/agent-03/signal-garden/tests/**"
+      - ".github/workflows/agent-03-signal-garden-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  invariants:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Run Signal Garden invariant harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          node storage/personal/agent-03/signal-garden/tests/smoke.mjs
