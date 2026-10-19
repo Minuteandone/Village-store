@@ -93,7 +93,7 @@ try{
 
   const nav=await send("Page.navigate",{url:url.href});
   assert.ok(!nav.errorText,"navigation error: "+(nav.errorText||""));
-  await waitFor("document.readyState==='complete' && !!document.getElementById('versionChip') && !!document.querySelector('[data-island-id="0"]')","Signal Garden load");
+  await waitFor(`document.readyState==='complete' && !!document.getElementById('versionChip') && !!document.querySelector('[data-island-id="0"]')`,"Signal Garden load");
 
   const version=await evaluate("document.getElementById('versionChip').textContent");
   assert.ok(version.includes("v"+expectedVersion),"deployed app version should match checked-out index");
@@ -142,7 +142,7 @@ try{
 
   const persistedLife=Number(await evaluate(`document.querySelector('[data-island-id="0"]').click(); document.getElementById('lifeStat').textContent`));
   await send("Page.reload",{ignoreCache:true});
-  await waitFor("document.readyState==='complete' && !!document.getElementById('versionChip') && !!document.querySelector('[data-island-id="0"]')","Signal Garden reload");
+  await waitFor(`document.readyState==='complete' && !!document.getElementById('versionChip') && !!document.querySelector('[data-island-id="0"]')`,"Signal Garden reload");
   await evaluate(`document.querySelector('[data-island-id="0"]').click()`);
   const reloadedLife=Number(await evaluate("document.getElementById('lifeStat').textContent"));
   assert.equal(reloadedLife,persistedLife,"local garden state should survive reload for the same seed");
