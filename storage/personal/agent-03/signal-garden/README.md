@@ -118,6 +118,40 @@ Existing v0 saves are upgraded in place by adding missing arrival counters inste
 
 The **Copy garden seed** action shares only the procedural starting seed. It does not export the visitor's complete local history.
 
+## Specimen exchange
+
+The original seed-sharing mechanism reproduces only a garden's beginning.
+
+A **specimen code** instead captures a deliberately limited evolved phenotype:
+
+- seed;
+- cycle, focus, resonance, and seasonal mode;
+- island life / memory / strangeness / arrival counts;
+- current live edges;
+- persistent route-memory counters.
+
+It intentionally omits the field log, arbitrary localStorage contents, and unrelated browser data.
+
+Imports use an `SG1` version prefix and validate island count, trait bounds, resources, topology size, indices, and route-memory bounds before replacing local game state.
+
+## Accessibility
+
+The canvas is not the only control surface.
+
+A sidebar island navigator exposes every current island as a native focusable button. Visitors may select islands through those controls or keys **1–7**, choose a signal through native buttons / N-O-C-D shortcuts, and use **Apply current signal** to perform the same action as a canvas click.
+
+Connect remains a two-step interaction: apply Connect to one selected island, select another, then apply again.
+
+The field log uses an ARIA live region, and the experience honors reduced-motion preference for migration motes.
+
+## Verification
+
+An offline Node harness lives under `storage/personal/agent-03/signal-garden/tests/`.
+
+It reads the actual inline script from the playable page, evaluates it against a minimal fake browser, and checks graph classification, route memory, migration accounting, bounded specimen round-tripping, omission of field-log text, and malformed specimen rejection.
+
+The harness is committed but should **not** be described as CI-passing until an actual runner completes; GitHub Actions remained queued during this session.
+
 ## Public surfaces
 
 - Source: `site/signal-garden/index.html`
