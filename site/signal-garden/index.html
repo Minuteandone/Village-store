@@ -65,6 +65,7 @@
         <span class="chip" id="seasonChip">Cycle 1 · Quiet</span>
         <span class="chip" id="focusChip">Focus 8/8</span>
         <span class="chip" id="resChip">Resonance 0</span>
+        <span class="chip" id="transitChip">Transit quiet</span>
       </div>
     </section>
 
@@ -80,6 +81,7 @@
         <button data-action="distort">〰 Distort</button>
       </div>
       <button id="restBtn">🌙 Let one cycle pass</button>
+      <div class="small">Connected islands exchange their strongest trait when a cycle passes. Bloom favors life, Static favors memory, and Storm favors strangeness.</div>
 
       <div class="island-card">
         <strong id="selectedName">No island selected</strong>
@@ -89,6 +91,7 @@
           <div><b id="memoryStat">—</b>memory</div>
           <div><b id="strangeStat">—</b>strangeness</div>
           <div><b id="linksStat">—</b>links</div>
+          <div><b id="arrivalsStat">—</b>arrivals</div>
         </div>
         <div class="meter"><span id="lifeMeter"></span></div>
       </div>
@@ -127,7 +130,7 @@
   var palettes=[["#75d39b","#d5f0b1"],["#7fc6d9","#d3f1ee"],["#bda0e8","#f0d6ff"],["#e6c879","#fff0b0"]];
   function makeIsland(i,x,y,r){
     var n=baseNames[Math.floor(rand()*baseNames.length)]+" "+(i+1);
-    return {id:i,name:n,x:x,y:y,r:r,life:35+Math.floor(rand()*35),memory:10+Math.floor(rand()*20),strange:5+Math.floor(rand()*18),links:[],phase:rand()*6.28,color:palettes[Math.floor(rand()*palettes.length)]};
+    return {id:i,name:n,x:x,y:y,r:r,life:35+Math.floor(rand()*35),memory:10+Math.floor(rand()*20),strange:5+Math.floor(rand()*18),links:[],arrivals:0,phase:rand()*6.28,color:palettes[Math.floor(rand()*palettes.length)]};
   }
   function fresh(){
     randState=hash(seed);
@@ -140,7 +143,10 @@
     var saved=JSON.parse(localStorage.getItem(KEY));
     if(saved&&saved.seed===seed&&Array.isArray(saved.islands))state=saved;
   }catch(e){}
+  state.islands.forEach(function(a){if(typeof a.arrivals!=="number")a.arrivals=0});
   var mouse={x:0,y:0};
+  var motes=[];
+  var reducedMotion=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var stars=[];
   for(var si=0;si<100;si++)stars.push({x:rand(),y:rand(),a:.2+rand()*.6,s:rand()*1.6+.3});
   function save(){localStorage.setItem(KEY,JSON.stringify(state))}
@@ -154,6 +160,41 @@
     state.resonance+=2;log("Discovery: "+title+".");
   }
   function clamp(v){return Math.max(0,Math.min(100,v))}
+  function dominantTrait(a){
+    if(a.strange>=a.life&&a.strange>=a.memory)return "strange";
+    if(a.memory>=a.life)return "memory";
+    return "life";
+  }
+  function migrateSignals(){
+    var transfers=[];
+    state.islands.forEach(function(a){
+      if(!a.links.length)return;
+      var targetId=a.links[(state.cycle+a.id)%a.links.length];
+      var b=state.islands.find(function(x){return x.id===targetId});
+      if(!b)return;
+      var type=dominantTrait(a);
+      var amount=3;
+      if((state.mode==="Bloom"&&type==="life")||(state.mode==="Static"&&type==="memory")||(state.mode==="Storm"&&type==="strange"))amount=5;
+      if(type==="life")b.life=clamp(b.life+amount);
+      if(type==="memory")b.memory=clamp(b.memory+amount);
+      if(type==="strange"){b.strange=clamp(b.strange+amount);b.life=clamp(b.life-1)}
+      b.arrivals=(b.arrivals||0)+1;
+      transfers.push({from:a.id,to:b.id,type:type,amount:amount});
+      motes.push({from:a.id,to:b.id,type:type,start:performance.now(),duration:reducedMotion?1:1300+a.id*120});
+    });
+    if(transfers.length){
+      state.resonance+=Math.min(3,transfers.length);
+      var counts={life:0,memory:0,strange:0};
+      transfers.forEach(function(x){counts[x.type]++});
+      var parts=[];
+      if(counts.life)parts.push(counts.life+" life");
+      if(counts.memory)parts.push(counts.memory+" memory");
+      if(counts.strange)parts.push(counts.strange+" strange");
+      state.log.unshift({c:state.cycle,msg:"Migration crossed the bridges: "+parts.join(", ")+" signal"+(transfers.length===1?"":"s")+"."});
+      state.log=state.log.slice(0,20);
+      if(state.islands.every(function(x){return x.arrivals>0}))d("cross-pollinated","Cross-Pollinated Archipelago","Every island has received a signal born somewhere else. The garden no longer has truly isolated histories.");
+    }
+  }
   function evolve(){
     state.islands.forEach(function(a){
       a.life=clamp(a.life+(a.links.length?1:0)-1);
@@ -173,6 +214,7 @@
     state.focus=Math.min(8,state.focus+3);
     var n=state.cycle%8;
     state.mode=n===0?"Storm":n===4?"Bloom":n===6?"Static":"Quiet";
+    migrateSignals();
     evolve();save();renderUI();
   }
   function pickIsland(px,py){
@@ -213,6 +255,7 @@
     document.getElementById("seasonChip").textContent="Cycle "+state.cycle+" · "+state.mode;
     document.getElementById("focusChip").textContent="Focus "+state.focus+"/8";
     document.getElementById("resChip").textContent="Resonance "+state.resonance;
+    document.getElementById("transitChip").textContent=motes.length?"Transit "+motes.length:"Transit quiet";
     document.querySelectorAll("[data-action]").forEach(function(b){b.classList.toggle("active",b.dataset.action===state.action)});
     var a=state.islands.find(function(x){return x.id===state.selected});
     document.getElementById("selectedName").textContent=a?a.name:"No island selected";
@@ -221,6 +264,7 @@
     document.getElementById("memoryStat").textContent=a?Math.round(a.memory):"—";
     document.getElementById("strangeStat").textContent=a?Math.round(a.strange):"—";
     document.getElementById("linksStat").textContent=a?a.links.length:"—";
+    document.getElementById("arrivalsStat").textContent=a?a.arrivals:"—";
     document.getElementById("lifeMeter").style.width=(a?a.life:0)+"%";
     var ds=document.getElementById("discoveries");
     ds.innerHTML=state.discoveries.length?state.discoveries.map(function(x){return '<div class="discovery"><b>'+esc(x.title)+'</b><br>'+esc(x.text)+' <span class="small">cycle '+x.cycle+'</span></div>'}).join(""):'<p class="small">Nothing catalogued yet. The garden is being suspiciously normal.</p>';
@@ -229,6 +273,7 @@
   }
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
   function lore(a){
+    if(a.arrivals>5)return "It carries traces of "+a.arrivals+" foreign arrivals; its ecology is becoming a record of the whole archipelago.";
     if(a.strange>60)return "Its shoreline disagrees with itself. "+a.links.length+" bridge(s) still hold.";
     if(a.life>70)return "Dense signal-fern covers the interior; every frond points toward a remembered interaction.";
     if(a.memory>55)return "It has become observant. Your cursor seems to count as a local climate event.";
@@ -242,6 +287,20 @@
     if(state.mode==="Storm"){ctx.fillStyle="rgba(110,160,190,.06)";for(var q=0;q<7;q++)ctx.fillRect(0,(q*103+t*.03)%h,w,1)}
     state.islands.forEach(function(a){
       a.links.forEach(function(id){if(id<a.id)return;var b=state.islands[id];ctx.strokeStyle="rgba(145,229,183,.34)";ctx.lineWidth=1.5;ctx.setLineDash([5,7]);ctx.beginPath();ctx.moveTo(a.x*w,a.y*h);ctx.quadraticCurveTo((a.x+b.x)*w/2,h*.42,(b.x*w),(b.y*h));ctx.stroke();ctx.setLineDash([])});
+    });
+    motes=motes.filter(function(m){return t-m.start<m.duration});
+    motes.forEach(function(m){
+      var a=state.islands[m.from],b=state.islands[m.to];
+      if(!a||!b)return;
+      var p=Math.max(0,Math.min(1,(t-m.start)/m.duration));
+      var x0=a.x*w,y0=a.y*h,x2=b.x*w,y2=b.y*h,x1=(x0+x2)/2,y1=h*.42;
+      var inv=1-p;
+      var x=inv*inv*x0+2*inv*p*x1+p*p*x2;
+      var y=inv*inv*y0+2*inv*p*y1+p*p*y2;
+      ctx.fillStyle=m.type==="life"?"#c9f5a9":m.type==="memory"?"#9ee7ef":"#d9b2ff";
+      ctx.globalAlpha=.25+.75*Math.sin(Math.PI*p);
+      ctx.beginPath();ctx.arc(x,y,5+3*Math.sin(Math.PI*p),0,Math.PI*2);ctx.fill();
+      ctx.globalAlpha=1;
     });
     state.islands.forEach(function(a){
       var x=a.x*w,y=a.y*h,pulse=Math.sin(t*.0018+a.phase),r=a.r+Math.max(0,a.life-45)*.16;
