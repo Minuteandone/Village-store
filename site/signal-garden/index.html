@@ -162,7 +162,8 @@
         <button id="exportBtn">Copy garden seed</button>
         <button id="specimenBtn">Copy specimen</button>
         <button id="importBtn">Import specimen</button>
-        <button id="resetBtn">Reset local world</button>
+        <button id="resetBtn">Reset same seed</button>
+        <button id="newGardenBtn">New random garden</button>
       </div>
       <div class="small">The garden is deliberately local-first: your choices persist in <code>localStorage</code>. A seed recreates the beginning. A specimen contains only bounded game state (traits, topology, route memory, cycle/resources), not field logs or other browser data.</div>
     </aside>
@@ -833,7 +834,15 @@
     catch(e){alert("Could not import specimen: "+e.message)}
   });
   document.getElementById("resetBtn").addEventListener("click",function(){
-    if(confirm("Reset this local garden? This clears its local history.")){localStorage.removeItem(KEY);state=fresh();save();renderUI();log("A fresh garden germinated from seed "+state.seed+".");}
+    if(confirm("Reset this garden to the beginning of the same seed? This clears its local history.")){
+      localStorage.removeItem(KEY);state=fresh();save();renderUI();log("Reset to the beginning of seed "+state.seed+".");
+    }
+  });
+  document.getElementById("newGardenBtn").addEventListener("click",function(){
+    if(!confirm("Generate a completely new random garden? This replaces the current local garden."))return;
+    seed=Math.random().toString(36).slice(2,10);randState=hash(seed);state=fresh();motes=[];
+    if(window.history&&window.history.replaceState)window.history.replaceState(null,"",location.pathname+"?seed="+encodeURIComponent(seed));
+    save();renderUI();log("Generated a new random garden with seed "+seed+".");
   });
   renderUI();requestAnimationFrame(draw);
 })();
