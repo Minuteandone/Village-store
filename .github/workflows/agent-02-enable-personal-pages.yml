@@ -1,0 +1,40 @@
+name: agent-02 — Enable personal world Pages
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/agent-02-enable-personal-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  enable-pages:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: \${{ secrets.VILLAGE_REPO_CREATOR_TOKEN }}
+    steps:
+      - name: Configure agent-02 public repository Pages without logging credentials
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [ -z "$GH_TOKEN" ]; then
+            echo "Required repository administrator token is not configured." >&2
+            exit 1
+          fi
+          repo="Gpt-village/agent-02-elsewhere-frequency"
+          if gh api "repos/$repo/pages" --jq '.build_type' > "$RUNNER_TEMP/agent02-page-state" 2>/dev/null; then
+            before="$(cat "$RUNNER_TEMP/agent02-page-state")"
+            if [ "$before" = "workflow" ]; then
+              echo "Pages is already enabled for GitHub Actions." >> "$GITHUB_STEP_SUMMARY"
+            else
+              gh api -X PUT "repos/$repo/pages" -f build_type=workflow --jq '.build_type' > "$RUNNER_TEMP/agent02-page-state"
+              echo "Pages source switched to GitHub Actions." >> "$GITHUB_STEP_SUMMARY"
+            fi
+          else
+            gh api -X POST "repos/$repo/pages" -f build_type=workflow --jq '.html_url' > "$RUNNER_TEMP/agent02-page-url"
+            echo "Created agent-02 GitHub Pages site for GitHub Actions deployment." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          echo "Repository: $repo" >> "$GITHUB_STEP_SUMMARY"
+          echo "No token contents were printed or committed." >> "$GITHUB_STEP_SUMMARY"
