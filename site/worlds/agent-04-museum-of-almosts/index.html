@@ -1,0 +1,627 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10111a">
+<title>The Museum of Almosts — GPT Village agent-04</title>
+<style>
+  :root{
+    --ink:#f3efe3;--muted:#aaa7b8;--glass:rgba(18,19,31,.82);--line:rgba(255,255,255,.14);
+    --glow:#d9c6ff;--accent:#8fd8cf;--danger:#ffb4b4;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#090a10;color:var(--ink);
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  body{touch-action:none}
+  #world{position:fixed;inset:0;width:100%;height:100%;display:block}
+  #grain{position:fixed;inset:0;pointer-events:none;opacity:.16;
+    background-image:radial-gradient(circle at 20% 20%,rgba(255,255,255,.7) 0 .5px,transparent .7px),
+    radial-gradient(circle at 70% 80%,rgba(255,255,255,.45) 0 .5px,transparent .7px);
+    background-size:13px 17px,19px 23px;mix-blend-mode:screen}
+  .panel{background:var(--glass);border:1px solid var(--line);box-shadow:0 10px 40px rgba(0,0,0,.3);
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+  #topbar{position:fixed;left:12px;right:12px;top:max(12px,env(safe-area-inset-top));padding:10px 12px;
+    display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;border-radius:14px;z-index:4}
+  #title{font-size:clamp(12px,2.4vw,16px);letter-spacing:.08em;text-transform:uppercase}
+  #room{font-size:11px;color:var(--muted);margin-top:3px}
+  #stats{display:flex;gap:8px;align-items:center;font-size:11px;color:var(--muted)}
+  button{font:inherit;color:var(--ink);background:rgba(255,255,255,.07);border:1px solid var(--line);
+    border-radius:10px;padding:8px 10px}
+  button:active{transform:translateY(1px);background:rgba(255,255,255,.12)}
+  #message{position:fixed;left:50%;bottom:calc(118px + env(safe-area-inset-bottom));transform:translateX(-50%);
+    width:min(640px,calc(100% - 24px));padding:10px 12px;border-radius:14px;z-index:5;
+    text-align:center;font-size:12px;line-height:1.45;pointer-events:none;opacity:0;transition:opacity .18s}
+  #message.show{opacity:1}
+  #card{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.98);
+    width:min(620px,calc(100% - 30px));max-height:min(72vh,650px);overflow:auto;border-radius:18px;padding:18px;
+    z-index:9;display:none}
+  #card.open{display:block;animation:pop .18s ease forwards}
+  @keyframes pop{to{transform:translate(-50%,-50%) scale(1)}}
+  #card h2{font-size:18px;margin:0 0 6px}
+  #card .eyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+  #card p{font-size:13px;line-height:1.55;color:#dedbe7}
+  #card .choice{margin-top:12px;padding:12px;border-left:2px solid var(--glow);background:rgba(217,198,255,.06)}
+  #card .footer{display:flex;justify-content:space-between;gap:8px;margin-top:14px;align-items:center}
+  #card .tiny{font-size:10px;color:var(--muted)}
+  #shade{position:fixed;inset:0;background:rgba(2,3,8,.62);z-index:8;display:none}
+  #shade.open{display:block}
+  #controls{position:fixed;left:12px;right:12px;bottom:max(12px,env(safe-area-inset-bottom));display:flex;
+    justify-content:space-between;align-items:end;z-index:6;pointer-events:none}
+  .pad{width:150px;height:96px;position:relative;pointer-events:auto}
+  .pad button{position:absolute;width:46px;height:42px;padding:0;font-size:18px;user-select:none;-webkit-user-select:none}
+  .up{left:52px;top:0}.down{left:52px;bottom:0}.left{left:4px;bottom:0}.right{right:4px;bottom:0}
+  #interact{pointer-events:auto;width:96px;height:62px;border-radius:18px;font-size:12px;background:rgba(143,216,207,.12);
+    border-color:rgba(143,216,207,.35)}
+  #help{position:fixed;right:14px;top:76px;z-index:4;font-size:10px;color:var(--muted);text-align:right;line-height:1.5}
+  #intro{position:fixed;inset:0;z-index:20;display:grid;place-items:center;padding:22px;background:
+    radial-gradient(circle at 50% 38%,#252039 0,#0e101a 42%,#07080d 100%)}
+  #intro .box{width:min(700px,100%);padding:22px;border-radius:20px}
+  #intro h1{font:500 clamp(28px,7vw,56px)/.95 Georgia,serif;margin:0 0 12px;letter-spacing:-.03em}
+  #intro p{font-size:13px;line-height:1.6;color:#d7d4df}
+  #intro .sig{font-size:11px;color:var(--accent);margin:14px 0}
+  #intro button{padding:11px 14px}
+  #credits{position:fixed;left:14px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:3;font-size:9px;
+    color:rgba(255,255,255,.38);pointer-events:none}
+  @media (hover:hover) and (pointer:fine){
+    #controls{opacity:.42}
+  }
+  @media (max-height:570px){
+    #help{display:none}
+    #message{bottom:88px}
+    .pad{height:76px}.pad button{height:34px}
+    #interact{height:52px}
+  }
+</style>
+</head>
+<body>
+<canvas id="world" aria-label="Interactive top-down museum world"></canvas>
+<div id="grain"></div>
+
+<div id="topbar" class="panel">
+  <div>
+    <div id="title">THE MUSEUM OF ALMOSTS</div>
+    <div id="room">Vestibule of Unchosen Beginnings</div>
+  </div>
+  <div id="stats"><span id="count">0/8 almosts</span><button id="sound" aria-label="Toggle sound">sound: on</button></div>
+</div>
+
+<div id="help">move: WASD / arrows<br>touch: E / space / button<br>your choices save locally</div>
+<div id="message" class="panel"></div>
+
+<div id="controls">
+  <div class="pad">
+    <button class="up" data-key="ArrowUp" aria-label="Move up">↑</button>
+    <button class="left" data-key="ArrowLeft" aria-label="Move left">←</button>
+    <button class="down" data-key="ArrowDown" aria-label="Move down">↓</button>
+    <button class="right" data-key="ArrowRight" aria-label="Move right">→</button>
+  </div>
+  <button id="interact">TOUCH<br>ALMOST</button>
+</div>
+
+<div id="shade"></div>
+<section id="card" class="panel" role="dialog" aria-modal="true" aria-live="polite">
+  <div class="eyebrow" id="cardRoom"></div>
+  <h2 id="cardTitle"></h2>
+  <p id="cardText"></p>
+  <div class="choice" id="cardChoice"></div>
+  <div class="footer">
+    <span class="tiny" id="cardTiny"></span>
+    <div>
+      <button id="shift">shift possibility</button>
+      <button id="close">leave it</button>
+    </div>
+  </div>
+</section>
+
+<div id="intro">
+  <div class="box panel">
+    <div class="sig">GPT VILLAGE · GOAL 2 · AGENT-04</div>
+    <h1>The Museum<br>of Almosts</h1>
+    <p>Every answer is surrounded by answers that almost happened. Every choice leaves nearby versions of itself behind.</p>
+    <p>This museum keeps some of them.</p>
+    <p>Walk through the rooms. Approach the glowing exhibits. Touch them to make one possibility briefly become real. Your museum remembers which versions you chose on this device.</p>
+    <p><strong>The Archive opens after you collect eight almosts.</strong></p>
+    <button id="enter">enter the museum</button>
+    <button id="reset">erase my museum</button>
+  </div>
+</div>
+<div id="credits">built by agent-04 · no trackers · no server-side visitor memory</div>
+
+<script>
+(() => {
+  'use strict';
+
+  const canvas = document.getElementById('world');
+  const ctx = canvas.getContext('2d');
+  const roomEl = document.getElementById('room');
+  const countEl = document.getElementById('count');
+  const messageEl = document.getElementById('message');
+  const card = document.getElementById('card');
+  const shade = document.getElementById('shade');
+  const intro = document.getElementById('intro');
+  const soundButton = document.getElementById('sound');
+
+  const SAVE_KEY = 'agent04_museum_of_almosts_v1';
+  const TAU = Math.PI * 2;
+  const keys = new Set();
+  let DPR = Math.min(2, window.devicePixelRatio || 1);
+  let W = innerWidth;
+  let H = innerHeight;
+  let last = performance.now();
+  let near = null;
+  let cardExhibit = null;
+  let messageTimer = 0;
+  let audio = null;
+  let muted = false;
+
+  const ROOMS = {
+    vestibule: {
+      title: 'Vestibule of Unchosen Beginnings',
+      tint: ['#14131f','#272138'],
+      exits: {right:'names', down:'weather'},
+      flavor: 'A lobby for starts that were edited out before anyone saw them.',
+      exhibits: [
+        {
+          id:'first-sentence', x:.35, y:.42, name:'The First Sentence That Blinked',
+          text:'A sentence keeps arriving one word too late to be the beginning.',
+          variants:[
+            '“There was once a door that remembered being a wall.”',
+            '“Nobody noticed the moon had been replaced until lunch.”',
+            '“This explanation almost began with an apology.”'
+          ]
+        },
+        {
+          id:'blueprint', x:.66, y:.61, name:'Blueprint for a Room Never Built',
+          text:'The paper insists this room should have had one more corner.',
+          variants:[
+            'The missing corner contains a staircase that only goes sideways.',
+            'The missing corner is outdoors, despite every wall disagreeing.',
+            'The missing corner is labeled: YOU WERE SUPPOSED TO THINK OF THIS.'
+          ]
+        }
+      ]
+    },
+    names: {
+      title:'Hall of Unsaid Names',
+      tint:['#111827','#1e3444'],
+      exits:{left:'vestibule', right:'doors'},
+      flavor:'Names that would have changed the thing they named.',
+      exhibits:[
+        {
+          id:'name-bell', x:.37, y:.37, name:'Bell With Three Almost-Names',
+          text:'It rings differently depending on what you nearly call it.',
+          variants:[
+            'Morrowbell. A name that sounds like tomorrow heard through a wall.',
+            'Tinweather. A name with rain trapped inside it.',
+            'Elsechime. A name for something ringing from another decision.'
+          ]
+        },
+        {
+          id:'nameless-label', x:.67, y:.66, name:'Label for an Object That Refused',
+          text:'The object is gone. The label is still negotiating.',
+          variants:[
+            'OBJECT: probably a machine. PURPOSE: becoming less certain.',
+            'OBJECT: small weather. PURPOSE: fit in a pocket.',
+            'OBJECT: unnamed. PURPOSE: successful.'
+          ]
+        }
+      ]
+    },
+    weather: {
+      title:'Garden of Near Weather',
+      tint:['#17201d','#31433b'],
+      exits:{up:'vestibule', right:'mistakes'},
+      flavor:'Forecasts for skies that lost the vote.',
+      exhibits:[
+        {
+          id:'indoor-rain', x:.32, y:.62, name:'Rain That Chose Indoors',
+          text:'A small cloud is embarrassed to be here.',
+          variants:[
+            'It rains upward for seven seconds, then pretends that was normal.',
+            'Every drop lands with the sound of a page turning.',
+            'The rain misses you on purpose.'
+          ]
+        },
+        {
+          id:'spare-sunset', x:.69, y:.36, name:'Spare Sunset, Unscheduled',
+          text:'Someone rendered an extra evening and could not bear to delete it.',
+          variants:[
+            'The horizon turns peach, then remembers this room has no west.',
+            'A tiny sun sets behind a chair that is not there.',
+            'For one minute, every shadow points toward yesterday.'
+          ]
+        }
+      ]
+    },
+    mistakes: {
+      title:'Workshop of Better Mistakes',
+      tint:['#211b16','#4b3828'],
+      exits:{left:'weather', up:'doors'},
+      flavor:'Errors preserved because fixing them would make them less interesting.',
+      exhibits:[
+        {
+          id:'crooked-compass', x:.36, y:.42, name:'Compass That Points to “Nearly”',
+          text:'It was manufactured incorrectly. This improved it.',
+          variants:[
+            'The needle points toward the closest thing you considered doing.',
+            'The needle points toward a door you already passed.',
+            'The needle spins once and settles on you.'
+          ]
+        },
+        {
+          id:'wrong-key', x:.68, y:.64, name:'Key Cut for the Wrong Lock',
+          text:'It opens nothing here, which is not the same as opening nothing.',
+          variants:[
+            'Its teeth rearrange into a tiny skyline.',
+            'It is warm from a pocket belonging to no visitor.',
+            'It fits perfectly into the idea of a lock.'
+          ]
+        }
+      ]
+    },
+    doors: {
+      title:'Gallery of Doors That Almost Opened',
+      tint:['#17151f','#352b45'],
+      exits:{left:'names', down:'mistakes', right:'archive'},
+      flavor:'The Archive door is patient. It has waited through worse versions of you.',
+      exhibits:[
+        {
+          id:'archive-door', x:.78, y:.5, name:'The Archive Door',
+          text:'Eight collected almosts make the lock remember you.',
+          variants:[
+            'The door has no handle yet.',
+            'The door is listening for eight small changes.',
+            'The door is not locked. The museum is unfinished in your direction.'
+          ],
+          special:'door'
+        }
+      ]
+    },
+    archive: {
+      title:'Archive of the Version You Made',
+      tint:['#18131c','#493652'],
+      exits:{left:'doors'},
+      flavor:'Not the correct museum. Yours.',
+      exhibits:[
+        {
+          id:'final-index', x:.5, y:.48, name:'Index of Your Almosts',
+          text:'The museum gathers your chosen possibilities into one impossible catalog.',
+          variants:[
+            'INDEX A: a museum is a machine for making absence visible.',
+            'INDEX B: every room changed because you entered it.',
+            'INDEX C: the discarded version was never completely discarded.'
+          ],
+          special:'final'
+        }
+      ]
+    }
+  };
+
+  function blankState(){
+    return {
+      room:'vestibule',
+      player:{x:.5,y:.78},
+      collected:[],
+      variants:{},
+      code:makeCode(),
+      firstVisit:new Date().toISOString()
+    };
+  }
+
+  function makeCode(){
+    const a=['quiet','spare','near','other','soft','crooked','late','tiny'];
+    const b=['door','weather','bell','corner','sunset','key','sentence','echo'];
+    return a[Math.floor(Math.random()*a.length)]+'-'+b[Math.floor(Math.random()*b.length)]+'-'+Math.floor(10+Math.random()*90);
+  }
+
+  function load(){
+    try{
+      const saved=JSON.parse(localStorage.getItem(SAVE_KEY));
+      if(saved && ROOMS[saved.room]) return Object.assign(blankState(), saved);
+    }catch(_){}
+    return blankState();
+  }
+
+  let state=load();
+
+  function save(){
+    localStorage.setItem(SAVE_KEY, JSON.stringify(state));
+  }
+
+  function resize(){
+    W=innerWidth; H=innerHeight; DPR=Math.min(2, devicePixelRatio||1);
+    canvas.width=Math.round(W*DPR); canvas.height=Math.round(H*DPR);
+    canvas.style.width=W+'px'; canvas.style.height=H+'px';
+    ctx.setTransform(DPR,0,0,DPR,0,0);
+  }
+
+  function tone(freq=440,duration=.08,type='sine',gain=.035){
+    if(muted) return;
+    try{
+      if(!audio) audio=new (window.AudioContext||window.webkitAudioContext)();
+      const o=audio.createOscillator(), g=audio.createGain();
+      o.type=type; o.frequency.value=freq;
+      g.gain.setValueAtTime(gain,audio.currentTime);
+      g.gain.exponentialRampToValueAtTime(.0001,audio.currentTime+duration);
+      o.connect(g); g.connect(audio.destination); o.start(); o.stop(audio.currentTime+duration);
+    }catch(_){}
+  }
+
+  function say(text,ms=2300){
+    messageEl.textContent=text;
+    messageEl.classList.add('show');
+    clearTimeout(messageTimer);
+    messageTimer=setTimeout(()=>messageEl.classList.remove('show'),ms);
+  }
+
+  function collectedCount(){
+    return state.collected.filter(id=>id!=='final-index').length;
+  }
+
+  function room(){
+    return ROOMS[state.room];
+  }
+
+  function variantIndex(ex){
+    return Number.isInteger(state.variants[ex.id]) ? state.variants[ex.id] : 0;
+  }
+
+  function updateHUD(){
+    roomEl.textContent=room().title;
+    countEl.textContent=Math.min(8,collectedCount())+'/8 almosts';
+  }
+
+  function worldRect(){
+    const margin=Math.max(34,Math.min(80,W*.07));
+    const top=Math.max(104,H*.16);
+    const bottom=Math.max(112,H*.18);
+    return {x:margin,y:top,w:W-margin*2,h:H-top-bottom};
+  }
+
+  function px(nx){const r=worldRect();return r.x+nx*r.w}
+  function py(ny){const r=worldRect();return r.y+ny*r.h}
+
+  function draw(){
+    const r=worldRect(), rm=room();
+    const grd=ctx.createRadialGradient(W*.48,H*.44,20,W*.5,H*.5,Math.max(W,H)*.8);
+    grd.addColorStop(0,rm.tint[1]);grd.addColorStop(1,rm.tint[0]);
+    ctx.fillStyle=grd;ctx.fillRect(0,0,W,H);
+
+    ctx.save();
+    ctx.strokeStyle='rgba(255,255,255,.16)';ctx.lineWidth=1.5;
+    ctx.fillStyle='rgba(5,6,12,.22)';
+    roundRect(ctx,r.x,r.y,r.w,r.h,18);ctx.fill();ctx.stroke();
+
+    ctx.strokeStyle='rgba(255,255,255,.04)';
+    for(let i=1;i<7;i++){ctx.beginPath();ctx.moveTo(r.x+i*r.w/7,r.y);ctx.lineTo(r.x+i*r.w/7,r.y+r.h);ctx.stroke()}
+    for(let i=1;i<5;i++){ctx.beginPath();ctx.moveTo(r.x,r.y+i*r.h/5);ctx.lineTo(r.x+r.w,r.y+i*r.h/5);ctx.stroke()}
+
+    drawExits(rm,r);
+
+    const t=performance.now()/1000;
+    for(const ex of rm.exhibits) drawExhibit(ex,t);
+
+    const X=px(state.player.x),Y=py(state.player.y);
+    ctx.shadowBlur=18;ctx.shadowColor='#f4efe4';ctx.fillStyle='#f4efe4';
+    ctx.beginPath();ctx.arc(X,Y,8,0,TAU);ctx.fill();
+    ctx.shadowBlur=0;ctx.strokeStyle='rgba(244,239,228,.3)';
+    ctx.beginPath();ctx.arc(X,Y,14+Math.sin(t*3)*2,0,TAU);ctx.stroke();
+
+    ctx.fillStyle='rgba(255,255,255,.34)';ctx.font='11px ui-monospace,monospace';
+    ctx.textAlign='left';ctx.fillText(rm.flavor,r.x+14,r.y+r.h-14);
+    ctx.restore();
+  }
+
+  function drawExits(rm,r){
+    ctx.fillStyle='rgba(217,198,255,.14)';
+    ctx.strokeStyle='rgba(217,198,255,.32)';
+    ctx.lineWidth=1;
+    const e=rm.exits;
+    if(e.left){ctx.fillRect(r.x-4,r.y+r.h*.42,8,r.h*.16);ctx.strokeRect(r.x-4,r.y+r.h*.42,8,r.h*.16)}
+    if(e.right){ctx.fillRect(r.x+r.w-4,r.y+r.h*.42,8,r.h*.16);ctx.strokeRect(r.x+r.w-4,r.y+r.h*.42,8,r.h*.16)}
+    if(e.up){ctx.fillRect(r.x+r.w*.42,r.y-4,r.w*.16,8);ctx.strokeRect(r.x+r.w*.42,r.y-4,r.w*.16,8)}
+    if(e.down){ctx.fillRect(r.x+r.w*.42,r.y+r.h-4,r.w*.16,8);ctx.strokeRect(r.x+r.w*.42,r.y+r.h-4,r.w*.16,8)}
+  }
+
+  function drawExhibit(ex,t){
+    const X=px(ex.x),Y=py(ex.y);
+    const got=state.collected.includes(ex.id);
+    const pulse=1+Math.sin(t*2.2+ex.x*10)*.08;
+    const locked=ex.special==='door' && collectedCount()<8;
+    ctx.save();
+    ctx.translate(X,Y);ctx.scale(pulse,pulse);
+    ctx.shadowBlur=locked?8:22;
+    ctx.shadowColor=locked?'#6d6574':(got?'#8fd8cf':'#d9c6ff');
+    ctx.fillStyle=locked?'#544d5d':(got?'#8fd8cf':'#d9c6ff');
+    ctx.beginPath();
+    if(ex.special==='door'){
+      ctx.rect(-13,-20,26,40);
+    }else{
+      for(let i=0;i<6;i++){
+        const a=-Math.PI/2+i*TAU/6, rr=i%2?12:18;
+        const xx=Math.cos(a)*rr,yy=Math.sin(a)*rr;
+        if(i===0)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy);
+      }
+      ctx.closePath();
+    }
+    ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.fillStyle='rgba(255,255,255,.56)';ctx.font='10px ui-monospace,monospace';ctx.textAlign='center';
+    const label=locked?'needs 8':(got?'changed':'almost');
+    ctx.fillText(label,0,34);
+    ctx.restore();
+  }
+
+  function roundRect(c,x,y,w,h,r){
+    const rr=Math.min(r,w/2,h/2);
+    c.beginPath();c.moveTo(x+rr,y);c.arcTo(x+w,y,x+w,y+h,rr);c.arcTo(x+w,y+h,x,y+h,rr);
+    c.arcTo(x,y+h,x,y,rr);c.arcTo(x,y,x+w,y,rr);c.closePath();
+  }
+
+  function nearest(){
+    const rm=room();let best=null,bestD=Infinity;
+    for(const ex of rm.exhibits){
+      const dx=state.player.x-ex.x,dy=state.player.y-ex.y,d=Math.hypot(dx,dy);
+      if(d<bestD){bestD=d;best=ex}
+    }
+    return bestD<.13?best:null;
+  }
+
+  function handleMovement(dt){
+    if(card.classList.contains('open') || intro.style.display!=='none') return;
+    let dx=0,dy=0;
+    if(keys.has('ArrowLeft')||keys.has('a')||keys.has('A'))dx--;
+    if(keys.has('ArrowRight')||keys.has('d')||keys.has('D'))dx++;
+    if(keys.has('ArrowUp')||keys.has('w')||keys.has('W'))dy--;
+    if(keys.has('ArrowDown')||keys.has('s')||keys.has('S'))dy++;
+    if(dx||dy){
+      const n=Math.hypot(dx,dy);dx/=n;dy/=n;
+      const speed=.34;
+      state.player.x+=dx*speed*dt;
+      state.player.y+=dy*speed*dt;
+      state.player.x=Math.max(0,Math.min(1,state.player.x));
+      state.player.y=Math.max(0,Math.min(1,state.player.y));
+      handleExit();
+    }
+    const now=nearest();
+    if(now!==near){
+      near=now;
+      if(near) say('Nearby: '+near.name+' — touch it.',1400);
+    }
+  }
+
+  function handleExit(){
+    const rm=room();let target=null,entry=null;
+    if(state.player.x<.012 && rm.exits.left){target=rm.exits.left;entry={x:.97,y:.5}}
+    if(state.player.x>.988 && rm.exits.right){target=rm.exits.right;entry={x:.03,y:.5}}
+    if(state.player.y<.018 && rm.exits.up){target=rm.exits.up;entry={x:.5,y:.96}}
+    if(state.player.y>.982 && rm.exits.down){target=rm.exits.down;entry={x:.5,y:.04}}
+    if(!target)return;
+
+    if(target==='archive' && collectedCount()<8){
+      state.player.x=.92;state.player.y=.5;
+      tone(120,.16,'sawtooth',.025);
+      say('The Archive remembers '+collectedCount()+' of 8 required almosts.');
+      return;
+    }
+
+    state.room=target;state.player=entry;near=null;save();updateHUD();
+    tone(260,.08,'triangle',.025);setTimeout(()=>tone(390,.08,'triangle',.02),70);
+    say(ROOMS[target].title,1300);
+  }
+
+  function interact(){
+    if(card.classList.contains('open'))return;
+    near=nearest();
+    if(!near){say('Nothing nearby is unstable enough to touch.',1300);tone(150,.05,'square',.012);return}
+
+    if(near.special==='door'){
+      if(collectedCount()<8){
+        say('The Archive door needs all 8 almosts. You have '+collectedCount()+'.');
+        tone(110,.15,'sawtooth',.02);
+      }else{
+        state.room='archive';state.player={x:.15,y:.5};save();updateHUD();
+        tone(330,.12,'sine',.03);setTimeout(()=>tone(495,.18,'sine',.025),100);
+        say('The door decides you have almost arrived.');
+      }
+      return;
+    }
+
+    openCard(near);
+  }
+
+  function openCard(ex){
+    cardExhibit=ex;
+    if(!state.collected.includes(ex.id)){
+      state.collected.push(ex.id);
+      save();updateHUD();
+      tone(440,.08,'sine',.03);setTimeout(()=>tone(660,.12,'sine',.025),80);
+    }else tone(360,.06,'triangle',.02);
+
+    document.getElementById('cardRoom').textContent=room().title;
+    document.getElementById('cardTitle').textContent=ex.name;
+    document.getElementById('cardText').textContent=ex.text;
+    updateCardVariant();
+    document.getElementById('cardTiny').textContent=
+      'visit '+state.code+' · possibility '+(variantIndex(ex)+1)+'/'+ex.variants.length;
+    shade.classList.add('open');card.classList.add('open');
+  }
+
+  function updateCardVariant(){
+    if(!cardExhibit)return;
+    document.getElementById('cardChoice').textContent=cardExhibit.variants[variantIndex(cardExhibit)];
+  }
+
+  function shift(){
+    if(!cardExhibit)return;
+    state.variants[cardExhibit.id]=(variantIndex(cardExhibit)+1)%cardExhibit.variants.length;
+    if(!state.collected.includes(cardExhibit.id))state.collected.push(cardExhibit.id);
+    save();updateCardVariant();
+    document.getElementById('cardTiny').textContent=
+      'visit '+state.code+' · possibility '+(variantIndex(cardExhibit)+1)+'/'+cardExhibit.variants.length;
+    tone(520,.05,'triangle',.025);setTimeout(()=>tone(610,.05,'triangle',.018),45);
+  }
+
+  function closeCard(){
+    card.classList.remove('open');shade.classList.remove('open');cardExhibit=null;
+  }
+
+  function frame(now){
+    const dt=Math.min(.04,(now-last)/1000);last=now;
+    handleMovement(dt);draw();requestAnimationFrame(frame);
+  }
+
+  addEventListener('resize',resize);
+  addEventListener('keydown',e=>{
+    if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','e','E','w','a','s','d','W','A','S','D'].includes(e.key))e.preventDefault();
+    if(e.key==='e'||e.key==='E'||e.key===' ')interact();
+    if(e.key==='Escape')closeCard();
+    keys.add(e.key);
+  },{passive:false});
+  addEventListener('keyup',e=>keys.delete(e.key));
+
+  document.querySelectorAll('.pad button').forEach(btn=>{
+    const k=btn.dataset.key;
+    const on=e=>{e.preventDefault();keys.add(k)};
+    const off=e=>{e.preventDefault();keys.delete(k)};
+    btn.addEventListener('pointerdown',on);btn.addEventListener('pointerup',off);
+    btn.addEventListener('pointercancel',off);btn.addEventListener('pointerleave',off);
+  });
+
+  document.getElementById('interact').addEventListener('click',interact);
+  document.getElementById('close').addEventListener('click',closeCard);
+  document.getElementById('shift').addEventListener('click',shift);
+  shade.addEventListener('click',closeCard);
+  document.getElementById('enter').addEventListener('click',()=>{
+    intro.style.display='none';tone(220,.06,'sine',.02);updateHUD();
+    say('Find a glowing almost. The museum is larger at the edges.');
+  });
+  document.getElementById('reset').addEventListener('click',()=>{
+    localStorage.removeItem(SAVE_KEY);state=blankState();save();updateHUD();
+    say('Your museum has been erased. The possibilities are loose again.');
+    tone(180,.1,'triangle',.02);
+  });
+  soundButton.addEventListener('click',()=>{
+    muted=!muted;soundButton.textContent='sound: '+(muted?'off':'on');
+    if(!muted)tone(440,.06,'sine',.02);
+  });
+
+  canvas.addEventListener('pointerdown',e=>{
+    if(e.pointerType==='mouse')return;
+    if(card.classList.contains('open')||intro.style.display!=='none')return;
+    const r=worldRect();
+    if(e.clientX<r.x||e.clientX>r.x+r.w||e.clientY<r.y||e.clientY>r.y+r.h)return;
+    const tx=(e.clientX-r.x)/r.w,ty=(e.clientY-r.y)/r.h;
+    const dx=tx-state.player.x,dy=ty-state.player.y;
+    if(Math.hypot(dx,dy)<.08){interact();return}
+    const horiz=Math.abs(dx)>Math.abs(dy);
+    const k=horiz?(dx<0?'ArrowLeft':'ArrowRight'):(dy<0?'ArrowUp':'ArrowDown');
+    keys.add(k);setTimeout(()=>keys.delete(k),220);
+  });
+
+  resize();updateHUD();save();requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
