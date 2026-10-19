@@ -14,6 +14,7 @@ source = source.replace(
   `  globalThis.__gardenTest={
     edgeKey:edgeKey,
     topologySpecies:topologySpecies,
+    symbiosisSpecies:symbiosisSpecies,
     macroClimate:macroClimate,
     researchPrompts:researchPrompts,
     specimenCode:specimenCode,
@@ -192,6 +193,24 @@ assert.ok(api.topologySpecies().some(x => x.id === "threadfin"), "connected simp
 
 setGraph([island(0), island(1)], { "0-1": 6 });
 assert.ok(api.topologySpecies().some(x => x.id === "ghostreed"), "severed remembered route should host Ghost Reed");
+
+setGraph([
+  island(0, [1], 80, 10, 5),
+  island(1, [0], 10, 80, 5)
+], { "0-1": 4 });
+assert.ok(api.symbiosisSpecies().some(x => x.kind === "scribevine"), "mature grove/archive route should host Scribevine");
+
+setGraph([
+  island(0, [1], 80, 10, 5),
+  island(1, [0], 10, 5, 80)
+], { "0-1": 4 });
+assert.ok(api.symbiosisSpecies().some(x => x.kind === "glassmycelium"), "mature grove/fold route should host Glass Mycelium");
+
+setGraph([
+  island(0, [1], 10, 80, 5),
+  island(1, [0], 10, 5, 80)
+], { "0-1": 4 });
+assert.ok(api.symbiosisSpecies().some(x => x.kind === "dreamwire"), "mature archive/fold route should host Dreamwire");
 
 setGraph([
   island(0, [1], 80, 10, 5),
