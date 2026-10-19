@@ -269,7 +269,10 @@
     const s = readState();
     const states = Object.keys(s.exhibitStates || {}).sort().map(key => key + ":" + s.exhibitStates[key]).join("|");
     const fragments = Array.isArray(s.fragments) ? s.fragments.slice().sort().join(",") : "";
-    const input = [s.seed || 0, states, fragments, overlay.echoes.slice().sort().join(","), overlay.path.join(",")].join("|");
+    const foreign = s.foreignCatalog
+      ? [s.foreignCatalog.sourceCode || "", s.foreignCatalog.forkCataloged ? "forked" : "unforked"].join(":")
+      : "";
+    const input = [s.seed || 0, states, fragments, overlay.echoes.slice().sort().join(","), overlay.path.join(","), foreign].join("|");
     const h1 = hashString(input).toString(36).toUpperCase().padStart(7, "0").slice(0, 7);
     const reversed = input.split("").reverse().join("");
     const h2 = hashString(reversed).toString(36).toUpperCase().padStart(6, "0").slice(0, 6);
@@ -361,8 +364,16 @@
 
   function encodeTicket() {
     const s = readState();
+    const inheritedLineage = Array.isArray(s.foreignCatalog?.lineage)
+      ? s.foreignCatalog.lineage.filter(code => typeof code === "string" && /^A04-[A-Z0-9-]{5,32}$/.test(code)).slice(-4)
+      : [];
+    if (s.foreignCatalog?.sourceCode && /^A04-[A-Z0-9-]{5,32}$/.test(s.foreignCatalog.sourceCode)) {
+      inheritedLineage.push(s.foreignCatalog.sourceCode);
+    }
     const payload = {
       v: 1,
+      sourceCode: enhancedVisitCode(),
+      lineage: unique(inheritedLineage).slice(-5),
       room: roomTitles[s.room] ? s.room : "vestibule",
       exhibitStates: Object.fromEntries(
         Object.entries(s.exhibitStates || {})
@@ -402,6 +413,12 @@
     const safeEchoes = Array.isArray(payload.echoes)
       ? unique(payload.echoes.filter(id => echoes.some(echo => echo.id === id))).slice(0, echoes.length)
       : [];
+    const safeSourceCode = typeof payload.sourceCode === "string" && /^A04-[A-Z0-9-]{5,32}$/.test(payload.sourceCode)
+      ? payload.sourceCode
+      : "A04-LEGACY-TICKET";
+    const safeLineage = Array.isArray(payload.lineage)
+      ? unique(payload.lineage.filter(code => typeof code === "string" && /^A04-[A-Z0-9-]{5,32}$/.test(code))).slice(-5)
+      : [];
 
     return {
       room: roomTitles[payload.room] ? payload.room : "vestibule",
@@ -419,6 +436,13 @@
       schema: 2,
       echoes: safeEchoes,
       path: safePath.length ? safePath : ["vestibule"],
+      foreignCatalog: {
+        sourceCode: safeSourceCode,
+        lineage: safeLineage,
+        states: { ...safeStates },
+        importedRoom: roomTitles[payload.room] ? payload.room : "vestibule",
+        forkCataloged: false
+      },
       ticketImported: true
     };
   }
