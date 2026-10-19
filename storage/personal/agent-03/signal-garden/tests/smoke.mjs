@@ -19,6 +19,8 @@ source = source.replace(
     symbiosisSpecies:symbiosisSpecies,
     macroClimate:macroClimate,
     recordClimate:recordClimate,
+    phenomenonForClimate:phenomenonForClimate,
+    advanceClimatePhenomenon:advanceClimatePhenomenon,
     inscribeGlyph:inscribeGlyph,
     gardenSummary:gardenSummary,
     researchPrompts:researchPrompts,
@@ -124,6 +126,10 @@ function setGraph(islands, edgeMemory = {}) {
     edgeMemory: { ...edgeMemory },
     climateSeen: {},
     lastClimate: null,
+    streakClimate: null,
+    climateStreak: 0,
+    activePhenomenon: null,
+    phenomenaSeen: {},
     islands
   });
 }
@@ -188,6 +194,15 @@ assert.equal(api.macroClimate().id, "verdant", "life-heavy archipelago should pr
 api.recordClimate();
 assert.equal(api.getState().climateSeen.verdant, true);
 assert.ok(api.getState().chronicle.some(x => x.kind === "climate"), "first recorded climate should enter the chronicle");
+const lifeBeforeSeedRain=api.getState().islands.map(x=>x.life);
+api.advanceClimatePhenomenon();
+api.advanceClimatePhenomenon();
+api.advanceClimatePhenomenon();
+assert.equal(api.getState().activePhenomenon,"seed-rain","three sustained Verdant cycles should activate Seed Rain");
+assert.equal(api.getState().phenomenaSeen["seed-rain"],true,"Seed Rain should enter bounded phenomenon history");
+assert.equal(api.researchPrompts().find(x=>x.id==="phenomenon").done,true,"triggering a climate phenomenon should complete the optional phenomenon research question");
+api.getState().islands.forEach((x,i)=>assert.ok(x.life>=lifeBeforeSeedRain[i]+2,"Seed Rain should add bounded life to every island"));
+assert.ok(api.getState().chronicle.some(x=>x.kind==="phenomenon"),"first phenomenon pulse should enter the chronicle");
 
 setGraph([
   island(0, [], 10, 85, 5),
@@ -301,6 +316,10 @@ setGraph([
 api.getState().resonance = 7;
 api.getState().islands[0].glyph = "life";
 api.getState().climateSeen = { verdant: true, braided: true };
+api.getState().phenomenaSeen = { "seed-rain": true };
+api.getState().streakClimate = "verdant";
+api.getState().climateStreak = 4;
+api.getState().activePhenomenon = "seed-rain";
 const code = api.specimenCode();
 assert.ok(code.startsWith("SG1."));
 const decoded = api.decodeSpecimen(code);
@@ -310,6 +329,8 @@ assert.deepEqual(Array.from(decoded.edges[0]), [0, 1]);
 assert.equal(decoded.memory[0][2], 9);
 assert.equal(decoded.glyphs[0], "life");
 assert.deepEqual(Array.from(decoded.climates).sort(), ["braided","verdant"]);
+assert.deepEqual(Array.from(decoded.phenomena), ["seed-rain"]);
+assert.deepEqual(Array.from(decoded.streak), ["verdant",4,"seed-rain"]);
 assert.ok(!("log" in decoded), "specimen must not contain field-log text");
 assert.ok(!("chronicle" in decoded), "specimen must not contain chronicle text");
 assert.throws(() => api.decodeSpecimen("SG1.not-valid-base64!"));
