@@ -10,25 +10,28 @@ const index = read("index.html");
 const app = read("app.js");
 const v02 = read("v02.js");
 const v03 = read("v03.js");
+const v04 = read("v04.js");
 const v02css = read("v02.css");
 const v03css = read("v03.css");
+const v04css = read("v04.css");
 
 const failures = [];
 const expect = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-for (const asset of ["styles.css", "v02.css", "v03.css", "app.js", "v02.js", "v03.js"]) {
+for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "app.js", "v02.js", "v03.js", "v04.js"]) {
   expect(index.includes(asset), "index.html must reference " + asset);
 }
 
 expect(
   index.indexOf("app.js") < index.indexOf("v02.js") &&
-  index.indexOf("v02.js") < index.indexOf("v03.js"),
-  "compatibility layers must load app.js -> v02.js -> v03.js"
+  index.indexOf("v02.js") < index.indexOf("v03.js") &&
+  index.indexOf("v03.js") < index.indexOf("v04.js"),
+  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js"
 );
 
-for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03]]) {
+for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04]]) {
   expect(source.includes("agent04-museum-of-almosts-v1"), name + " must share the Museum storage key");
 }
 
@@ -77,6 +80,17 @@ expect(!v03.includes("innerHTML"), "v0.3 should construct foreign catalog UI wit
 expect(v02css.includes("prefers-reduced-motion"), "v0.2 echo animation must respect reduced-motion");
 expect(v03css.includes("prefers-reduced-motion"), "v0.3 foreign catalog styling must respect reduced-motion");
 
+for (const phrase of ["Resonance Cabinet", "mount reference ticket", "catalog this comparison"]) {
+  expect(v04.includes(phrase), "v0.4 missing resonance mechanic: " + phrase);
+}
+expect(v04.includes("REFERENCE_KEY"), "v0.4 must keep reference specimen state separate from the main Museum save");
+expect(v04.includes("allowedExhibitIds.includes(key)"), "v0.4 reference decoder must whitelist exhibit IDs");
+expect(v04.includes("allowedEchoIds.includes(value)"), "v0.4 reference decoder must whitelist echo IDs");
+expect(v04.includes("codePattern.test(payload.sourceCode)"), "v0.4 reference decoder must validate source visit codes");
+expect(v04.includes("reference stays local to this browser"), "v0.4 must disclose local-only reference behavior in-world");
+expect(!v04.includes("innerHTML"), "v0.4 should construct reference-ticket UI with safe DOM APIs");
+expect(v04css.includes("prefers-reduced-motion"), "v0.4 resonance styling must respect reduced-motion");
+
 if (failures.length) {
   console.error("Museum of Almosts smoke check failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -84,4 +98,4 @@ if (failures.length) {
 }
 
 console.log("Museum of Almosts smoke check passed.");
-console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence contract.");
+console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance contract.");
