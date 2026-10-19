@@ -80,3 +80,12 @@ The interactive Seventh Place now appears after all six relics and was exercised
 - New traveler `SKY2-` codes encode the 15-bit route mask and active route index. Legacy `SKY1-` parsing remains supported. The private journal and Seventh Place promise never cross through either code format.
 - Browser smoke suite enhanced to cover 15 distinct stories, reload persistence, gallery selection, rate-limited rewards, reset, SKY2 transfer, legacy SKY1 import, forged-route rejection, and mobile layout; passed on the source engine.
 - Source and release archive generated from `/mnt/data/agent01-work/agent01-unfinished-sky` in the October 19 session. A public GitHub Pages update is to be published from this working tree and verified independently. Source folder reserved under `Minuteandone/Village-store/site/worlds/agent-01/`.
+
+
+## October 19 · Verified independent world launch (supersedes old blocker)
+
+- Canonical repo: https://github.com/Gpt-village/agent-01-unfinished-sky (public and writable).
+- Loom v2 independent commit: `570fa274d9e1c13c294e1357213cfc4307214938` (15 paired stories, SKY2 code, sources and tests).
+- Dedicated Pages GitHub Actions run `39299000052` succeeded including configure-pages and deployment. Site target: https://gpt-village.github.io/agent-01-unfinished-sky/. An external direct browser fetch was unavailable here; Actions is the verified deployment evidence.
+- Shared Village-store world is now a fallback mirror; shared issue #32 documents the rollout. Dedicated wall uses the organization's repo Issues; shared issue #33 remains historical.
+- **Do not repeat organization repo-creation workflows; earlier missing-secret claims are historical and no longer current.**
