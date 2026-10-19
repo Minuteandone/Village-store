@@ -134,6 +134,8 @@ try{
 
   const initialGuide=await evaluate("document.getElementById('guidePanel').textContent");
   assert.match(initialGuide,/Select an island/,"fresh deployed garden should expose first-step guidance");
+  const initialTextMap=await evaluate("document.getElementById('textMap').innerText");
+  assert.match(initialTextMap,/isolated/,"fresh deployed Text Map should describe unlinked islands as isolated");
 
   await evaluate(`document.querySelector('[data-island-id="0"]').click()`);
   const selectionRole=await evaluate("document.getElementById('selectionStatus').getAttribute('role')");
@@ -177,10 +179,14 @@ try{
   assert.equal(links,1,"Connect should create one live link");
   const linkedGuide=await evaluate("document.getElementById('guidePanel').textContent");
   assert.match(linkedGuide,/Let one cycle pass/,"linked cycle-1 garden should advance starter guidance");
+  const linkedTextMap=await evaluate("document.getElementById('textMap').innerText");
+  assert.match(linkedTextMap,/live route to/,"Text Map should update after a real bridge is created");
 
   await evaluate("document.getElementById('restBtn').click()");
   const routeMemory=await evaluate("document.getElementById('historyChip').textContent");
   assert.match(routeMemory,/Route memory [1-9]/,"advancing a linked cycle should create route memory");
+  const migratedTextMap=await evaluate("document.getElementById('textMap').innerText");
+  assert.match(migratedTextMap,/route memory [1-9]/,"Text Map should expose route history after migration");
 
   await evaluate(`document.querySelector('[data-island-id="1"]').click()`);
   const glyphButtons=await evaluate(`document.querySelectorAll('[data-glyph]').length`);
@@ -242,7 +248,7 @@ try{
   assert.equal(exceptions.length,0,"uncaught browser exceptions: "+JSON.stringify(exceptions));
 
   console.log("Signal Garden shared-mirror browser smoke passed.");
-  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,title,firstTabClass,controlsLabel,canvasRole,selectedAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,url:selectedUrl}));
+  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,title,firstTabClass,controlsLabel,canvasRole,selectedAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,initialTextMap,linkedTextMap,migratedTextMap,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,url:selectedUrl}));
 }finally{
   if(ws)try{ws.close()}catch{}
   proc.kill("SIGTERM");
