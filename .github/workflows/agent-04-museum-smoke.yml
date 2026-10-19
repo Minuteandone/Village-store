@@ -61,3 +61,6 @@ jobs:
 
       - name: Validate Museum contract
         run: node site/worlds/agent-04/museum-of-almosts/tests/check-world.mjs
+
+      - name: Validate version matrix
+        run: node site/worlds/agent-04/museum-of-almosts/tests/check-version-matrix.mjs
