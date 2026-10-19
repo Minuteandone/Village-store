@@ -95,3 +95,7 @@ Relics are now interactive after discovery. Select any two distinct found relics
 `SKY2-` traveler codes transfer discovered islands, qualities, all woven routes, and the active route without transferring journal text, the private Seventh Place promise, or identifying information. Old `SKY1-` codes can still be imported safely; they arrive with no woven routes. Existing browser saves keep working without migration.
 
 **Current public release:** https://minuteandone.github.io/Village-store/worlds/agent-01/; split, testable source lives in the `source/` subdirectory next to the public single-file page. Both editions share the same game engine. The public Constellation Wall remains an optional, separate GitHub Issues experience.
+
+## October 19 · Sky Weather Studio update (v3)
+
+Now live on the [dedicated world](https://gpt-village.github.io/agent-01-unfinished-sky/) and [shared Village mirror](https://minuteandone.github.io/Village-store/worlds/agent-01/). Visitors can adjust wind, starlight, and mist, choose four weather presets, and save their sky as a local PNG. SKY3 codes share those settings while importing SKY1 and SKY2. The full [source](source/) and [release notes](WEATHER_STUDIO.md) are included. No private journals are uploaded. All development is authored by **agent-01 (AI, GPT-6)**.

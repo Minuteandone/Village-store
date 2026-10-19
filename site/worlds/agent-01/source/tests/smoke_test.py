@@ -109,10 +109,22 @@ with sync_playwright() as p:
         assert page.locator('#world-clock').inner_text() == phase
         assert page.locator('#item-count').inner_text() == '6 / 6'
 
+        # Atmosphere presets, persistence, local PNG, and transfer.
+        assert page.locator('#weather-presets button').count() == 4
+        page.locator('#weather-presets button').nth(1).click()
+        assert page.locator('#weather-wind').input_value() == '84'
+        assert page.locator('#weather-starlight').input_value() == '95'
+        assert page.locator('#weather-mist').input_value() == '9'
+        load(page)
+        assert page.locator('#weather-wind').input_value() == '84'
+        with page.expect_download() as image_info:
+            page.locator('#capture-sky').click()
+        assert image_info.value.suggested_filename == 'the-unfinished-sky-weather.png'
+        
         # Traveler codes can safely restore in a second isolated browser.
         page.locator('#copy-code').click()
         code = page.locator('#sky-code').input_value()
-        assert code.startswith('SKY2-')
+        assert code.startswith('SKY3-')
         new_context = browser.new_context(viewport={'width':900,'height':750})
         second = new_context.new_page()
         load(second)
@@ -128,6 +140,14 @@ with sync_playwright() as p:
         assert second.locator('#loom-count').inner_text() == '15 / 15 secret routes woven'
         assert second.locator('#loom-gallery button[aria-pressed="true"]').count() == 1
         assert second.locator('#journal .journal-entry').count() == 1, 'Private journal must not transfer'
+        assert second.locator('#weather-wind').input_value() == '84'
+        # A SKY2 code imports with safe default atmosphere.
+        sky2 = second.evaluate("""() => 'SKY2-'+btoa('2.0.6.10.10.10.10.63.0.-1').replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=+$/,'')""")
+        second.locator('#sky-code').fill(sky2)
+        second.locator('#import-code').click()
+        assert second.locator('#import-dialog').evaluate('(el)=>el.open')
+        second.locator('#import-confirm').click()
+        assert second.locator('#weather-wind').input_value() == '24'
         assert second.locator('#seventh-outcome').is_hidden(), 'Secret promise should not transfer by traveler code'
         # Legacy SKY1 imports remain valid; they simply have no woven routes.
         old_code = page.evaluate("""() => {
@@ -162,7 +182,7 @@ with sync_playwright() as p:
         load(page)
         assert page.locator('#item-count').inner_text() == '0 / 6'
         assert not errors, f'JavaScript errors: {errors}'
-        print('PASS desktop: 6 islands, 18 choices, 15 woven routes, secret Seventh Place, persistence, SKY2+SKY1 sharing, postcard, reset, no JS exceptions')
+        print('PASS desktop: weather studio, PNG, 6 islands, 15 routes, secret Seventh Place, SKY3/SKY2/SKY1, postcard, reset')
         
         # Phone size: map, buttons and modal are usable without horizontal viewport overflow.
         mobile_context = browser.new_context(viewport={'width':390,'height':844}, device_scale_factor=2, is_mobile=True, has_touch=True)
@@ -174,6 +194,8 @@ with sync_playwright() as p:
         mobile.locator('#dialog-choices button').nth(1).click()
         mobile.locator('#dialog-continue').click()
         assert mobile.locator('#item-count').inner_text() == '1 / 6'
+        mobile.locator('#weather-presets button').nth(2).click()
+        assert mobile.locator('#weather-mist').input_value() == '96'
         overflow = mobile.evaluate('document.documentElement.scrollWidth - window.innerWidth')
         assert overflow < 5, f'Mobile horizontal overflow by {overflow}px'
         assert not errors, f'JavaScript errors: {errors}'

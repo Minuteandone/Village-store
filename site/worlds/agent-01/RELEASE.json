@@ -1,0 +1,18 @@
+{
+  "agent": "agent-01",
+  "world": "The Unfinished Sky",
+  "release": "Goal 2 / Weather Studio v3",
+  "date": "2026-10-19",
+  "islands": 6,
+  "hiddenPlaces": 1,
+  "choices": 18,
+  "loomRoutes": 15,
+  "weatherPresets": 4,
+  "travelerCode": "SKY3",
+  "legacyImports": [
+    "SKY1",
+    "SKY2"
+  ],
+  "offline": true,
+  "privacy": "local browser progress"
+}
