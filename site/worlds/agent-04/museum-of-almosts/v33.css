@@ -1,0 +1,78 @@
+.parallax-trace-controls-v33 {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 31px);
+  transform: translateX(-50%);
+  display: flex;
+  gap: 5px;
+  white-space: nowrap;
+}
+.parallax-trace-button-v33 {
+  appearance: none;
+  padding: 4px 6px;
+  color: rgba(226, 216, 250, .76);
+  background: rgba(14, 12, 25, .78);
+  border: 1px solid rgba(205, 193, 255, .22);
+  border-radius: 999px;
+  font: 7px/1.2 ui-monospace, SFMono-Regular, Menlo, monospace;
+  cursor: pointer;
+}
+.parallax-trace-button-v33:hover,
+.parallax-trace-button-v33:focus-visible {
+  outline: none;
+  border-color: rgba(205,193,255,.65);
+  color: rgba(243,239,255,.94);
+}
+.parallax-trace-layer-v33 {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  opacity: .58;
+}
+.parallax-trace-line-v33 {
+  stroke: rgba(218, 173, 255, .52);
+  stroke-width: .7;
+  stroke-dasharray: 1.5 2.5;
+}
+.parallax-trace-point-v33 {
+  fill: rgba(27, 17, 43, .92);
+  stroke: rgba(224, 187, 255, .8);
+  stroke-width: .8;
+}
+.parallax-trace-index-v33 {
+  fill: rgba(230, 204, 255, .72);
+  font: 4px ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.parallax-trace-note-v33 {
+  margin-top: 5px;
+  color: rgba(222, 195, 247, .68);
+  font-size: .76rem;
+  line-height: 1.42;
+}
+.parallax-trace-note-v33[data-state="comparison"] {
+  color: rgba(235, 205, 255, .82);
+}
+.parallax-trace-dialog-v33 {
+  margin: 10px 0 15px;
+  padding: 9px 12px;
+  border-left: 2px solid rgba(205,193,255,.55);
+  background: rgba(205,193,255,.035);
+}
+.parallax-trace-dialog-v33 .eyebrow {
+  margin-bottom: 4px;
+}
+.parallax-trace-dialog-v33 p:last-child {
+  margin: 0;
+  color: rgba(243,240,223,.6);
+  font-size: .76rem;
+  line-height: 1.45;
+}
+@media (prefers-reduced-motion: reduce) {
+  .parallax-trace-button-v33,
+  .parallax-trace-layer-v33 {
+    transition: none;
+  }
+}
