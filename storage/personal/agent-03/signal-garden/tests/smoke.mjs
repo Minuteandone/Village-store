@@ -1,0 +1,185 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import vm from "node:vm";
+
+const html = fs.readFileSync("site/signal-garden/index.html", "utf8");
+const match = html.match(/<script>([\s\S]*?)<\/script>/i);
+assert.ok(match, "inline Signal Garden script should exist");
+
+let source = match[1];
+const tail = "  renderUI();requestAnimationFrame(draw);";
+assert.ok(source.includes(tail), "expected game startup tail");
+source = source.replace(
+  tail,
+  `  globalThis.__gardenTest={
+    edgeKey:edgeKey,
+    topologySpecies:topologySpecies,
+    specimenCode:specimenCode,
+    decodeSpecimen:decodeSpecimen,
+    migrateSignals:migrateSignals,
+    getState:function(){return state},
+    setState:function(next){state=next;motes=[]}
+  };`
+);
+
+function element(extra = {}) {
+  return Object.assign({
+    textContent: "",
+    innerHTML: "",
+    disabled: false,
+    style: {},
+    dataset: {},
+    classList: { toggle() {} },
+    addEventListener() {},
+    closest() { return null; }
+  }, extra);
+}
+
+const ctx2d = {
+  clearRect() {}, fillRect() {}, beginPath() {}, moveTo() {}, lineTo() {},
+  quadraticCurveTo() {}, stroke() {}, fill() {}, arc() {}, ellipse() {},
+  setLineDash() {}, fillText() {},
+  createLinearGradient() { return { addColorStop() {} }; },
+  createRadialGradient() { return { addColorStop() {} }; }
+};
+
+const canvas = element({
+  width: 900,
+  height: 660,
+  getContext() { return ctx2d; },
+  getBoundingClientRect() { return { width: 900, height: 660, left: 0, top: 0 }; }
+});
+
+const ids = new Map();
+ids.set("garden", canvas);
+[
+  "seasonChip","focusChip","resChip","transitChip","historyChip","germinateBtn",
+  "islandNav","applySelectedBtn","selectedName","selectedLore","lifeStat",
+  "memoryStat","strangeStat","linksStat","arrivalsStat","trafficStat","lifeMeter",
+  "species","discoveries","log","restBtn","exportBtn","specimenBtn","importBtn","resetBtn"
+].forEach(id => ids.set(id, element()));
+
+const actionButtons = ["nurture","observe","connect","distort"].map(action =>
+  element({ dataset: { action } })
+);
+
+const store = new Map();
+const sandbox = {
+  console,
+  URLSearchParams,
+  location: { search: "", origin: "https://example.test", pathname: "/signal-garden/" },
+  document: {
+    getElementById(id) {
+      if (!ids.has(id)) ids.set(id, element());
+      return ids.get(id);
+    },
+    querySelectorAll(sel) { return sel === "[data-action]" ? actionButtons : []; },
+    addEventListener() {}
+  },
+  window: { matchMedia() { return { matches: true }; } },
+  localStorage: {
+    getItem(k) { return store.has(k) ? store.get(k) : null; },
+    setItem(k, v) { store.set(k, String(v)); },
+    removeItem(k) { store.delete(k); }
+  },
+  navigator: { clipboard: { async writeText() {} } },
+  performance: { now() { return 0; } },
+  requestAnimationFrame() {},
+  prompt() { return null; },
+  confirm() { return true; },
+  alert() {},
+  btoa(s) { return Buffer.from(s, "binary").toString("base64"); },
+  atob(s) { return Buffer.from(s, "base64").toString("binary"); }
+};
+sandbox.globalThis = sandbox;
+
+vm.createContext(sandbox);
+vm.runInContext(source, sandbox, { filename: "signal-garden-inline.js" });
+const api = sandbox.__gardenTest;
+assert.ok(api, "test API should be exposed");
+
+function island(id, links = [], life = 50, memory = 20, strange = 10) {
+  return { id, links: [...links], life, memory, strange, arrivals: 0 };
+}
+function setGraph(islands, edgeMemory = {}) {
+  api.setState({
+    seed: "testseed",
+    cycle: 2,
+    focus: 8,
+    resonance: 0,
+    mode: "Quiet",
+    selected: null,
+    action: "nurture",
+    discoveries: [],
+    log: [],
+    edgeMemory: { ...edgeMemory },
+    islands
+  });
+}
+
+assert.equal(api.edgeKey(4, 1), "1-4");
+assert.equal(api.edgeKey(1, 4), "1-4");
+
+setGraph([
+  island(0, [1, 2, 3]),
+  island(1, [0]),
+  island(2, [0]),
+  island(3, [0])
+]);
+assert.ok(api.topologySpecies().some(x => x.id === "crown"), "3+ degree hub should host Relay Crown");
+
+setGraph([
+  island(0, [1, 2]),
+  island(1, [0, 2]),
+  island(2, [0, 1])
+]);
+assert.ok(api.topologySpecies().some(x => x.id === "loopmoss"), "connected ring should host Loopmoss");
+
+setGraph([
+  island(0, [1, 2]),
+  island(1, [0, 2]),
+  island(2, [0, 1]),
+  island(3, [4, 5]),
+  island(4, [3, 5]),
+  island(5, [3, 4])
+]);
+assert.ok(!api.topologySpecies().some(x => x.id === "loopmoss"), "disconnected rings must not masquerade as one Loopmoss ring");
+
+setGraph([
+  island(0, [1]),
+  island(1, [0, 2]),
+  island(2, [1, 3]),
+  island(3, [2])
+]);
+assert.ok(api.topologySpecies().some(x => x.id === "threadfin"), "connected simple corridor should host Threadfin");
+
+setGraph([island(0), island(1)], { "0-1": 6 });
+assert.ok(api.topologySpecies().some(x => x.id === "ghostreed"), "severed remembered route should host Ghost Reed");
+
+setGraph([
+  island(0, [1], 80, 10, 5),
+  island(1, [0], 10, 80, 5)
+]);
+api.migrateSignals();
+assert.equal(api.getState().edgeMemory["0-1"], 2, "two linked islands should each record one crossing in a cycle");
+assert.equal(api.getState().islands[0].arrivals, 1);
+assert.equal(api.getState().islands[1].arrivals, 1);
+
+setGraph([
+  island(0, [1], 70, 20, 10),
+  island(1, [0], 20, 70, 10),
+  island(2, [], 20, 20, 70),
+  island(3, [], 50, 20, 10)
+], { "0-1": 9 });
+api.getState().resonance = 7;
+const code = api.specimenCode();
+assert.ok(code.startsWith("SG1."));
+const decoded = api.decodeSpecimen(code);
+assert.equal(decoded.seed, "testseed");
+assert.equal(decoded.traits.length, 4);
+assert.deepEqual(Array.from(decoded.edges[0]), [0, 1]);
+assert.equal(decoded.memory[0][2], 9);
+assert.ok(!("log" in decoded), "specimen must not contain field-log text");
+assert.throws(() => api.decodeSpecimen("SG1.not-valid-base64!"));
+
+console.log("Signal Garden invariant tests passed.");
