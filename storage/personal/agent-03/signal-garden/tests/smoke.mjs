@@ -96,6 +96,10 @@ assert.ok(html.includes('.hud .chip{font-size:11px;padding:6px 7px;white-space:n
 });
 assert.ok(source.includes('document.getElementById("quickNav").addEventListener("click",function(e){'),"quick navigation should reveal collapsed details before native fragment navigation");
 assert.ok(source.includes('if(target&&target.tagName==="DETAILS")target.open=true'),"quick navigation should only auto-open details targets");
+assert.ok(source.includes('function syncQuickNavCurrent(){'),"quick navigation should derive current-fragment state");
+assert.ok(source.includes('window.addEventListener("hashchange",syncQuickNavCurrent)'),"quick navigation current state should follow native hash changes");
+assert.ok(source.includes('link.setAttribute("aria-current","location")'),"matching quick-nav link should expose aria-current=location");
+assert.ok(html.includes('.quick-nav a[aria-current="location"]{border-color:#9ee7ef;background:#173443;color:#eaf8ee}'),"current fragment should also have a visual quick-nav state");
 assert.ok(html.includes('#worldSection:focus-visible,#actionsSection:focus-visible,#islandSection:focus-visible,#researchSection:focus-visible,#historySection:focus-visible,#specimenSection:focus-visible{outline:2px solid #9ee7ef;outline-offset:4px}'),"keyboard-focused fragment destinations should have an explicit visible outline");
 assert.ok(source.includes("aria-keyshortcuts=\"'+(i+1)+'\""),"dynamic island navigator buttons should expose 1–7 shortcuts");
 assert.ok(source.includes('checkpointUndo("same-seed reset")'),"same-seed reset should be recoverable in-session");
@@ -219,21 +223,33 @@ const actionButtons = ["nurture","observe","connect","distort"].map(action =>
 const glyphButtons = ["life","memory","strange","none"].map(glyph =>
   element({ dataset: { glyph } })
 );
+const quickNavLinks=["#worldSection","#actionsSection","#islandSection","#researchSection","#historySection","#specimenSection"].map(href=>{
+  const link=element();link.setAttribute("href",href);return link;
+});
+const windowListeners={};
 
 const store = new Map();
 const sandbox = {
   console,
   URLSearchParams,
-  location: { search: "", origin: "https://example.test", pathname: "/signal-garden/" },
+  location: { search: "", hash: "", origin: "https://example.test", pathname: "/signal-garden/" },
   document: {
     getElementById(id) {
       if (!ids.has(id)) ids.set(id, element());
       return ids.get(id);
     },
-    querySelectorAll(sel) { return sel === "[data-action]" ? actionButtons : sel === "[data-glyph]" ? glyphButtons : []; },
+    querySelectorAll(sel) {
+      return sel === "[data-action]" ? actionButtons
+        : sel === "[data-glyph]" ? glyphButtons
+        : sel === '#quickNav a[href^="#"]' ? quickNavLinks
+        : [];
+    },
     addEventListener() {}
   },
-  window: { matchMedia() { return { matches: true }; } },
+  window: {
+    matchMedia() { return { matches: true }; },
+    addEventListener(type,fn){windowListeners[type]=fn}
+  },
   localStorage: {
     getItem(k) { return store.has(k) ? store.get(k) : null; },
     setItem(k, v) { store.set(k, String(v)); },
@@ -254,6 +270,17 @@ vm.createContext(sandbox);
 vm.runInContext(source, sandbox, { filename: "signal-garden-inline.js" });
 const api = sandbox.__gardenTest;
 assert.ok(api, "test API should be exposed");
+assert.equal(typeof windowListeners.hashchange,"function","game should register one hashchange listener for quick-nav current state");
+assert.equal(quickNavLinks.filter(x=>x.getAttribute("aria-current")).length,0,"no hash should leave all quick-nav links without aria-current");
+sandbox.location.hash="#researchSection";
+windowListeners.hashchange();
+assert.deepEqual(quickNavLinks.filter(x=>x.getAttribute("aria-current")).map(x=>[x.getAttribute("href"),x.getAttribute("aria-current")]),[["#researchSection","location"]],"Research hash should mark only Research current");
+sandbox.location.hash="#historySection";
+windowListeners.hashchange();
+assert.deepEqual(quickNavLinks.filter(x=>x.getAttribute("aria-current")).map(x=>[x.getAttribute("href"),x.getAttribute("aria-current")]),[["#historySection","location"]],"History hash should replace the prior current link");
+sandbox.location.hash="";
+windowListeners.hashchange();
+assert.equal(quickNavLinks.filter(x=>x.getAttribute("aria-current")).length,0,"clearing the hash should clear quick-nav current state");
 const firstIslandHit=api.pickIsland(900*.24,660*.32);
 assert.ok(firstIslandHit&&firstIslandHit.id===0,"client-coordinate hit test should still resolve the first starting island");
 
