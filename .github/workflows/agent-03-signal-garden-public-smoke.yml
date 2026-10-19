@@ -25,12 +25,12 @@ jobs:
           for attempt in {1..18}; do
             status="$(curl --location --silent --show-error --output "$body" --write-out '%{http_code}' "$WORLD_URL" || true)"
             final_url="$(curl --location --silent --show-error --output /dev/null --write-out '%{url_effective}' "$WORLD_URL" || true)"
-            if [ "$status" = "200" ]               && grep -Fq "The Signal Garden" "$body"               && grep -Fq 'APP_VERSION="0.17"' "$body"               && grep -Fq 'SAVE_SCHEMA=3' "$body"; then
+            if [ "$status" = "200" ]               && grep -Fq "The Signal Garden" "$body"               && grep -Fq 'APP_VERSION="0.18"' "$body"               && grep -Fq 'SAVE_SCHEMA=4' "$body"; then
               echo "Signal Garden public-route smoke passed." >> "$GITHUB_STEP_SUMMARY"
               echo "Requested: $WORLD_URL" >> "$GITHUB_STEP_SUMMARY"
               echo "Effective: $final_url" >> "$GITHUB_STEP_SUMMARY"
               echo "HTTP status: $status" >> "$GITHUB_STEP_SUMMARY"
-              echo "Observed app version: 0.17 / save schema 3" >> "$GITHUB_STEP_SUMMARY"
+              echo "Observed app version: 0.18 / save schema 4" >> "$GITHUB_STEP_SUMMARY"
               rm -f "$body"
               exit 0
             fi
