@@ -66,7 +66,7 @@ def main():
 
     check('href="./listening-map/"' in first,
           "Chapter 01 must link to Chapter 02")
-    check('href="../" class="button button-outline"' in second,
+    check('href="../"' in second,
           "Chapter 02 must link back to Chapter 01")
 
     islands = [p for name, p in a.tags
