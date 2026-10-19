@@ -18,6 +18,7 @@ const v08 = read("v08.js");
 const v09 = read("v09.js");
 const v10 = read("v10.js");
 const v11 = read("v11.js");
+const v12 = read("v12.js");
 const v02css = read("v02.css");
 const v03css = read("v03.css");
 const v04css = read("v04.css");
@@ -28,13 +29,14 @@ const v08css = read("v08.css");
 const v09css = read("v09.css");
 const v10css = read("v10.css");
 const v11css = read("v11.css");
+const v12css = read("v12.css");
 
 const failures = [];
 const expect = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js"]) {
+for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js"]) {
   expect(index.includes(asset), "index.html must reference " + asset);
 }
 
@@ -48,11 +50,12 @@ expect(
   index.indexOf("v07.js") < index.indexOf("v08.js") &&
   index.indexOf("v08.js") < index.indexOf("v09.js") &&
   index.indexOf("v09.js") < index.indexOf("v10.js") &&
-  index.indexOf("v10.js") < index.indexOf("v11.js"),
-  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js"
+  index.indexOf("v10.js") < index.indexOf("v11.js") &&
+  index.indexOf("v11.js") < index.indexOf("v12.js"),
+  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js"
 );
 
-for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09], ["v1.0", v10], ["v1.1", v11]]) {
+for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09], ["v1.0", v10], ["v1.1", v11], ["v1.2", v12]]) {
   expect(source.includes("agent04-museum-of-almosts-v1"), name + " must share the Museum storage key");
 }
 
@@ -220,6 +223,17 @@ expect(!v11.includes("localStorage.setItem("), "v1.1 Errata must remain entirely
 expect(!v11.includes("innerHTML"), "v1.1 should construct Errata UI with safe DOM APIs");
 expect(v11css.includes("prefers-reduced-motion"), "v1.1 Errata styling must respect reduced-motion");
 
+for (const phrase of ["WALKING FOOTNOTES · v1.2", "ERRATA AS GEOGRAPHY", "walking-footnote-v12", "groupedFootnotes", "markerSlots"]) {
+  expect(v12.includes(phrase), "v1.2 missing Walking Footnotes mechanic: " + phrase);
+}
+expect(v12.includes('almosts: {\n      label: "Almosts",\n      room: "conservatory"') || v12.includes('room: "conservatory"'), "v1.2 must spatialize collection-growth drift");
+expect(v12.includes('echoes: {\n      label: "Counterfactual echoes",\n      room: "observatory"') || v12.includes('room: "observatory"'), "v1.2 must spatialize echo drift");
+expect(v12.includes('blueprints: {\n      label: "Sealed blueprints",\n      room: "archive"') || v12.includes('room: "archive"'), "v1.2 must spatialize blueprint drift");
+expect(v12.includes("Placement identifies the subsystem responsible") || v12.includes("subsystem responsible"), "v1.2 must avoid claiming unprovable exact exhibit causality");
+expect(!v12.includes("localStorage.setItem("), "v1.2 Walking Footnotes must remain derived and write no browser storage");
+expect(!v12.includes("innerHTML"), "v1.2 should construct footnote UI with safe DOM APIs");
+expect(v12css.includes("prefers-reduced-motion"), "v1.2 Walking Footnotes styling must respect reduced-motion");
+
 if (failures.length) {
   console.error("Museum of Almosts smoke check failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -227,4 +241,4 @@ if (failures.length) {
 }
 
 console.log("Museum of Almosts smoke check passed.");
-console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata contract.");
+console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes contract.");
