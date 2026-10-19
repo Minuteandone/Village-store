@@ -23,12 +23,14 @@ assert(html.includes('id="echo"'),'Import control exists');
 const STORAGE='gpt-village-elsewhere-resonance-room-v1';
 function mount(store=new Map(),hash=''){
   const elements=new Map(),stepButtons=[],muteButtons=[],intervals=new Map(),copied=[];
+  let focused=null, envelopes=0, audioNodes=0;
   let nextInterval=1;
   function element(id){
     if(elements.has(id))return elements.get(id);
     const el={
       id,attrs:{},events:{},children:[],textContent:'',value:'',hidden:false,style:{},className:'',
       classList:{items:new Set(),toggle(name,on){if(on)this.items.add(name);else this.items.delete(name)}},
+      focus(){focused=this},
       setAttribute(name,value){this.attrs[name]=String(value)},
       getAttribute(name){return this.attrs[name]},
       addEventListener(type,cb){this.events[type]=cb},
@@ -59,7 +61,13 @@ function mount(store=new Map(),hash=''){
   const navigator={clipboard:{writeText:async str=>{copied.push(str)}}};
   const setInterval=(fn,ms)=>{const id=nextInterval++;intervals.set(id,{fn,ms});return id};
   const clearInterval=id=>intervals.delete(id);
-  const window={addEventListener(){}};
+  const window={addEventListener(){},AudioContext:class FakeAudioContext{
+    constructor(){this.currentTime=0;this.state='running';this.destination={}}
+    createGain(){audioNodes++;return{connect(){},gain:{setValueAtTime(){},exponentialRampToValueAtTime(value){assert(value>0,'Exponential audio gain targets must be positive');envelopes++}}}}
+    createOscillator(){return{type:'sine',frequency:{setValueAtTime(){}},connect(){},start(){},stop(){}}}
+    suspend(){this.state='suspended';return Promise.resolve()}
+    resume(){this.state='running';return Promise.resolve()}
+  }};
   runInNewContext(script,{document:doc,window,location,localStorage,navigator,setInterval,clearInterval,Math},{timeout:3000});
   function click(id){assert(typeof element(id).events.click==='function','Click handler for '+id);return element(id).events.click()}
   function note(row,col){
@@ -75,7 +83,7 @@ function mount(store=new Map(),hash=''){
     line.children[0].children[1].events.click();
   }
   function data(){return JSON.parse(store.get(STORAGE))}
-  return {element,click,note,mute,data,store,location,copied,intervals,live:()=>element('tracks').children};
+  return {element,click,note,mute,data,store,location,copied,intervals,live:()=>element('tracks').children,focus:()=>focused,audioStats:()=>({envelopes,audioNodes})};
 }
 const world=mount();
 assert.equal(world.live().length,5,'Five island voices');
@@ -84,9 +92,19 @@ assert.equal(world.data().matrix.length,5,'Stored composition matrix');
 assert.equal(world.data().matrix[0].length,8,'Eight beats per track');
 assert.equal(world.element('tempo-value').textContent,'95','Default tempo');
 assert.equal(world.data().tempo,95);
+assert.equal(world.element('silent').getAttribute('aria-pressed'),'false','Sound is off until enabled');
+assert(world.element('transport-status').textContent.includes('Enable sound'),'Instructions explain sound consent');
+assert.equal(world.element('undo-edit').disabled,true,'No edit to undo yet');
 const previous=world.data().matrix[0][0];
 world.note(0,0);
 assert.equal(world.data().matrix[0][0],!previous,'Step toggles on and off');
+assert.equal(world.focus()?.getAttribute('aria-label'),'Glass Observatory, beat 1: '+(!previous?'note on':'note off'),'Keyboard focus follows replacement note');
+assert.equal(world.element('undo-edit').disabled,false,'Undo enables after editing');
+world.click('undo-edit');
+assert.equal(world.data().matrix[0][0],previous,'Undo restores original note');
+assert.equal(world.element('undo-edit').disabled,true,'Undo disables when history is empty');
+world.note(0,0);
+assert.equal(world.data().matrix[0][0],!previous,'Editing remains possible after undo');
 const tempo=world.element('tempo');tempo.value='120';tempo.events.input({target:tempo});
 assert.equal(world.data().tempo,120,'Tempo persists');
 assert.equal(world.element('tempo-value').textContent,'120');
@@ -94,14 +112,29 @@ const volume=world.element('volume');volume.value='45';volume.events.input({targ
 assert.equal(world.data().volume,45,'Volume persists');
 world.mute(1);
 assert.equal(world.data().mute[1],true,'Mute state persists');
+assert.equal(world.focus()?.getAttribute('aria-label'),'Unmute Hushwood','Mute button retains keyboard focus');
 world.click('play');
 assert.equal(world.element('play').getAttribute('aria-pressed'),'true','Play enters active state');
+assert.equal(world.audioStats().audioNodes,0,'Visual playback does not initialize audio before consent');
 assert.equal(world.intervals.size,1,'Visual clock running');
 for(const loop of world.intervals.values())loop.fn();
 assert(world.element('transport-status').textContent.includes('Beat 2'),'Playback advances');
 world.click('play');
 assert.equal(world.element('play').getAttribute('aria-pressed'),'false','Stop exits active state');
 assert.equal(world.intervals.size,0,'Stopped clock is cleared');
+world.click('silent');
+assert.equal(world.element('silent').getAttribute('aria-pressed'),'true','Visitor explicitly opts in to sound');
+const zero=world.element('volume');zero.value='0';zero.events.input({target:zero});
+world.click('play');
+assert.equal(world.audioStats().audioNodes,1,'AudioContext gain connects on explicit sound gesture');
+assert.equal(world.audioStats().envelopes,0,'Zero volume does not create invalid audio envelopes');
+world.click('play');
+zero.value='65';zero.events.input({target:zero});
+world.click('play');
+assert(world.audioStats().envelopes>0,'Normal volume schedules positive audio envelopes');
+world.click('play');
+world.click('silent');
+assert.equal(world.element('silent').getAttribute('aria-pressed'),'false','Sound can be switched off again');
 
 world.click('dawn');
 assert.equal(world.data().matrix.length,5);
@@ -109,6 +142,9 @@ assert.equal(world.data().matrix[0].length,8);
 assert.equal(world.data().mute.some(Boolean),false,'Preset unmutes voices');
 world.click('night');
 assert.equal(world.data().matrix.length,5);
+const nightScore=JSON.stringify(world.data().matrix);
+world.click('undo-edit');
+assert.notEqual(JSON.stringify(world.data().matrix),nightScore,'Undo recovers the last score before a preset');
 await world.click('share');
 assert.equal(world.copied.length,1,'Share uses clipboard');
 const score=world.copied[0];
@@ -131,10 +167,12 @@ fresh.click('echo');
 assert(fresh.element('source-note').textContent.includes('No saved discoveries'),'Import fallback is explained');
 fresh.click('clear');
 assert.equal(fresh.data().matrix.flat().filter(Boolean).length,0,'Clear removes all notes');
+fresh.click('undo-edit');
+assert(fresh.data().matrix.flat().some(Boolean),'Undo restores a cleared score');
 fresh.click('surprise');
 assert.equal(fresh.data().matrix.length,5,'Random score has five tracks');
 
 const corrupt=mount(new Map([[STORAGE,'{invalid json']]),'#score=invalid-code');
 assert.equal(corrupt.data().matrix.length,5,'Malformed save/link does not crash the studio');
 assert(corrupt.element('message').textContent.includes('could not be decoded'),'Malformed link gets a clear message');
-console.log('PASS · Resonance Room: 5 tracks, 8 beats, tempo, volume, mute, transport, preset, import, share, malformed-input recovery.');
+console.log('PASS · Resonance Room: 5 tracks, 8 beats, focused controls, consent-first audio, silent volume guard, 30-state undo, tempo, mute, transport, preset, import, share, malformed-input recovery.');
