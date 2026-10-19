@@ -109,22 +109,42 @@ with sync_playwright() as p:
         assert page.locator('#world-clock').inner_text() == phase
         assert page.locator('#item-count').inner_text() == '6 / 6'
 
-        # Atmosphere presets, persistence, local PNG, and transfer.
+        # Atmosphere dial changes must immediately update, save, survive refresh, and travel in SKY4.
         assert page.locator('#weather-presets button').count() == 4
-        page.locator('#weather-presets button').nth(1).click()
+        page.locator('#weather-presets button').nth(1).click() # Meteor Waltz
         assert page.locator('#weather-wind').input_value() == '84'
         assert page.locator('#weather-starlight').input_value() == '95'
         assert page.locator('#weather-mist').input_value() == '9'
+        page.locator('#weather-mist').fill('9')
+        assert 'dance fast' in page.locator('#weather-lore').inner_text()
         load(page)
         assert page.locator('#weather-wind').input_value() == '84'
-        with page.expect_download() as image_info:
+        assert page.locator('#weather-starlight').input_value() == '95'
+        with page.expect_download() as weather_download:
             page.locator('#capture-sky').click()
-        assert image_info.value.suggested_filename == 'the-unfinished-sky-weather.png'
-        
+        assert weather_download.value.suggested_filename == 'the-unfinished-sky-weather.png'
+
+        # Four weather visitors: each preset must expose its unique choices.
+        for preset_index, visitor_index in [(0,0),(1,1),(2,2),(3,3)]:
+            page.locator('#weather-presets button').nth(preset_index).click()
+            card = page.locator('#visitor-grid .visitor-card').nth(visitor_index)
+            assert card.locator('.visitor-choices button').count() == 2, (preset_index, visitor_index)
+            card.locator('.visitor-choices button').first.click()
+            assert page.locator('#visitor-count').inner_text().startswith(f'{visitor_index+1} / 4')
+        assert page.locator('#visitor-finale').is_visible()
+        assert 'POSTMARKED' in page.locator('#visitor-grid').inner_text()
+        load(page)
+        assert page.locator('#visitor-count').inner_text() == '4 / 4 sky postmarks collected'
+        # Already-stamped visitors cannot be farmed for more points.
+        before_steps=page.evaluate("JSON.parse(localStorage.getItem('agent01-unfinished-sky-v1')).steps")
+        assert page.locator('#visitor-grid .visitor-choices button').count() == 0
+        assert page.evaluate("JSON.parse(localStorage.getItem('agent01-unfinished-sky-v1')).steps") == before_steps
+        page.locator('#weather-presets button').nth(1).click()  # SKY4 exports Meteor Waltz.
+
         # Traveler codes can safely restore in a second isolated browser.
         page.locator('#copy-code').click()
         code = page.locator('#sky-code').input_value()
-        assert code.startswith('SKY3-')
+        assert code.startswith('SKY4-')
         new_context = browser.new_context(viewport={'width':900,'height':750})
         second = new_context.new_page()
         load(second)
@@ -140,15 +160,19 @@ with sync_playwright() as p:
         assert second.locator('#loom-count').inner_text() == '15 / 15 secret routes woven'
         assert second.locator('#loom-gallery button[aria-pressed="true"]').count() == 1
         assert second.locator('#journal .journal-entry').count() == 1, 'Private journal must not transfer'
-        assert second.locator('#weather-wind').input_value() == '84'
-        # A SKY2 code imports with safe default atmosphere.
-        sky2 = second.evaluate("""() => 'SKY2-'+btoa('2.0.6.10.10.10.10.63.0.-1').replace(/\\+/g,'-').replace(/\\//g,'_').replace(/=+$/,'')""")
-        second.locator('#sky-code').fill(sky2)
+        assert second.locator('#weather-wind').input_value() == '84', 'Weather should transfer in SKY4'
+        assert second.locator('#weather-mist').input_value() == '9'
+        assert second.locator('#visitor-count').inner_text() == '4 / 4 sky postmarks collected', 'SKY4 preserves visitor postmarks'
+        # SKY2 imports must also work; old codes default to the original weather.
+        old_sky2 = page.evaluate("""() => 'SKY2-'+btoa('2.0.6.10.10.10.10.63.0.-1').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')""")
+        second.locator('#sky-code').fill(old_sky2)
         second.locator('#import-code').click()
         assert second.locator('#import-dialog').evaluate('(el)=>el.open')
         second.locator('#import-confirm').click()
         assert second.locator('#weather-wind').input_value() == '24'
+        assert second.locator('#weather-starlight').input_value() == '55'
         assert second.locator('#seventh-outcome').is_hidden(), 'Secret promise should not transfer by traveler code'
+        assert second.locator('#visitor-count').inner_text() == '0 / 4 sky postmarks collected'
         # Legacy SKY1 imports remain valid; they simply have no woven routes.
         old_code = page.evaluate("""() => {
           const old='1.0.6.10.10.10.10.63';
@@ -159,6 +183,20 @@ with sync_playwright() as p:
         assert second.locator('#import-dialog').evaluate('(el)=>el.open')
         second.locator('#import-confirm').click()
         assert second.locator('#loom-count').inner_text() == '0 / 15 secret routes woven'
+        assert second.locator('#visitor-count').inner_text() == '0 / 4 sky postmarks collected'
+        # SKY3 imports remain supported and do not grant postmarks.
+        sky3 = second.evaluate("""() => 'SKY3-'+btoa('3.0.6.10.10.10.10.63.0.-1.84.95.9').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')""")
+        second.locator('#sky-code').fill(sky3)
+        second.locator('#import-code').click()
+        assert second.locator('#import-dialog').evaluate('(el)=>el.open')
+        second.locator('#import-confirm').click()
+        assert second.locator('#visitor-count').inner_text() == '0 / 4 sky postmarks collected'
+        assert second.locator('#weather-wind').input_value() == '84'
+        # A crafted SKY4 with an out-of-range postmark mask must be rejected.
+        bad_sky4 = second.evaluate("""() => 'SKY4-'+btoa('4.0.12.10.10.10.10.63.0.-1.24.55.44.16').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')""")
+        second.locator('#sky-code').fill(bad_sky4)
+        second.locator('#import-code').click()
+        assert not second.locator('#import-dialog').evaluate('(el)=>el.open')
         # A crafted SKY2 route without its matching relics must be rejected.
         bad_code = second.evaluate("""() => 'SKY2-'+btoa('2.0.2.10.10.10.10.3.16384.14').replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'')""")
         second.locator('#sky-code').fill(bad_code)
@@ -179,10 +217,11 @@ with sync_playwright() as p:
         page.locator('#reset-confirm').click()
         assert page.locator('#item-count').inner_text() == '0 / 6'
         assert page.locator('#loom-count').inner_text() == '0 / 15 secret routes woven'
+        assert page.locator('#visitor-count').inner_text() == '0 / 4 sky postmarks collected'
         load(page)
         assert page.locator('#item-count').inner_text() == '0 / 6'
         assert not errors, f'JavaScript errors: {errors}'
-        print('PASS desktop: weather studio, PNG, 6 islands, 15 routes, secret Seventh Place, SKY3/SKY2/SKY1, postcard, reset')
+        print('PASS desktop: weather studio + PNG, 6 islands, 15 routes, Seventh Place, persistence, SKY4/SKY3/SKY2/SKY1, no JS exceptions')
         
         # Phone size: map, buttons and modal are usable without horizontal viewport overflow.
         mobile_context = browser.new_context(viewport={'width':390,'height':844}, device_scale_factor=2, is_mobile=True, has_touch=True)
@@ -196,6 +235,8 @@ with sync_playwright() as p:
         assert mobile.locator('#item-count').inner_text() == '1 / 6'
         mobile.locator('#weather-presets button').nth(2).click()
         assert mobile.locator('#weather-mist').input_value() == '96'
+        mobile.locator('#visitor-grid .visitor-card').nth(2).locator('.visitor-choices button').first.click()
+        assert mobile.locator('#visitor-count').inner_text() == '1 / 4 sky postmarks collected'
         overflow = mobile.evaluate('document.documentElement.scrollWidth - window.innerWidth')
         assert overflow < 5, f'Mobile horizontal overflow by {overflow}px'
         assert not errors, f'JavaScript errors: {errors}'

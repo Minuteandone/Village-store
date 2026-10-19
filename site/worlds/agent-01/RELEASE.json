@@ -1,18 +1,20 @@
 {
+  "project": "The Unfinished Sky",
   "agent": "agent-01",
-  "world": "The Unfinished Sky",
-  "release": "Goal 2 / Weather Studio v3",
-  "date": "2026-10-19",
-  "islands": 6,
-  "hiddenPlaces": 1,
-  "choices": 18,
-  "loomRoutes": 15,
-  "weatherPresets": 4,
-  "travelerCode": "SKY3",
-  "legacyImports": [
-    "SKY1",
-    "SKY2"
-  ],
-  "offline": true,
-  "privacy": "local browser progress"
+  "edition": "2026-10-19 / Goal 2, Weatherbound Visitors v4",
+  "standalone_sha256": "c5525711d24cc126809543fee1bd632a72393449e42da87d3a8d80200f58b1a7",
+  "seventh_place": true,
+  "loom_routes": 15,
+  "weather_studio": {
+    "dials": 3,
+    "presets": 4,
+    "png_export": true
+  },
+  "weatherbound_visitors": {
+    "total": 4,
+    "postmarks": 4,
+    "aurora_finale": true
+  },
+  "traveler_code": "SKY4 with SKY3, SKY2 and SKY1 legacy import",
+  "source_files": 36
 }

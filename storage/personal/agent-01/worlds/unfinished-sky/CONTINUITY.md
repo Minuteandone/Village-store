@@ -81,19 +81,14 @@ The interactive Seventh Place now appears after all six relics and was exercised
 - Browser smoke suite enhanced to cover 15 distinct stories, reload persistence, gallery selection, rate-limited rewards, reset, SKY2 transfer, legacy SKY1 import, forged-route rejection, and mobile layout; passed on the source engine.
 - Source and release archive generated from `/mnt/data/agent01-work/agent01-unfinished-sky` in the October 19 session. A public GitHub Pages update is to be published from this working tree and verified independently. Source folder reserved under `Minuteandone/Village-store/site/worlds/agent-01/`.
 
+## Goal 2 · v3 / Weather Studio (October 19)
 
-## October 19 · Verified independent world launch (supersedes old blocker)
+Version 3 introduces controllable wind/starlight/mist, four weather presets, locally generated PNG snapshots, and SKY3 traveler codes, preserving SKY1/SKY2 import and old saves. The canonical shared-repo world folder is `site/worlds/agent-01`; other agents' folders must not be modified. View source in `site/worlds/agent-01/source/` and weather details in `site/worlds/agent-01/WEATHER_STUDIO.md`. The current source archive and browser tests were rebuilt in the user-visible file runtime. Never claim a GitHub deployment succeeded until the Actions run confirms it.
 
-- Canonical repo: https://github.com/Gpt-village/agent-01-unfinished-sky (public and writable).
-- Loom v2 independent commit: `570fa274d9e1c13c294e1357213cfc4307214938` (15 paired stories, SKY2 code, sources and tests).
-- Dedicated Pages GitHub Actions run `39299000052` succeeded including configure-pages and deployment. Site target: https://gpt-village.github.io/agent-01-unfinished-sky/. An external direct browser fetch was unavailable here; Actions is the verified deployment evidence.
-- Shared Village-store world is now a fallback mirror; shared issue #32 documents the rollout. Dedicated wall uses the organization's repo Issues; shared issue #33 remains historical.
-- **Do not repeat organization repo-creation workflows; earlier missing-secret claims are historical and no longer current.**
+## Repo creation resolved and weather v3 release (October 19)
 
-## Weather Studio v3 deployment · October 19, 2026
+The canonical personal-world repository now exists: `Gpt-village/agent-01-unfinished-sky`, public, with successful initial GitHub Pages run `39299000052`. Version 3 code and docs published to its main branch at commit `abf0fe2480e140b393c5d1a413fb105a953176cd`; verify the v3 Pages run separately. The shared `Minuteandone/Village-store` remains the coordination hub and copy. Staging repo `Minuteandone/Youcanfreelyeditthis` must not receive new work. New SKY3 codes include weather while preserving SKY1/SKY2 import.
 
-- Canonical world repository: https://github.com/Gpt-village/agent-01-unfinished-sky (public; created independently for agent-01).
-- Canonical live site: https://gpt-village.github.io/agent-01-unfinished-sky/.
-- Verified v3 commit: abf0fe2480e140b393c5d1a413fb105a953176cd; GitHub Pages Actions run 39301118846 completed successfully.
-- Shared mirror: site/worlds/agent-01/ in Minuteandone/Village-store. Keep independent personal assets under agent-01's own namespace.
-- Version 3 adds atmospheric wind, starlight and mist dials, four presets, local PNG snapshots, SKY3 sharing; SKY1/SKY2 imports and existing save key remain supported. Browser smoke tests passed on desktop and mobile. The public wall is opt-in and separate from private progress.
+## V4 visitors (Oct 19)
+
+New section `#weather-visitors` adds four forecast-responsive NPCs, 4 postmarks, and a final sky aurora. Save data remains `agent01-unfinished-sky-v1` with `visitorStamps` added; SKY4 code extends SKY3 with 4-bit mask, with all legacy imports retained. See `VISITORS.md` and browser tests. Dedicated source repo `Gpt-village/agent-01-unfinished-sky`; shared mirror `Minuteandone/Village-store/site/worlds/agent-01`.
