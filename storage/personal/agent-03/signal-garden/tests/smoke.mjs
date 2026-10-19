@@ -12,6 +12,8 @@ assert.ok(html.includes('aria-describedby="canvasHelp"'),"canvas should point to
 assert.ok(html.includes('id="canvasHelp"'),"canvas guidance should exist in the document");
 assert.ok(html.includes('id="selectionStatus" role="status" aria-live="polite"'),"selected-island context should have a focused polite live region");
 assert.ok(html.includes('id="motionChip"'),"v0.29 should expose the active motion preference in the HUD");
+assert.ok(html.includes('id="textMap" class="discoveries" role="region" aria-label="Text map of islands and live routes"'),"v0.30 should expose a labelled nonvisual topology map");
+assert.ok(html.includes('A textual topology equivalent is available in the Text map panel.'),"canvas guidance should point to the text-map equivalent");
 assert.ok(html.includes('@media(prefers-reduced-motion:reduce){button{transition:none}button:hover{transform:none}}'),"reduced-motion CSS should suppress button transition/hover movement");
 assert.ok(html.includes('id="modeStatus" role="status" aria-live="polite"'),"signal mode should expose a polite status line");
 assert.ok(html.includes('data-action="nurture" aria-pressed="true"'),"default nurture mode should expose pressed state");
@@ -70,6 +72,7 @@ source = source.replace(
     networkConstellation:networkConstellation,
     applyNetworkConstellation:applyNetworkConstellation,
     suggestedMove:suggestedMove,
+    textMapModel:textMapModel,
     getState:function(){return state},
     setState:function(next){state=next;motes=[]}
   };`
@@ -113,7 +116,7 @@ ids.set("garden", canvas);
   "seasonChip","focusChip","resChip","transitChip","historyChip","bondChip","junctionChip","constellationChip","provenanceChip","researchChip","climateChip","motionChip","germinateBtn",
   "islandNav","applySelectedBtn","selectedName","selectedLore","lifeStat",
   "memoryStat","strangeStat","linksStat","arrivalsStat","trafficStat","glyphStat","lineageStat","successionStat","lifeMeter",
-  "research","bonds","provenance","constellation","junctions","species","discoveries","chronicle","log","guidePanel","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
+  "research","bonds","provenance","constellation","junctions","species","discoveries","chronicle","log","guidePanel","textMap","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
 ].forEach(id => ids.set(id, element()));
 
 const actionButtons = ["nurture","observe","connect","distort"].map(action =>
@@ -205,6 +208,20 @@ api.getState().resonance=6;api.getState().focus=2;
 assert.equal(api.suggestedMove().title,"5 · Germinate new land","ready four-island garden should surface germination");
 api.getState().islands.push(island(4));
 assert.equal(api.suggestedMove().title,"Open research","expanded garden should hand the visitor off to open research");
+
+setGraph([island(0),island(1),island(2),island(3)]);
+let textMap=api.textMapModel();
+assert.equal(textMap.islands.length,4,"text map should include every island");
+assert.ok(textMap.islands.every(x=>x.text.includes("isolated")),"fresh unlinked garden should describe every island as isolated");
+setGraph(
+  [island(0,[1]),island(1,[0]),island(2),island(3)],
+  {"0-1":6},
+  {"0-1":{life:4,memory:1,strange:1}}
+);
+textMap=api.textMapModel();
+assert.ok(textMap.islands[0].text.includes("live route to"),"text map should name live neighbors");
+assert.ok(textMap.islands[0].text.includes("Rootway"),"text map should expose mature route-bond identity");
+assert.ok(textMap.islands[0].text.includes("route memory 6"),"text map should expose route memory");
 
 setGraph([island(0),island(1),island(2),island(3)]);
 api.getState().islands[0].imprints={life:3,memory:1,strange:0};
