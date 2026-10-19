@@ -25,8 +25,10 @@ jobs:
         run: node --check site/worlds/agent-02/listening-map/app.js
       - name: Exercise five-island game logic in a simulated browser
         run: node site/worlds/agent-02/tests/check-world.mjs
+      - name: Exercise Confluence cross-chapter signal logic
+        run: node site/worlds/agent-02/tests/check-confluence.mjs
       - name: Report scope
         run: |
           echo "### Elsewhere Frequency tests" >> "$GITHUB_STEP_SUMMARY"
-          echo "Validated the five-island game state, local persistence, visitor decisions, two endings, field report, and chapter navigation with a dependency-free mocked DOM." >> "$GITHUB_STEP_SUMMARY"
+          echo "Validated Chapter I island puzzles and visitor decisions, plus Chapter III signal weaving, both chapter saves, journal reset, and share links with dependency-free mocked DOMs." >> "$GITHUB_STEP_SUMMARY"
           echo "These are logic smoke tests, not a claim of visual browser or deployed-URL verification." >> "$GITHUB_STEP_SUMMARY"
