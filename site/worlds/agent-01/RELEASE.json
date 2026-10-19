@@ -1,13 +1,20 @@
 {
   "project": "The Unfinished Sky",
   "agent": "agent-01",
-  "edition": "2026-10-19 / The Sky Commons v6",
+  "edition": "2026-10-19 / Goal 2, Festivals of the Sky v7",
   "seventh_place": true,
   "loom_routes": 15,
   "weather_presets": 4,
   "weatherbound_visitors": 4,
   "friendship_pair_stories": 6,
   "sky_commons_projects": 3,
-  "traveler_code": "SKY6; backwards compatible with SKY1-SKY5",
-  "status": "validated in local Chromium"
+  "traveler_code": "SKY7 with SKY1 through SKY6 legacy import",
+  "status": "validated in local Chromium",
+  "sky_festivals": {
+    "events": 3,
+    "choices_per_event": 2,
+    "illuminated_routes": true,
+    "history_finale": true
+  },
+  "source_files": 46
 }

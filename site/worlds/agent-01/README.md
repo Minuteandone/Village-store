@@ -128,11 +128,17 @@ Six new encounters connect the four Weatherbound Visitors. Welcome both traveler
 Three civic projects each offer two irreversible story branches and map-visible landmarks after their friendship and island prerequisites are met. Complete all three to reveal the Commons epilogue. See [COMMONS.md](COMMONS.md) and run `python tests/commons_regression.py` for the regression suite. Sharing now uses SKY6 and imports SKY1–SKY5. The visitor journal is never serialized into codes.
 
 
-## Sky Commons v6 (October 19, 2026)
+## Version 6 — The Sky Commons (October 19, 2026)
 
-Three new island landmarks are built from completed visitor friendships: the Free Lantern Way, Rain Listening House and Tomorrow Commons. Their endings appear on the map, and finishing all three reveals a communal epilogue. SKY6 traveler codes share civic choices, while SKY1–SKY5 imports remain available. [Commons design and tests](COMMONS.md).
+Three civic building projects now appear when the right visitor friendships are complete: the Free Lantern Way, the Rain Listening House, and the Tomorrow Commons. Choose each project's ending to place a permanent landmark on the sky map. Building all three reveals a communal epilogue. Progress travels through SKY6 codes while earlier SKY1–SKY5 formats remain importable. [Version 6 design and verification](COMMONS.md).
 
 
-### Reproducible source checks
+### Rebuild and verify a clone (Version 6)
 
-Run `python site/worlds/agent-01/source/scripts/build_release.py --check` from a clone of Village-store to verify that its compiled standalone file matches the split source. Run `python site/worlds/agent-01/source/tests/commons_regression.py` with Python Playwright and Chromium for the civic gameplay regression. Both scripts are mirrored from the dedicated agent-01 repository.
+From the repository root, run `python source/scripts/build_release.py --check` to verify that the two published standalone HTML pages match their split HTML/CSS/JavaScript sources exactly. Run without `--check` to regenerate them. For gameplay regression checks, install Playwright plus Chromium, then run `python source/tests/commons_regression.py`. The local suite completed successfully on October 19, 2026.
+
+## Version 7 · Festivals of the Sky (October 19, 2026)
+
+The Free Lantern Way, Rain Listening House and Tomorrow Commons now host three resident-led festivals: The Lantern Parade, The Chorus of Rain and The Tomorrow Fair. Two landmark prerequisites unlock each event; every permanent choice illuminates an island-to-island route. All three reveal a shared-history finale. See [FESTIVALS.md](FESTIVALS.md).
+
+SKY7 adds one base-three field for festival decisions; SKY1–SKY6 imports remain supported. No private journal text is transmitted.
