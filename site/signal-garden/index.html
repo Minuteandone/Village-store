@@ -99,7 +99,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip" id="motionChip">Motion · standard</span>
         <span class="chip" id="contrastChip">Contrast · custom</span>
-        <span class="chip" id="versionChip">v0.34 · save 7</span>
+        <span class="chip" id="versionChip">v0.35 · save 7</span>
       </div>
     </section>
 
@@ -183,8 +183,14 @@
       </details>
 
       <details open>
-        <summary>Field questions</summary>
+        <summary id="researchSummary">Field questions</summary>
+        <div class="discovery" id="researchCompass"></div>
+        <div class="small" style="margin:8px 0 6px">Open questions</div>
         <div class="discoveries" id="research"></div>
+        <details id="observedResearchDetails">
+          <summary id="observedResearchSummary">Observed archive · 0</summary>
+          <div class="discoveries" id="researchObserved"></div>
+        </details>
       </details>
 
       <details>
@@ -258,7 +264,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.34",SAVE_SCHEMA=7;
+  var APP_VERSION="0.35",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -829,6 +835,12 @@
       {id:"transplant",done:state.discoveries.some(function(x){return x.id==="transplant-bloom"}),text:"Can an imported specimen germinate genuinely new land after arriving in a new host?"}
     ];
   }
+  function researchCompassModel(){
+    var questions=researchPrompts();
+    var open=questions.filter(function(q){return !q.done});
+    var observed=questions.filter(function(q){return q.done});
+    return {open:open,observed:observed,next:open.length?open[0]:null,total:questions.length};
+  }
   function symbiosisSpecies(){
     var out=[];
     state.islands.forEach(function(a){
@@ -1104,7 +1116,8 @@
     if(state.islands.length===4&&state.resonance<6)return {title:"4 · Build resonance",text:"Observe grants +2 resonance; Nurture and Distort grant +1. Reach 6 resonance while preserving enough focus for whatever you want to do next."};
     if(state.islands.length===4&&state.focus<2)return {title:"5 · Restore germination focus",text:"You have enough resonance for new land, but germination needs 2 focus. Let a cycle pass to restore 3 focus, or keep exploring before you germinate."};
     if(state.islands.length===4)return {title:"5 · Germinate new land",text:"You have enough resonance and focus to expand the map. Germinate an island now, or keep shaping the original four."};
-    return {title:"Open research",text:"The garden is now yours. Pick any open Field Question, reshape the topology, cultivate route bonds, or export a specimen for another host."};
+    var compass=researchCompassModel();
+    return {title:"Open research",text:compass.next?"The garden is now yours. The Research Compass currently points to: "+compass.next.text:"Every Field Question is observed. Keep reshaping the garden, export a specimen, or invent your own experiment."};
   }
   function renderUI(){
     document.getElementById("seasonChip").textContent="Cycle "+state.cycle+" · "+state.mode;
@@ -1223,8 +1236,12 @@
         '<div class="discovery"><b>Network constellation</b><br>'+constellationText+'</div>'+
         '<div class="discovery"><b>Role changes</b><br>'+roleText+'</div>';
     }
-    var rq=document.getElementById("research");
-    rq.innerHTML=questions.map(function(q){return '<div class="discovery"><b>'+(q.done?'✓ observed':'◇ open')+'</b><br>'+esc(q.text)+'</div>'}).join("");
+    var researchModel=researchCompassModel(),rq=document.getElementById("research"),ro=document.getElementById("researchObserved");
+    document.getElementById("researchSummary").textContent="Field questions · "+researchModel.open.length+" open";
+    document.getElementById("observedResearchSummary").textContent="Observed archive · "+researchModel.observed.length;
+    document.getElementById("researchCompass").innerHTML=researchModel.next?'<b>Research compass</b><br>'+esc(researchModel.next.text)+'<br><span class="small">First still-open question in the research sequence.</span>':'<b>Research complete</b><br>Every current Field Question has been observed.';
+    rq.innerHTML=researchModel.open.length?researchModel.open.map(function(q){return '<div class="discovery"><b>◇ open</b><br>'+esc(q.text)+'</div>'}).join(""):'<p class="small">No open Field Questions remain.</p>';
+    ro.innerHTML=researchModel.observed.length?researchModel.observed.map(function(q){return '<div class="discovery"><b>✓ observed</b><br>'+esc(q.text)+'</div>'}).join(""):'<p class="small">Nothing archived yet.</p>';
     var bp=document.getElementById("bonds");
     bp.innerHTML=bonds.length?bonds.map(function(x){
       var a=state.islands[x.a],b=state.islands[x.b],status=x.active?"active":"severed memory";
