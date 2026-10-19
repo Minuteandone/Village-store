@@ -13,6 +13,7 @@ source = source.replace(
   tail,
   `  globalThis.__gardenTest={
     edgeKey:edgeKey,
+    validSavedState:validSavedState,
     topologySpecies:topologySpecies,
     symbiosisSpecies:symbiosisSpecies,
     macroClimate:macroClimate,
@@ -128,6 +129,18 @@ function setGraph(islands, edgeMemory = {}) {
 
 assert.equal(api.edgeKey(4, 1), "1-4");
 assert.equal(api.edgeKey(1, 4), "1-4");
+
+const validSave = {
+  seed:"testseed",cycle:2,focus:4,resonance:3,
+  islands:[island(0,[1]),island(1,[0]),island(2,[]),island(3,[])]
+};
+assert.equal(api.validSavedState(validSave), true, "well-formed local save should validate");
+assert.equal(api.validSavedState({...validSave,islands:[island(0,[])]}), false, "too-small local save should be rejected");
+const badLinksSave = {
+  ...validSave,
+  islands:[island(0,[99]),island(1,[]),island(2,[]),island(3,[])]
+};
+assert.equal(api.validSavedState(badLinksSave), false, "out-of-range saved link should be rejected");
 
 setGraph([
   island(0, [], 85, 10, 5),
