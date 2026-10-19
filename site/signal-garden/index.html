@@ -74,10 +74,10 @@
         <span class="chip" id="resChip">Resonance 0</span>
         <span class="chip" id="transitChip">Transit quiet</span>
         <span class="chip" id="historyChip">Route memory 0</span>
-        <span class="chip" id="researchChip">Research 0/7</span>
+        <span class="chip" id="researchChip">Research 0/8</span>
         <span class="chip" id="climateChip">Climate · Braided Sky</span>
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
-        <span class="chip" id="versionChip">v0.15 · save 3</span>
+        <span class="chip" id="versionChip">v0.16 · save 3</span>
       </div>
     </section>
 
@@ -133,6 +133,11 @@
       </details>
 
       <details open>
+        <summary>Sky phenomenon</summary>
+        <div class="discoveries" id="phenomenonPanel"></div>
+      </details>
+
+      <details open>
         <summary>Field questions</summary>
         <div class="discoveries" id="research"></div>
       </details>
@@ -176,7 +181,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.15",SAVE_SCHEMA=3;
+  var APP_VERSION="0.16",SAVE_SCHEMA=3;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -485,7 +490,8 @@
       {id:"scar",done:residents.some(function(x){return x.id==="ghostreed"}),text:"Can a well-traveled route be severed without erasing its ecological memory?"},
       {id:"ecologies",done:traits.life&&traits.memory&&traits.strange,text:"Can grove-, archive-, and fold-minds coexist in one archipelago?"},
       {id:"climate",done:Object.keys(state.climateSeen).filter(function(k){return state.climateSeen[k]}).length>=3,text:"Can the garden pass through at least three different archipelago-scale climates?"},
-      {id:"symbiosis",done:["scribevine","glassmycelium","dreamwire"].every(function(kind){return residents.some(function(x){return x.kind===kind})}),text:"Can all three mixed-ecology bridge symbioses coexist at once?"}
+      {id:"symbiosis",done:["scribevine","glassmycelium","dreamwire"].every(function(kind){return residents.some(function(x){return x.kind===kind})}),text:"Can all three mixed-ecology bridge symbioses coexist at once?"},
+      {id:"phenomenon",done:Object.keys(state.phenomenaSeen).some(function(k){return state.phenomenaSeen[k]}),text:"Can one macro-climate persist long enough to trigger an archipelago-wide sky phenomenon?"}
     ];
   }
   function symbiosisSpecies(){
@@ -732,6 +738,10 @@
       b.classList.toggle("active",!!a&&a.glyph===b.dataset.glyph);
     });
     document.getElementById("lifeMeter").style.width=(a?a.life:0)+"%";
+    var pp=document.getElementById("phenomenonPanel");
+    var seenPhenomena=Object.keys(state.phenomenaSeen).filter(function(k){return state.phenomenaSeen[k]}).map(function(k){return phenomenonForClimate(k==="seed-rain"?"verdant":k==="memory-dew"?"echo":k==="parallax-bloom"?"fracture":"braided").name});
+    pp.innerHTML=activePhenomenon?'<div class="discovery"><b>'+esc(activePhenomenon.name)+'</b><br>'+esc(activePhenomenon.text)+' <span class="small">streak '+state.climateStreak+'</span></div>':'<p class="small">No sustained-climate phenomenon is active. Hold one macro-climate for three cycles.</p>';
+    if(seenPhenomena.length)pp.innerHTML+='<div class="discovery"><b>Observed</b><br>'+esc(seenPhenomena.join(" · "))+'</div>';
     var rq=document.getElementById("research");
     rq.innerHTML=questions.map(function(q){return '<div class="discovery"><b>'+(q.done?'✓ observed':'◇ open')+'</b><br>'+esc(q.text)+'</div>'}).join("");
     var sp=document.getElementById("species"), residents=topologySpecies();
@@ -744,6 +754,36 @@
     lg.innerHTML=state.log.length?state.log.map(function(x){return '<p><time>C'+x.c+'</time> '+esc(x.msg)+'</p>'}).join(""):'<p class="small">The field log is blank. Send the first signal.</p>';
   }
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
+  function drawPhenomenon(t,w,h){
+    if(!state.activePhenomenon)return;
+    var tt=reducedMotion?0:t;
+    if(state.activePhenomenon==="seed-rain"){
+      ctx.strokeStyle="rgba(205,245,170,.38)";ctx.lineWidth=1;
+      stars.slice(0,34).forEach(function(s,i){
+        var y=(s.y*h+tt*.035+i*17)%h,x=s.x*w;
+        ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-3,y+9);ctx.stroke();
+      });
+    }
+    if(state.activePhenomenon==="memory-dew"){
+      stars.slice(0,28).forEach(function(s,i){
+        var r=2+2*(.5+.5*Math.sin(tt*.0015+i));
+        ctx.strokeStyle="rgba(158,231,239,.32)";ctx.lineWidth=1;
+        ctx.beginPath();ctx.arc(s.x*w,s.y*h,r,0,Math.PI*2);ctx.stroke();
+      });
+    }
+    if(state.activePhenomenon==="parallax-bloom"){
+      ctx.strokeStyle="rgba(225,183,255,.24)";ctx.lineWidth=1;
+      state.islands.forEach(function(a,i){
+        var shift=reducedMotion?5:5+3*Math.sin(tt*.001+i);
+        ctx.beginPath();ctx.ellipse(a.x*w+shift,a.y*h-shift,a.r+12,a.r*.75,0,0,Math.PI*2);ctx.stroke();
+      });
+    }
+    if(state.activePhenomenon==="confluence-pulse"){
+      var p=reducedMotion ? 0.55 : (tt%2400)/2400;
+      ctx.strokeStyle="rgba(215,247,220,"+(0.35*(1-p))+")";ctx.lineWidth=2;
+      ctx.beginPath();ctx.arc(w*.5,h*.47,30+p*Math.min(w,h)*.7,0,Math.PI*2);ctx.stroke();
+    }
+  }
   function lore(a){
     var trait=dominantTrait(a);
     var role=trait==="life"?"grove-mind":trait==="memory"?"archive-mind":"fold-mind";
@@ -762,6 +802,7 @@
     var g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,tops[climate.id]);g.addColorStop(1,bottoms[climate.id]);ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
     stars.forEach(function(s){ctx.globalAlpha=s.a*(.8+.2*Math.sin(t*.001+s.x*8));ctx.fillStyle="#b8e9d0";ctx.fillRect(s.x*w,s.y*h,s.s,s.s)});ctx.globalAlpha=1;
     if(state.mode==="Storm"){ctx.fillStyle="rgba(110,160,190,.06)";for(var q=0;q<7;q++)ctx.fillRect(0,(q*103+t*.03)%h,w,1)}
+    drawPhenomenon(t,w,h);
     Object.keys(state.edgeMemory).forEach(function(k){
       var ids=k.split("-").map(Number),a=state.islands[ids[0]],b=state.islands[ids[1]],mem=state.edgeMemory[k]||0;
       if(!a||!b||mem<=0||hasEdge(a.id,b.id))return;
