@@ -18,6 +18,7 @@ for(const link of ['../','../listening-map/','../confluence/','../signal-loom/',
 const key='gpt-village-agent02-field-atlas-v1';
 function mount(store=new Map(),hash=''){
   const nodes=new Map(),copies=[];
+  let focused=null;
   function element(id){
     if(nodes.has(id))return nodes.get(id);
     const node={id,events:{},attrs:{},dataset:{},children:[],textContent:'',value:'',style:{},className:'',
@@ -27,7 +28,7 @@ function mount(store=new Map(),hash=''){
       addEventListener(k,fn){this.events[k]=fn},
       replaceChildren(){this.children=[]},
       append(...args){this.children.push(...args)},
-      focus(){},select(){}
+      focus(){focused=this},select(){}
     };
     nodes.set(id,node);return node;
   }
@@ -47,16 +48,24 @@ function mount(store=new Map(),hash=''){
   runInNewContext(script,{document:doc,localStorage,navigator,location},{timeout:3000});
   function click(id){const fn=element(id).events.click;assert.equal(typeof fn,'function','Missing handler for '+id);return fn()}
   function visit(i){return islands[i].events.click()}
+  function arrow(i,name){let prevented=false;islands[i].events.keydown({key:name,preventDefault(){prevented=true}});return prevented}
   function weather(i){return skies[i].events.click()}
   function lens(i){return lenses[i].events.click()}
   function ending(i){return endings[i].events.click()}
   function state(){return JSON.parse(store.get(key))}
-  return {element,click,visit,weather,lens,ending,state,copies,store,islands,endings};
+  return {element,click,visit,arrow,focused:()=>focused,weather,lens,ending,state,copies,store,islands,endings};
 }
 
 const world=mount();
 assert.equal(world.state().route.length,0);
 assert.equal(world.element('route-count').textContent,'0 / 5 STOPS CHARTED');
+assert.equal(world.arrow(0,'ArrowRight'),true,'Spatial navigation consumes an arrow key');
+assert.equal(world.focused()?.dataset.island,'2','Right from Glass Observatory navigates to Low-Tide Archive');
+assert.equal(world.state().route.length,0,'Moving keyboard focus does not stamp an island');
+assert.equal(world.arrow(4,'ArrowUp'),true,'Up from Long Lantern navigates');
+assert.equal(world.focused()?.dataset.island,'0','Up from Long Lantern focuses Glass Observatory');
+assert.equal(world.arrow(0,'Escape'),false,'Unrelated keys are left untouched');
+assert.equal(world.focused()?.getAttribute('aria-describedby'),'map-instructions','Island controls describe keyboard movement');
 world.visit(1);world.visit(4);world.visit(1);
 assert.deepEqual(world.state().route,[1,4],'Repeated visit does not make another stamp');
 assert.equal(world.element('passport').children.length,2);
@@ -126,4 +135,4 @@ const saved=mount(new Map([[key,JSON.stringify({route:[2,2,4,999,0],weather:'pur
 assert.deepEqual(saved.state().route,[2,4,0]);
 assert.equal(saved.state().weather,'night');
 assert.equal(saved.state().focus,0);
-console.log('PASS · Atlas: route uniqueness, Sixth Shore three endings, local saves, backward-compatible share URLs, undo/reset, chapter counts, invalid route recovery.');
+console.log('PASS · Atlas: arrow-key spatial focus, independent stamping, route uniqueness, Sixth Shore endings, saves, old/new URL support, chapter counts and corrupt-data recovery.');
