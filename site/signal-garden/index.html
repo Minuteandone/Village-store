@@ -76,10 +76,11 @@
         <span class="chip" id="historyChip">Route memory 0</span>
         <span class="chip" id="bondChip">Bonds 0</span>
         <span class="chip" id="junctionChip">Junctions 0</span>
-        <span class="chip" id="researchChip">Research 0/12</span>
+        <span class="chip" id="constellationChip">Constellation · none</span>
+        <span class="chip" id="researchChip">Research 0/13</span>
         <span class="chip" id="climateChip">Climate · Braided Sky</span>
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
-        <span class="chip" id="versionChip">v0.21 · save 6</span>
+        <span class="chip" id="versionChip">v0.22 · save 6</span>
       </div>
     </section>
 
@@ -157,6 +158,11 @@
       </details>
 
       <details open>
+        <summary>Network constellation</summary>
+        <div class="discoveries" id="constellation"></div>
+      </details>
+
+      <details open>
         <summary>Junction ecologies</summary>
         <div class="discoveries" id="junctions"></div>
       </details>
@@ -200,7 +206,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.21",SAVE_SCHEMA=6;
+  var APP_VERSION="0.22",SAVE_SCHEMA=6;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -361,6 +367,7 @@
       "Live routes: "+(edges.length?edges.join(", "):"none"),
       "Route bonds: "+(routeBonds().length?routeBonds().map(function(b){return b.name+" "+b.key+(b.active?"":" (severed)")}).join(", "):"none"),
       "Junction ecologies: "+(junctionEcologies().length?junctionEcologies().map(function(j){return j.name+" @ "+state.islands[j.island].name}).join(", "):"none"),
+      "Network constellation: "+(networkConstellation()?networkConstellation().name:"none"),
       "Residents: "+(residents.length?residents.map(function(x){return x.name}).join(", "):"none"),
       "Islands:"
     ];
@@ -562,6 +569,60 @@
     });
     return junctions;
   }
+  function networkConstellation(){
+    var active=state.islands.filter(function(a){return a.links.length>0});
+    if(active.length<3)return null;
+    var activeIds={};active.forEach(function(a){activeIds[a.id]=true});
+    var seen={},stack=[active[0].id];
+    while(stack.length){
+      var id=stack.pop();if(seen[id])continue;seen[id]=true;
+      var a=state.islands[id];
+      if(a)a.links.forEach(function(next){if(activeIds[next]&&!seen[next])stack.push(next)});
+    }
+    if(!active.every(function(a){return seen[a.id]}))return null;
+    var degrees=active.map(function(a){return {id:a.id,degree:a.links.filter(function(x){return activeIds[x]}).length}});
+    var edges=degrees.reduce(function(n,x){return n+x.degree},0)/2;
+    var n=active.length;
+    var hubs=degrees.filter(function(x){return x.degree===n-1});
+    var leaves=degrees.filter(function(x){return x.degree===1}).map(function(x){return x.id});
+    if(n>=4&&hubs.length===1&&leaves.length===n-1&&edges===n-1){
+      return {kind:"star-crown",name:"Star Crown",nodes:active.map(function(a){return a.id}),edges:edges,hub:hubs[0].id,text:"One island holds every active route while all others orbit as leaves. The center amplifies its present ecological role."};
+    }
+    if(degrees.every(function(x){return x.degree===2})&&edges===n){
+      return {kind:"halo-circuit",name:"Halo Circuit",nodes:active.map(function(a){return a.id}),edges:edges,text:"Every active island has two neighbors. Signals can circulate without an endpoint, strengthening shared memory."};
+    }
+    if(n>=4&&edges===n-1){
+      return {kind:"living-arbor",name:"Living Arbor",nodes:active.map(function(a){return a.id}),edges:edges,leaves:leaves,text:"The active network is one connected tree. Its endpoints behave like growing branch tips."};
+    }
+    if(n>=4&&edges>=n+1){
+      return {kind:"mesh-choir",name:"Mesh Choir",nodes:active.map(function(a){return a.id}),edges:edges,text:"The active network contains redundant cycles. Multiple routes hum together and produce extra resonance."};
+    }
+    return null;
+  }
+  function applyNetworkConstellation(){
+    var c=networkConstellation();if(!c)return null;
+    if(c.kind==="star-crown"){
+      var hub=state.islands[c.hub],trait=hub?dominantTrait(hub):null;
+      if(hub&&trait==="life")hub.life=clamp(hub.life+1);
+      if(hub&&trait==="memory")hub.memory=clamp(hub.memory+1);
+      if(hub&&trait==="strange")hub.strange=clamp(hub.strange+1);
+      c.effect="hub "+(trait||"signal")+" +1";
+    }
+    if(c.kind==="halo-circuit"){
+      c.nodes.forEach(function(id){var a=state.islands[id];if(a)a.memory=clamp(a.memory+1)});
+      c.effect="memory +1 to every active island";
+    }
+    if(c.kind==="living-arbor"){
+      c.leaves.forEach(function(id){var a=state.islands[id];if(a)a.life=clamp(a.life+1)});
+      c.effect="life +1 to each branch tip";
+    }
+    if(c.kind==="mesh-choir"){
+      state.resonance=Math.min(10000,state.resonance+1);
+      c.effect="garden resonance +1";
+    }
+    d("constellation-"+c.kind,c.name,c.text);
+    return c;
+  }
   function globalImprints(){
     var out={life:0,memory:0,strange:0,total:0};
     state.islands.forEach(function(a){
@@ -669,7 +730,8 @@
       {id:"lineage",done:state.islands.some(function(a){return a.lineage&&a.lineage!=="none"}),text:"Can enough migration history accumulate for a newborn island to inherit an echo lineage?"},
       {id:"succession",done:state.islands.some(function(a){return a.palimpsest}),text:"Can one island genuinely live through grove-, archive-, and fold-mind roles and become a Palimpsest Mind?"},
       {id:"bond",done:routeBonds().some(function(b){return b.kind==="braided"}),text:"Can one relationship remember all three signal families strongly enough to become a Braided Bond?"},
-      {id:"junction",done:junctionEcologies().some(function(j){return j.kind==="triune-loom"}),text:"Can Rootway, Echo Span, and Fold Thread all converge on one island to form a Triune Loom?"}
+      {id:"junction",done:junctionEcologies().some(function(j){return j.kind==="triune-loom"}),text:"Can Rootway, Echo Span, and Fold Thread all converge on one island to form a Triune Loom?"},
+      {id:"constellation",done:(networkConstellation()||{}).kind==="mesh-choir",text:"Can the whole active network become dense enough to form a Mesh Choir?"}
     ];
   }
   function symbiosisSpecies(){
@@ -865,6 +927,7 @@
     var transfers=migrateSignals();
     evolve();
     var junctions=applyJunctionEcologies();
+    var constellation=applyNetworkConstellation();
     var afterClimate=recordClimate();
     var phenomenon=advanceClimatePhenomenon();
     updateRoleHistories();
@@ -881,6 +944,7 @@
       climateAfter:afterClimate.name,
       phenomenon:phenomenon&&state.climateStreak%3===0?phenomenon.name:null,
       junctions:junctions.map(function(j){return {island:j.island,name:j.name,kind:j.kind,bonds:j.bonds.slice()}}),
+      constellation:constellation?{name:constellation.name,kind:constellation.kind,effect:constellation.effect}:null,
       roleChanges:roleChanges
     };
     cue("cycle");save();renderUI();
@@ -942,6 +1006,8 @@
     document.getElementById("bondChip").textContent="Bonds "+bonds.length;
     var junctions=junctionEcologies();
     document.getElementById("junctionChip").textContent="Junctions "+junctions.length;
+    var constellation=networkConstellation();
+    document.getElementById("constellationChip").textContent="Constellation · "+(constellation?constellation.name:"none");
     var questions=researchPrompts(),doneQuestions=questions.filter(function(q){return q.done}).length;
     document.getElementById("researchChip").textContent="Research "+doneQuestions+"/"+questions.length;
     var climate=macroClimate();
@@ -991,10 +1057,12 @@
       }).join("<br>"):"No migrations crossed live routes.";
       var roleText=lastCycleReport.roleChanges.length?lastCycleReport.roleChanges.map(function(x){return esc(x.name)+": "+x.from+" → "+x.to}).join("<br>"):"No island changed dominant role.";
       var junctionText=lastCycleReport.junctions&&lastCycleReport.junctions.length?lastCycleReport.junctions.map(function(x){var a=state.islands[x.island];return esc(x.name)+" @ "+esc(a?a.name:"island "+x.island)}).join("<br>"):"No junction ecology pulsed this cycle.";
+      var constellationText=lastCycleReport.constellation?esc(lastCycleReport.constellation.name)+" · "+esc(lastCycleReport.constellation.effect):"No network constellation pulsed this cycle.";
       var climateText=lastCycleReport.climateBefore===lastCycleReport.climateAfter?lastCycleReport.climateAfter:lastCycleReport.climateBefore+" → "+lastCycleReport.climateAfter;
       cr.innerHTML='<div class="discovery"><b>Cycle '+lastCycleReport.cycle+' · '+esc(lastCycleReport.mode)+'</b><br><b>Climate:</b> '+esc(climateText)+(lastCycleReport.phenomenon?'<br><b>Phenomenon:</b> '+esc(lastCycleReport.phenomenon):'')+'</div>'+
         '<div class="discovery"><b>Migrations</b><br>'+transferText+'</div>'+
         '<div class="discovery"><b>Junction ecologies</b><br>'+junctionText+'</div>'+
+        '<div class="discovery"><b>Network constellation</b><br>'+constellationText+'</div>'+
         '<div class="discovery"><b>Role changes</b><br>'+roleText+'</div>';
     }
     var rq=document.getElementById("research");
@@ -1004,6 +1072,8 @@
       var a=state.islands[x.a],b=state.islands[x.b],status=x.active?"active":"severed memory";
       return '<div class="discovery"><b>'+esc(x.name)+'</b> · '+esc(status)+'<br>'+esc(a?a.name:"island "+x.a)+' ↔ '+esc(b?b.name:"island "+x.b)+' · L'+x.counts.life+' M'+x.counts.memory+' S'+x.counts.strange+'<br>'+esc(x.text)+'</div>';
     }).join(""):'<p class="small">No route has accumulated enough typed crossing history to form a bond.</p>';
+    var cp=document.getElementById("constellation");
+    cp.innerHTML=constellation?'<div class="discovery"><b>'+esc(constellation.name)+'</b><br>'+esc(constellation.text)+'<br><span class="small">Active islands '+constellation.nodes.length+' · live edges '+constellation.edges+'</span></div>':'<p class="small">The active linked islands do not currently form a named whole-network constellation.</p>';
     var jp=document.getElementById("junctions");
     jp.innerHTML=junctions.length?junctions.map(function(j){
       var a=state.islands[j.island];
