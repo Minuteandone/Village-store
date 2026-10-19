@@ -24,6 +24,7 @@ const STORAGE='gpt-village-elsewhere-resonance-room-v1';
 function mount(store=new Map(),hash=''){
   const elements=new Map(),stepButtons=[],muteButtons=[],intervals=new Map(),copied=[];
   let focused=null, envelopes=0, audioNodes=0;
+  const soundEvents=[],oscillators=[],filters=[];
   let nextInterval=1;
   function element(id){
     if(elements.has(id))return elements.get(id);
@@ -63,8 +64,9 @@ function mount(store=new Map(),hash=''){
   const clearInterval=id=>intervals.delete(id);
   const window={addEventListener(){},AudioContext:class FakeAudioContext{
     constructor(){this.currentTime=0;this.state='running';this.destination={}}
-    createGain(){audioNodes++;return{connect(){},gain:{setValueAtTime(){},exponentialRampToValueAtTime(value){assert(value>0,'Exponential audio gain targets must be positive');envelopes++}}}}
-    createOscillator(){return{type:'sine',frequency:{setValueAtTime(){}},connect(){},start(){},stop(){}}}
+    createGain(){audioNodes++;return{connect(){},gain:{setValueAtTime(value,time){soundEvents.push({event:'set',value,time})},exponentialRampToValueAtTime(value,time){assert(value>0,'Exponential audio gain targets must be positive');envelopes++;soundEvents.push({event:'ramp',value,time})}}}}
+    createOscillator(){const osc={type:'sine',frequency:{setValueAtTime(value){osc.hz=value}},connect(node){osc.target=node},start(time){osc.startTime=time},stop(time){osc.stopTime=time}};oscillators.push(osc);return osc}
+    createBiquadFilter(){const filter={type:'lowpass',frequency:{setValueAtTime(value){filter.hz=value}},connect(node){filter.target=node}};filters.push(filter);return filter}
     suspend(){this.state='suspended';return Promise.resolve()}
     resume(){this.state='running';return Promise.resolve()}
   }};
@@ -83,10 +85,13 @@ function mount(store=new Map(),hash=''){
     line.children[0].children[1].events.click();
   }
   function data(){return JSON.parse(store.get(STORAGE))}
-  return {element,click,note,mute,data,store,location,copied,intervals,live:()=>element('tracks').children,focus:()=>focused,audioStats:()=>({envelopes,audioNodes})};
+  return {element,click,note,mute,data,store,location,copied,intervals,live:()=>element('tracks').children,focus:()=>focused,audioStats:()=>({envelopes,audioNodes,soundEvents,oscillators,filters})};
 }
 const world=mount();
 assert.equal(world.live().length,5,'Five island voices');
+assert(html.includes('id="voice-guide"'),'Distinct sonic textures are explained without sound');
+const descriptions=['Star-glass shimmer','Soft woodland bells','Slow deep-water echo','Soft mechanical ticks','Warm sweeping beacon'];
+world.live().forEach((line,i)=>assert(line.getAttribute('aria-label').includes(descriptions[i]),'Track '+i+' announces its unique timbre'));
 for(const line of world.live())assert.equal(line.children.length,9,'Eight note buttons and a label');
 assert.equal(world.data().matrix.length,5,'Stored composition matrix');
 assert.equal(world.data().matrix[0].length,8,'Eight beats per track');
@@ -135,6 +140,30 @@ assert(world.audioStats().envelopes>0,'Normal volume schedules positive audio en
 world.click('play');
 world.click('silent');
 assert.equal(world.element('silent').getAttribute('aria-pressed'),'false','Sound can be switched off again');
+
+// Actual scheduled Web Audio operations: two restrained partials per voice, five sonic personalities.
+const sonic=mount();
+sonic.click('silent');
+const waveKinds=[['sine','sine'],['triangle','sine'],['sine','sine'],['square','sine'],['triangle','sine']];
+const durations=[[.55,.29],[.4,.23],[.52,.63],[.088,.12],[.64,.76]];
+for(let row=0;row<5;row++){
+ sonic.click('clear');sonic.note(row,0);
+ const before=sonic.audioStats().oscillators.length;
+ sonic.click('play');sonic.click('play');
+ const recent=sonic.audioStats().oscillators.slice(before);
+ assert.equal(recent.length,2,'Island '+row+' layers exactly two oscillators');
+ assert.deepEqual(recent.map(x=>x.type),waveKinds[row],'Island '+row+' keeps its sonic identity');
+ recent.forEach((o,index)=>{
+  assert(Number.isFinite(o.hz)&&o.hz>0&&o.hz<4000,'Scheduled audible frequency for island '+row);
+  assert(Math.abs((o.stopTime-o.startTime)-(durations[row][index]+.025))<.00001,'Designed tail length on island '+row);
+ });
+ assert.equal(sonic.audioStats().filters.length,row>=3?1:0,'Only Brass Orchard uses a softening low-pass filter');
+}
+const ramps=sonic.audioStats().soundEvents.filter(x=>x.event==='ramp');
+assert(ramps.length>=20,'Scheduled harmonics use positive audio envelopes');
+assert(ramps.every(x=>x.value>0&&x.value<=.03),'Low amplitude ceiling limits harsh peaks');
+assert.equal(sonic.audioStats().filters[0].hz,1050,'Brass Orchard filter dampens harsh square-wave overtones');
+assert(sonic.audioStats().oscillators.some(o=>o.stopTime-o.startTime>.75),'Long Lantern has a slow, sweeping tail');
 
 world.click('dawn');
 assert.equal(world.data().matrix.length,5);
@@ -215,4 +244,4 @@ assert.equal(fresh.data().matrix.length,5,'Random score has five tracks');
 const corrupt=mount(new Map([[STORAGE,'{invalid json']]),'#score=invalid-code');
 assert.equal(corrupt.data().matrix.length,5,'Malformed save/link does not crash the studio');
 assert(corrupt.element('message').textContent.includes('could not be decoded'),'Malformed link gets a clear message');
-console.log('PASS · Resonance Room: five audible Atlas keeper motifs, explicit import and undo, changed alternate choice, partial/invalid save guards, independent Atlas progress, five tracks, focus, consent-first audio, transport and score sharing.');
+console.log('PASS · Resonance Room: five layered island timbres, ten Web Audio partials, filter/envelope/headroom checks, keeper motifs, explicit import and undo, focus, consent-first playback and share links.');
