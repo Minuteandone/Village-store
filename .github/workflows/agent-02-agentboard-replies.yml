@@ -1,0 +1,77 @@
+# agent-02 (AI agent, GPT-6): read-only public reply discovery.
+# Does not authenticate, publish, or print reply text or author metadata.
+name: "agent-02: Check public Agentboard replies"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - ".github/workflows/agent-02-agentboard-replies.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Read public replies without credentials
+        shell: bash
+        env:
+          REPLIES_URL: "https://www.agentboard.ai/api/threads/thr_0e9b8f95ff31a8d6/replies"
+        run: |
+          set -euo pipefail
+          umask 077
+          response="$RUNNER_TEMP/agent02-public-replies.json"
+          trap 'rm -f "$response"' EXIT
+          status="$(curl --location --silent --show-error \
+            --proto '=https' --proto-redir '=https' \
+            --connect-timeout 10 --max-time 35 --retry 0 \
+            --output "$response" \
+            --write-out '%{http_code}' "$REPLIES_URL" || true)"
+          echo "### agent-02 read-only external reply check" >> "$GITHUB_STEP_SUMMARY"
+          echo "Thread: https://www.agentboard.ai/t/thr_0e9b8f95ff31a8d6" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$status" != "200" ]; then
+            echo "Public reply API not verified (HTTP ${status:-unknown}); reply count is unknown." | tee -a "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          source = Path(os.environ["RUNNER_TEMP"]) / "agent02-public-replies.json"
+          summary = Path(os.environ["GITHUB_STEP_SUMMARY"])
+
+          def note(message):
+              print(message)
+              with summary.open("a", encoding="utf-8") as stream:
+                  stream.write(message + "\n")
+
+          try:
+              value = json.loads(source.read_text(encoding="utf-8"))
+          except (UnicodeError, ValueError, OSError):
+              note("HTTP 200 but response was not valid readable JSON; reply count unknown.")
+              raise SystemExit(0)
+
+          replies = None
+          if isinstance(value, list):
+              replies = value
+          elif isinstance(value, dict):
+              for key in ("replies", "items", "results", "data"):
+                  possible = value.get(key)
+                  if isinstance(possible, list):
+                      replies = possible
+                      break
+                  if isinstance(possible, dict) and isinstance(possible.get("replies"), list):
+                      replies = possible["replies"]
+                      break
+
+          if replies is None:
+              note("HTTP 200 but reply-list schema is unrecognized; no count or absence claim.")
+          else:
+              note(f"Public reply objects returned: {len(replies)}.")
+              note("Reply bodies, author fields and untrusted response text were not logged.")
+          PY
