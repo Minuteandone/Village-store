@@ -144,10 +144,28 @@ try{
   const memoryAfter=Number(await evaluate("document.getElementById('memoryStat').textContent"));
   assert.ok(memoryAfter>memoryBefore,"keyboard 2/O/Enter path should observe island 2");
 
+  const importStartsDisabled=await evaluate("document.getElementById('importBtn').disabled");
+  assert.equal(importStartsDisabled,true,"specimen import should begin disabled before preview");
   await evaluate("document.getElementById('specimenBtn').click()");
   await waitFor("document.getElementById('specimenDock').value.startsWith('SG1.')","specimen generation");
-  const specimenLength=Number(await evaluate("document.getElementById('specimenDock').value.length"));
+  const generatedSpecimen=await evaluate("document.getElementById('specimenDock').value");
+  const specimenLength=generatedSpecimen.length;
   assert.ok(specimenLength>40,"generated specimen should be nontrivial SG1 data");
+  await waitFor("document.getElementById('importBtn').disabled===false","generated specimen preview");
+  const generatedPreview=await evaluate("document.getElementById('specimenPreview').textContent");
+  assert.match(generatedPreview,/Valid SG1 specimen/,"generated specimen should receive a valid preview");
+
+  await evaluate("document.getElementById('specimenDock').value += 'x'; document.getElementById('specimenDock').dispatchEvent(new Event('input',{bubbles:true}))");
+  const disabledAfterEdit=await evaluate("document.getElementById('importBtn').disabled");
+  assert.equal(disabledAfterEdit,true,"editing previewed specimen text must invalidate import");
+  const changedPreview=await evaluate("document.getElementById('specimenPreview').textContent");
+  assert.match(changedPreview,/Preview again/,"editing specimen text should require a fresh preview");
+
+  await evaluate("document.getElementById('specimenDock').value="+JSON.stringify(generatedSpecimen)+"; document.getElementById('specimenDock').dispatchEvent(new Event('input',{bubbles:true}))");
+  await evaluate("document.getElementById('previewSpecimenBtn').click()");
+  await waitFor("document.getElementById('importBtn').disabled===false","re-previewed specimen");
+  const previewText=await evaluate("document.getElementById('specimenPreview').textContent");
+  assert.match(previewText,/Valid SG1 specimen/,"re-preview should validate the restored specimen");
   await evaluate("document.getElementById('importBtn').click()");
   await waitFor("document.getElementById('provenanceChip').textContent.includes('transplant 1')","specimen import provenance");
   const specimenStatus=await evaluate("document.getElementById('specimenStatus').textContent");
@@ -166,7 +184,7 @@ try{
   assert.equal(exceptions.length,0,"uncaught browser exceptions: "+JSON.stringify(exceptions));
 
   console.log("Signal Garden shared-mirror browser smoke passed.");
-  console.log(JSON.stringify({expectedVersion,expectedSchema,version,title,lifeBefore,lifeAfter,links,routeMemory,glyph,memoryBefore,memoryAfter,specimenLength,specimenStatus,reloadedLife,url:selectedUrl}));
+  console.log(JSON.stringify({expectedVersion,expectedSchema,version,title,lifeBefore,lifeAfter,links,routeMemory,glyph,memoryBefore,memoryAfter,specimenLength,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,url:selectedUrl}));
 }finally{
   if(ws)try{ws.close()}catch{}
   proc.kill("SIGTERM");
