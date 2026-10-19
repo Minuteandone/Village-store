@@ -73,6 +73,7 @@
         <span class="chip" id="historyChip">Route memory 0</span>
         <span class="chip" id="researchChip">Research 0/7</span>
         <span class="chip" id="climateChip">Climate · Braided Sky</span>
+        <span class="chip" id="versionChip">v0.12 · save 2</span>
       </div>
     </section>
 
@@ -170,6 +171,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
+  var APP_VERSION="0.12",SAVE_SCHEMA=2;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed");
   function hash(s){var h=2166136261>>>0;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
@@ -185,23 +187,47 @@
   }
   function fresh(){
     randState=hash(seed);
-    return {seed:seed,cycle:1,focus:8,resonance:0,mode:"Quiet",selected:null,action:"nurture",discoveries:[],log:[],chronicle:[],edgeMemory:{},climateSeen:{},lastClimate:null,islands:[
+    return {schema:SAVE_SCHEMA,seed:seed,cycle:1,focus:8,resonance:0,mode:"Quiet",selected:null,action:"nurture",discoveries:[],log:[],chronicle:[],edgeMemory:{},climateSeen:{},lastClimate:null,islands:[
       makeIsland(0,.24,.31,58),makeIsland(1,.67,.27,48),makeIsland(2,.50,.62,66),makeIsland(3,.79,.69,42)
     ]};
   }
-  var state=fresh();
+  function validSavedState(saved){
+    if(!saved||saved.seed!==seed||!Array.isArray(saved.islands)||saved.islands.length<4||saved.islands.length>7)return false;
+    if(!Number.isInteger(saved.cycle)||saved.cycle<1||!Number.isFinite(saved.focus)||!Number.isFinite(saved.resonance))return false;
+    return saved.islands.every(function(a,i){
+      return a&&a.id===i&&Number.isFinite(a.life)&&Number.isFinite(a.memory)&&Number.isFinite(a.strange)&&Array.isArray(a.links)&&
+        a.links.every(function(id){return Number.isInteger(id)&&id>=0&&id<saved.islands.length&&id!==i});
+    });
+  }
+  var state=fresh(),bootNotice="";
   try{
-    var saved=JSON.parse(localStorage.getItem(KEY));
-    if(saved&&saved.seed===seed&&Array.isArray(saved.islands))state=saved;
-  }catch(e){}
+    var rawSaved=localStorage.getItem(KEY);
+    if(rawSaved){
+      var saved=JSON.parse(rawSaved);
+      if(validSavedState(saved)){
+        state=saved;
+        if(!Number.isInteger(state.schema)||state.schema<SAVE_SCHEMA)bootNotice="Upgraded an older local garden save to schema "+SAVE_SCHEMA+".";
+      }else bootNotice="Ignored an invalid local garden save and started safely from this seed.";
+    }
+  }catch(e){bootNotice="Could not read the local garden save, so a fresh seed state was used."}
+  state.schema=SAVE_SCHEMA;
   if(!state.edgeMemory||typeof state.edgeMemory!=="object")state.edgeMemory={};
   if(!state.climateSeen||typeof state.climateSeen!=="object")state.climateSeen={};
   if(!Array.isArray(state.chronicle))state.chronicle=[];
   if(typeof state.lastClimate!=="string")state.lastClimate=null;
   state.islands.forEach(function(a){
-    if(typeof a.arrivals!=="number")a.arrivals=0;
+    a.life=clampEarly(a.life);a.memory=clampEarly(a.memory);a.strange=clampEarly(a.strange);
+    if(typeof a.arrivals!=="number"||a.arrivals<0)a.arrivals=0;
     if(["none","life","memory","strange"].indexOf(a.glyph)<0)a.glyph="none";
+    a.links=Array.from(new Set(a.links)).filter(function(id){return Number.isInteger(id)&&id>=0&&id<state.islands.length&&id!==a.id});
   });
+  state.focus=Math.max(0,Math.min(8,state.focus));
+  state.resonance=Math.max(0,Math.min(10000,state.resonance));
+  if(["Quiet","Bloom","Static","Storm"].indexOf(state.mode)<0)state.mode="Quiet";
+  if(!Array.isArray(state.log))state.log=[];
+  if(!Array.isArray(state.discoveries))state.discoveries=[];
+  if(bootNotice)state.log.unshift({c:state.cycle,msg:bootNotice});
+  function clampEarly(v){return Math.max(0,Math.min(100,Number(v)||0))}
   var mouse={x:0,y:0};
   var motes=[];
   var audioOn=false,audioCtx=null;
@@ -599,6 +625,7 @@
     document.getElementById("researchChip").textContent="Research "+doneQuestions+"/"+questions.length;
     var climate=macroClimate();
     document.getElementById("climateChip").textContent="Climate · "+climate.name;
+    document.getElementById("versionChip").textContent="v"+APP_VERSION+" · save "+SAVE_SCHEMA;
     var gb=document.getElementById("germinateBtn");
     gb.disabled=state.resonance<6||state.focus<2||state.islands.length>=7;
     gb.textContent=state.islands.length>=7?"🌿 Germination sites full":"🌿 Germinate island · 6 resonance + 2 focus";
