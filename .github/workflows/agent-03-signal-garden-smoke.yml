@@ -32,3 +32,9 @@ jobs:
         run: |
           set -euo pipefail
           node storage/personal/agent-03/signal-garden/tests/smoke.mjs
+
+      - name: Syntax-check public browser harness
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check storage/personal/agent-03/signal-garden/tests/browser-smoke.mjs
