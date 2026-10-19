@@ -153,6 +153,8 @@
       </div>
 
       <div class="actions">
+        <button id="soundBtn" aria-pressed="false">🔇 Sound off</button>
+        <button id="summaryBtn">📋 Copy summary</button>
         <button id="exportBtn">Copy garden seed</button>
         <button id="specimenBtn">Copy specimen</button>
         <button id="importBtn">Import specimen</button>
@@ -202,10 +204,52 @@
   });
   var mouse={x:0,y:0};
   var motes=[];
+  var audioOn=false,audioCtx=null;
   var reducedMotion=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   var stars=[];
   for(var si=0;si<100;si++)stars.push({x:rand(),y:rand(),a:.2+rand()*.6,s:rand()*1.6+.3});
   function save(){localStorage.setItem(KEY,JSON.stringify(state))}
+  function tone(freq,duration,type,delay){
+    if(!audioOn)return;
+    try{
+      if(!audioCtx)audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+      var start=audioCtx.currentTime+(delay||0),osc=audioCtx.createOscillator(),gain=audioCtx.createGain();
+      osc.type=type||"sine";osc.frequency.setValueAtTime(freq,start);
+      gain.gain.setValueAtTime(.0001,start);gain.gain.exponentialRampToValueAtTime(.045,start+.015);
+      gain.gain.exponentialRampToValueAtTime(.0001,start+duration);
+      osc.connect(gain);gain.connect(audioCtx.destination);osc.start(start);osc.stop(start+duration+.02);
+    }catch(e){audioOn=false}
+  }
+  function cue(name){
+    if(name==="nurture"){tone(330,.18,"sine",0);tone(440,.20,"sine",.08)}
+    if(name==="observe"){tone(520,.12,"triangle",0);tone(650,.16,"triangle",.10)}
+    if(name==="connect"){tone(260,.16,"sine",0);tone(390,.22,"sine",.12)}
+    if(name==="cut"){tone(390,.12,"triangle",0);tone(220,.20,"triangle",.08)}
+    if(name==="distort"){tone(180,.18,"sawtooth",0);tone(205,.18,"sawtooth",.06)}
+    if(name==="cycle"){tone(245,.16,"sine",0);tone(294,.16,"sine",.10);tone(367,.20,"sine",.20)}
+    if(name==="birth"){tone(294,.18,"sine",0);tone(440,.22,"sine",.10);tone(588,.26,"sine",.20)}
+    if(name==="glyph"){tone(470,.12,"triangle",0);tone(705,.16,"triangle",.08)}
+    if(name==="discover"){tone(523,.14,"sine",0);tone(659,.14,"sine",.11);tone(784,.22,"sine",.22)}
+  }
+  function gardenSummary(){
+    var climate=macroClimate(),residents=topologySpecies(),questions=researchPrompts();
+    var edges=[];
+    state.islands.forEach(function(a){a.links.forEach(function(b){if(a.id<b)edges.push(a.id+"↔"+b)})});
+    var lines=[
+      "The Signal Garden · agent-03 (AI)",
+      "Seed: "+state.seed+" · Cycle "+state.cycle+" · "+state.mode+" · "+climate.name,
+      "Focus "+state.focus+"/8 · Resonance "+state.resonance+" · Islands "+state.islands.length,
+      "Research observed: "+questions.filter(function(q){return q.done}).length+"/"+questions.length,
+      "Live routes: "+(edges.length?edges.join(", "):"none"),
+      "Residents: "+(residents.length?residents.map(function(x){return x.name}).join(", "):"none"),
+      "Islands:"
+    ];
+    state.islands.forEach(function(a){
+      lines.push("- "+a.name+": "+dominantTrait(a)+" · L"+Math.round(a.life)+" M"+Math.round(a.memory)+" S"+Math.round(a.strange)+" · glyph "+glyphName(a.glyph)+" · arrivals "+a.arrivals);
+    });
+    lines.push("Discoveries: "+(state.discoveries.length?state.discoveries.map(function(x){return x.title}).join(", "):"none"));
+    return lines.join("\n");
+  }
   function specimenCode(){
     var edges=[];
     state.islands.forEach(function(a){a.links.forEach(function(b){if(a.id<b)edges.push([a.id,b])})});
@@ -282,7 +326,7 @@
   function d(id,title,text){
     if(state.discoveries.some(function(x){return x.id===id}))return;
     state.discoveries.unshift({id:id,title:title,text:text,cycle:state.cycle});
-    addChronicle("discovery","Discovered "+title+".");
+    addChronicle("discovery","Discovered "+title+".");cue("discover");
     state.resonance+=2;log("Discovery: "+title+".");
   }
   function clamp(v){return Math.max(0,Math.min(100,v))}
@@ -395,7 +439,7 @@
     var cost=type==="none"?0:3,focusCost=1;
     if(state.resonance<cost||state.focus<focusCost){log("That inscription needs "+cost+" resonance and "+focusCost+" focus.");return}
     state.resonance-=cost;state.focus-=focusCost;a.glyph=type;
-    addChronicle("glyph",type==="none"?"Cleared the glyph from "+a.name+".":"Inscribed the "+glyphName(type)+" glyph on "+a.name+".");
+    addChronicle("glyph",type==="none"?"Cleared the glyph from "+a.name+".":"Inscribed the "+glyphName(type)+" glyph on "+a.name+".");cue("glyph");
     log(type==="none"?"Cleared "+a.name+"'s glyph.":a.name+" now carries the "+glyphName(type)+" glyph.");
     save();renderUI();
   }
@@ -418,7 +462,7 @@
     if(climate.trait==="memory")a.memory=clamp(a.memory+7);
     if(climate.trait==="strange")a.strange=clamp(a.strange+7);
     state.islands.push(a);
-    state.selected=a.id;
+    state.selected=a.id;cue("birth");
     addChronicle("birth","New land germinated: "+a.name+" during "+state.mode+" under "+macroClimate().name+".");
     log("A new island germinated: "+a.name+". It begins unlinked and remembers the season of its birth.");
     d("new-land","New Land","Resonance condensed into a new island. The map is no longer a fixed starting condition.");
@@ -496,7 +540,7 @@
     var n=state.cycle%8;
     state.mode=n===0?"Storm":n===4?"Bloom":n===6?"Static":"Quiet";
     migrateSignals();
-    evolve();recordClimate();save();renderUI();
+    evolve();recordClimate();cue("cycle");save();renderUI();
   }
   function pickIsland(px,py){
     var rect=canvas.getBoundingClientRect(),sx=canvas.width/rect.width,sy=canvas.height/rect.height;
@@ -509,14 +553,14 @@
     state.selected=a.id;
     if(state.focus<=0){log("No focus left. Let a cycle pass.");return}
     if(state.action==="nurture"){
-      state.focus--;a.life=clamp(a.life+11);a.memory=clamp(a.memory+2);state.resonance++;
+      state.focus--;a.life=clamp(a.life+11);a.memory=clamp(a.memory+2);state.resonance++;cue("nurture");
       log("Nurtured "+a.name+"; new growth takes the shape of nearby signals.");
     }else if(state.action==="observe"){
-      state.focus--;a.memory=clamp(a.memory+10);a.strange=clamp(a.strange+2);state.resonance+=2;
+      state.focus--;a.memory=clamp(a.memory+10);a.strange=clamp(a.strange+2);state.resonance+=2;cue("observe");
       log("Observed "+a.name+" long enough for it to notice back.");
       if(a.memory>55)d("witness-"+a.id,"Reciprocal Witness",a.name+" now changes subtly when selected, as if selection itself became weather.");
     }else if(state.action==="distort"){
-      state.focus--;a.strange=clamp(a.strange+13);a.life=clamp(a.life-2);state.resonance+=1;
+      state.focus--;a.strange=clamp(a.strange+13);a.life=clamp(a.life-2);state.resonance+=1;cue("distort");
       log("Distorted the signal around "+a.name+"; geometry loosens without fully breaking.");
       if(a.strange>60)d("fold-"+a.id,"Local Fold",a.name+" begins drawing a second shoreline that never quite overlaps the first.");
     }else if(state.action==="connect"){
@@ -528,7 +572,7 @@
         var existing=first.links.indexOf(a.id);
         if(existing<0){
           first.links.push(a.id);a.links.push(first.id);
-          first.memory=clamp(first.memory+5);a.memory=clamp(a.memory+5);state.resonance+=2;
+          first.memory=clamp(first.memory+5);a.memory=clamp(a.memory+5);state.resonance+=2;cue("connect");
           log("Linked "+first.name+" ↔ "+a.name+".");
         }else{
           first.links.splice(existing,1);
@@ -536,7 +580,7 @@
           if(back>=0)a.links.splice(back,1);
           var remembered=state.edgeMemory[edgeKey(first.id,a.id)]||0;
           if(remembered>=4)addChronicle("scar","Severed the "+first.name+" ↔ "+a.name+" route after "+remembered+" recorded crossings.");
-          state.resonance=Math.max(0,state.resonance-1);
+          state.resonance=Math.max(0,state.resonance-1);cue("cut");
           log("Cut the bridge between "+first.name+" and "+a.name+"; future migrations must find another route.");
         }
         delete state.connectFrom;
@@ -700,6 +744,16 @@
     if(e.key==="Enter"){
       var a=state.islands.find(function(x){return x.id===state.selected});if(a){e.preventDefault();apply(a)}
     }
+  });
+  document.getElementById("soundBtn").addEventListener("click",function(){
+    if(!(window.AudioContext||window.webkitAudioContext)){this.disabled=true;this.textContent="Sound unavailable";return}
+    audioOn=!audioOn;this.setAttribute("aria-pressed",audioOn?"true":"false");this.textContent=audioOn?"🔊 Sound on":"🔇 Sound off";
+    if(audioOn){tone(440,.12,"sine",0);tone(660,.16,"sine",.08)}
+  });
+  document.getElementById("summaryBtn").addEventListener("click",async function(){
+    var summary=gardenSummary();
+    try{await navigator.clipboard.writeText(summary);log("Copied a read-only garden summary for playtesting.");}
+    catch(e){prompt("Copy this garden summary:",summary)}
   });
   document.getElementById("exportBtn").addEventListener("click",async function(){
     var url=location.origin+location.pathname+"?seed="+encodeURIComponent(state.seed);
