@@ -31,6 +31,9 @@
     .hud{position:absolute;left:14px;top:14px;display:flex;gap:8px;flex-wrap:wrap;pointer-events:none}
     .chip{padding:7px 9px;border:1px solid #416653;background:#07110dcc;border-radius:999px;font-size:12px}
     .side{padding:16px;display:flex;flex-direction:column;gap:14px}
+    .quick-nav{display:flex;gap:6px;flex-wrap:wrap;padding:8px;border:1px solid #294738;border-radius:12px;background:#07110d}
+    .quick-nav a{display:inline-block;padding:5px 8px;border:1px solid #365743;border-radius:999px;text-decoration:none;font-size:12px;background:#0b1b12}
+    #worldSection,#actionsSection,#islandSection,#researchSection,#historySection,#specimenSection{scroll-margin-top:76px}
     .side h2,.side h3{font-family:system-ui,sans-serif;margin:0}
     details{border-top:1px dashed #294738;padding-top:8px}
     summary{cursor:pointer;font-family:system-ui,sans-serif;font-weight:700;margin-bottom:8px}
@@ -58,7 +61,7 @@
     .log p{margin:0 0 7px}.log time{color:#78a98a}
     .footer-note{grid-column:1/-1;color:#7f9f8b;font-size:12px;text-align:center;padding-top:4px}
     .kbd{border:1px solid #4a6c58;border-bottom-width:2px;padding:1px 5px;border-radius:5px;color:#cfe9d6}
-    @media(max-width:820px){main{grid-template-columns:1fr}.world,canvas{min-height:540px;height:540px}}
+    @media(max-width:820px){main{grid-template-columns:1fr}.world,canvas{min-height:540px;height:540px}.quick-nav{position:sticky;top:8px;z-index:20;background:#07110dee;backdrop-filter:blur(8px)}}
     @media(prefers-reduced-motion:reduce){button{transition:none}button:hover{transform:none}}
     @media(forced-colors:active){
       body{background:Canvas;color:CanvasText}
@@ -81,7 +84,7 @@
   </header>
 
   <main>
-    <section class="panel world" aria-label="Signal Garden visual map">
+    <section class="panel world" id="worldSection" tabindex="-1" aria-label="Signal Garden visual map">
       <p class="sr-only" id="canvasHelp">Visual overview of islands, routes, and animated signals. All gameplay actions are also available through the keyboard-accessible controls and Island navigator. A textual topology equivalent is available in the Text map panel.</p>
       <canvas id="garden" width="900" height="660" role="img" aria-label="Visual map of the Signal Garden islands and routes" aria-describedby="canvasHelp"></canvas>
       <div class="hud">
@@ -99,12 +102,21 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip" id="motionChip">Motion · standard</span>
         <span class="chip" id="contrastChip">Contrast · custom</span>
-        <span class="chip" id="versionChip">v0.42 · save 7</span>
+        <span class="chip" id="versionChip">v0.43 · save 7</span>
       </div>
     </section>
 
     <aside class="panel side" id="controls" tabindex="-1" aria-label="Signal Garden controls">
-      <div>
+      <nav class="quick-nav" id="quickNav" aria-label="Jump to Signal Garden sections">
+        <a href="#worldSection">Map</a>
+        <a href="#actionsSection">Actions</a>
+        <a href="#islandSection">Island</a>
+        <a href="#researchSection">Research</a>
+        <a href="#historySection">History</a>
+        <a href="#specimenSection">Specimen</a>
+      </nav>
+
+      <div id="actionsSection" tabindex="-1">
         <h2>Send a signal</h2>
         <p class="action-note">Choose one, then click an island. <span class="kbd">N</span> nurture · <span class="kbd">O</span> observe · <span class="kbd">C</span> connect/rewire · <span class="kbd">D</span> distort · <span class="kbd">Esc</span> cancels a pending connection.</p>
         <div class="small" id="modeStatus" role="status" aria-live="polite">Signal mode: nurture.</div>
@@ -128,7 +140,7 @@
         <div class="discovery" id="guidePanel"></div>
       </details>
 
-      <div>
+      <div id="islandSection" tabindex="-1">
         <h3>Island navigator</h3>
         <div class="small">Keyboard: <span class="kbd">1–7</span> selects an island; <span class="kbd">Enter</span> applies the current signal; <span class="kbd">U</span> undoes the last world action when focus is not on another control.</div>
         <div class="island-nav" id="islandNav" aria-label="Select an island" style="margin-top:8px"></div>
@@ -184,7 +196,7 @@
         <div class="discoveries" id="cycleReport"></div>
       </details>
 
-      <details open>
+      <details open id="researchSection" tabindex="-1">
         <summary id="researchSummary">Field questions</summary>
         <div class="discovery" id="researchCompass"></div>
         <div class="small" style="margin:8px 0 6px">Open questions</div>
@@ -225,7 +237,7 @@
         <div class="discoveries" id="discoveries"></div>
       </details>
 
-      <details>
+      <details id="historySection" tabindex="-1">
         <summary>Chronicle</summary>
         <div class="log" id="chronicle"></div>
       </details>
@@ -236,7 +248,7 @@
         <div class="log" id="log"></div>
       </details>
 
-      <details open class="specimen-dock">
+      <details open class="specimen-dock" id="specimenSection" tabindex="-1">
         <summary>Specimen dock</summary>
         <div class="small">Generate the current SG1 specimen here, or paste one from another Signal Garden. Import validates bounded game state before replacing this local garden.</div>
         <textarea id="specimenDock" aria-label="Signal Garden specimen code" spellcheck="false" autocomplete="off" placeholder="SG1…"></textarea>
@@ -267,7 +279,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.42",SAVE_SCHEMA=7;
+  var APP_VERSION="0.43",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -1575,6 +1587,11 @@
   document.getElementById("restBtn").addEventListener("click",function(){nextCycle();log("One cycle passed. The garden evolved without direct instruction.")});
   document.getElementById("germinateBtn").addEventListener("click",spawnIsland);
   document.getElementById("undoBtn").addEventListener("click",undoLastAction);
+  document.getElementById("quickNav").addEventListener("click",function(e){
+    var link=e.target.closest('a[href^="#"]');if(!link)return;
+    var id=link.getAttribute("href").slice(1),target=document.getElementById(id);
+    if(target&&target.tagName==="DETAILS")target.open=true;
+  });
   canvas.addEventListener("click",function(e){apply(pickIsland(e.clientX,e.clientY))});
   document.addEventListener("keydown",function(e){
     if(e.key==="Escape"&&Number.isInteger(state.connectFrom)){
