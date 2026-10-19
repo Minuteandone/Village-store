@@ -18,6 +18,7 @@ source = source.replace(
     macroClimate:macroClimate,
     recordClimate:recordClimate,
     inscribeGlyph:inscribeGlyph,
+    gardenSummary:gardenSummary,
     researchPrompts:researchPrompts,
     specimenCode:specimenCode,
     decodeSpecimen:decodeSpecimen,
@@ -61,7 +62,7 @@ ids.set("garden", canvas);
   "seasonChip","focusChip","resChip","transitChip","historyChip","researchChip","climateChip","germinateBtn",
   "islandNav","applySelectedBtn","selectedName","selectedLore","lifeStat",
   "memoryStat","strangeStat","linksStat","arrivalsStat","trafficStat","glyphStat","lifeMeter",
-  "research","species","discoveries","chronicle","log","restBtn","exportBtn","specimenBtn","importBtn","resetBtn"
+  "research","species","discoveries","chronicle","log","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
 ].forEach(id => ids.set(id, element()));
 
 const actionButtons = ["nurture","observe","connect","distort"].map(action =>
@@ -265,5 +266,12 @@ assert.equal(api.getState().islands[0].glyph, "strange");
 assert.equal(api.getState().resonance, 2, "glyph inscription should cost 3 resonance");
 assert.equal(api.getState().focus, 2, "glyph inscription should cost 1 focus");
 assert.ok(api.getState().chronicle.some(x => x.kind === "glyph"), "glyph inscription should enter chronicle");
+
+api.getState().log = [{c:2,msg:"PRIVATE LOG SENTINEL"}];
+api.getState().chronicle = [{c:2,kind:"test",msg:"PRIVATE CHRONICLE SENTINEL"}];
+const summary = api.gardenSummary();
+assert.ok(summary.includes("The Signal Garden"));
+assert.ok(!summary.includes("PRIVATE LOG SENTINEL"), "playtest summary must omit field-log text");
+assert.ok(!summary.includes("PRIVATE CHRONICLE SENTINEL"), "playtest summary must omit chronicle text");
 
 console.log("Signal Garden invariant tests passed.");
