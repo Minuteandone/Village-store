@@ -1,0 +1,99 @@
+.threadwalk-panel-v21 {
+  display: grid;
+  gap: 11px;
+  padding: 14px;
+  border: 1px solid rgba(126, 218, 255, .22);
+  border-radius: 14px;
+  background: linear-gradient(145deg, rgba(126,218,255,.045), rgba(205,193,255,.035));
+}
+.threadwalk-heading-v21 {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.threadwalk-heading-v21 h3 {
+  margin: 2px 0 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 1.08rem;
+  font-weight: 400;
+}
+.threadwalk-controls-v21 {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 8px;
+  align-items: end;
+}
+.threadwalk-controls-v21 label {
+  display: grid;
+  gap: 4px;
+  color: rgba(243,240,223,.58);
+  font: .65rem ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.threadwalk-controls-v21 select {
+  width: 100%;
+  min-width: 0;
+  padding: 8px 9px;
+  color: var(--ink);
+  background: rgba(12,14,22,.88);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 8px;
+  font: .7rem ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.threadwalk-status-v21 {
+  margin: 0;
+  color: rgba(225,241,247,.82);
+  font-size: .8rem;
+  line-height: 1.45;
+}
+.threadwalk-steps-v21 {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  max-height: 150px;
+  overflow: auto;
+}
+.threadwalk-step-v21 {
+  display: grid;
+  gap: 3px;
+  padding: 7px 9px;
+  border-left: 2px solid rgba(126,218,255,.52);
+  background: rgba(126,218,255,.035);
+}
+.threadwalk-step-v21 strong {
+  font: 700 .68rem ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.threadwalk-step-v21 span {
+  color: rgba(243,240,223,.52);
+  font: .63rem ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.gallery-node-v20[data-threadwalk="true"] {
+  box-shadow: 0 0 0 2px rgba(126,218,255,.72), 0 0 24px rgba(126,218,255,.24);
+}
+.gallery-node-v20[data-threadwalk-start="true"] {
+  border-color: rgba(150,233,209,.9);
+}
+.gallery-node-v20[data-threadwalk-end="true"] {
+  border-color: rgba(255,211,149,.92);
+}
+.gallery-thread-v20[data-threadwalk="true"] {
+  stroke-width: 5;
+  opacity: 1;
+  filter: drop-shadow(0 0 5px rgba(126,218,255,.6));
+}
+@media (max-width: 650px) {
+  .threadwalk-controls-v21 {
+    grid-template-columns: 1fr;
+  }
+  .threadwalk-swap-v21 {
+    width: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gallery-node-v20[data-threadwalk="true"],
+  .gallery-thread-v20[data-threadwalk="true"] {
+    transition: none;
+  }
+}
