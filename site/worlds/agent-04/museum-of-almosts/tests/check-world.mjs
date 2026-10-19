@@ -21,6 +21,7 @@ const v11 = read("v11.js");
 const v12 = read("v12.js");
 const v13 = read("v13.js");
 const v14 = read("v14.js");
+const v15 = read("v15.js");
 const v02css = read("v02.css");
 const v03css = read("v03.css");
 const v04css = read("v04.css");
@@ -34,13 +35,14 @@ const v11css = read("v11.css");
 const v12css = read("v12.css");
 const v13css = read("v13.css");
 const v14css = read("v14.css");
+const v15css = read("v15.css");
 
 const failures = [];
 const expect = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "v13.css", "v14.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js", "v13.js", "v14.js"]) {
+for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "v13.css", "v14.css", "v15.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js", "v13.js", "v14.js", "v15.js"]) {
   expect(index.includes(asset), "index.html must reference " + asset);
 }
 
@@ -57,11 +59,12 @@ expect(
   index.indexOf("v10.js") < index.indexOf("v11.js") &&
   index.indexOf("v11.js") < index.indexOf("v12.js") &&
   index.indexOf("v12.js") < index.indexOf("v13.js") &&
-  index.indexOf("v13.js") < index.indexOf("v14.js"),
-  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js -> v13.js -> v14.js"
+  index.indexOf("v13.js") < index.indexOf("v14.js") &&
+  index.indexOf("v14.js") < index.indexOf("v15.js"),
+  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js -> v13.js -> v14.js -> v15.js"
 );
 
-for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09], ["v1.0", v10], ["v1.1", v11], ["v1.2", v12], ["v1.3", v13], ["v1.4", v14]]) {
+for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09], ["v1.0", v10], ["v1.1", v11], ["v1.2", v12], ["v1.3", v13], ["v1.4", v14], ["v1.5", v15]]) {
   expect(source.includes("agent04-museum-of-almosts-v1"), name + " must share the Museum storage key");
 }
 
@@ -273,6 +276,22 @@ expect(!v14.includes("innerHTML"), "v1.4 should construct reissue UI with safe D
 expect(v14css.includes("#printEditionV10.reissue-print-v14"), "v1.4 must visually mark the existing Print control when a reissue is prepared");
 expect(v14css.includes("prefers-reduced-motion"), "v1.4 Second Edition styling must respect reduced-motion");
 
+for (const phrase of ["LINEAGE_KEY", "MAX_RELATIONS = 6", "EDITION LINEAGE · v1.5", "recordRelation", "parentCode", "childCode", "lineage-thread-v15"]) {
+  expect(v15.includes(phrase), "v1.5 missing Edition Lineage mechanic: " + phrase);
+}
+expect(v15.includes('id === "prepareReissueV14" || id === "prepareReissueDialogV14"'), "v1.5 lineage must arm only from explicit v1.4 reissue preparation");
+expect(v15.includes('id === "printEditionV10"'), "v1.5 lineage completion must observe the visitor clicking the real Living Catalog Print control");
+expect(v15.includes("const before = new Set(editions().map(item => item.code))"), "v1.5 must snapshot existing edition codes before explicit Print");
+expect(v15.includes("!before.has(child.code)"), "v1.5 must reject duplicate/no-op prints as descendants");
+expect(v15.includes("child.lens === parent.lens"), "v1.5 must require the reissue to keep the prepared parent lens");
+expect(v15.includes('dialog.addEventListener("close", clearPendingParent)'), "v1.5 must cancel pending lineage if the Living Catalog closes without printing");
+expect(v15.includes("relations.slice(-MAX_RELATIONS)"), "v1.5 lineage history must stay bounded");
+expect(v15.includes("localStorage.setItem(LINEAGE_KEY"), "v1.5 may persist only its own bounded lineage relation store");
+expect(!v15.includes("localStorage.setItem(EDITION_KEY"), "v1.5 must never write the Living Catalog edition store");
+expect(!v15.includes(".summary"), "v1.5 lineage must not duplicate edition summaries");
+expect(!v15.includes("innerHTML"), "v1.5 should construct lineage UI with safe DOM APIs");
+expect(v15css.includes("prefers-reduced-motion"), "v1.5 Edition Lineage styling must respect reduced-motion");
+
 if (failures.length) {
   console.error("Museum of Almosts smoke check failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -280,4 +299,4 @@ if (failures.length) {
 }
 
 console.log("Museum of Almosts smoke check passed.");
-console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes + v1.3 Cross-Reference Route + v1.4 Second Edition contract.");
+console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes + v1.3 Cross-Reference Route + v1.4 Second Edition + v1.5 Edition Lineage contract.");
