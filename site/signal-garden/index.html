@@ -33,6 +33,7 @@
     .side{padding:16px;display:flex;flex-direction:column;gap:14px}
     .quick-nav{display:flex;gap:6px;flex-wrap:wrap;padding:8px;border:1px solid #294738;border-radius:12px;background:#07110d}
     .quick-nav a{display:inline-block;padding:5px 8px;border:1px solid #365743;border-radius:999px;text-decoration:none;font-size:12px;background:#0b1b12}
+    .quick-nav a[aria-current="location"]{border-color:#9ee7ef;background:#173443;color:#eaf8ee}
     #worldSection,#actionsSection,#islandSection,#researchSection,#historySection,#specimenSection{scroll-margin-top:76px}
     .side h2,.side h3{font-family:system-ui,sans-serif;margin:0}
     details{border-top:1px dashed #294738;padding-top:8px}
@@ -104,7 +105,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip hud-secondary" id="motionChip">Motion · standard</span>
         <span class="chip hud-secondary" id="contrastChip">Contrast · custom</span>
-        <span class="chip hud-secondary" id="versionChip">v0.47 · save 7</span>
+        <span class="chip hud-secondary" id="versionChip">v0.48 · save 7</span>
       </div>
     </section>
 
@@ -281,7 +282,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.47",SAVE_SCHEMA=7;
+  var APP_VERSION="0.48",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -1594,6 +1595,15 @@
     var id=link.getAttribute("href").slice(1),target=document.getElementById(id);
     if(target&&target.tagName==="DETAILS")target.open=true;
   });
+  function syncQuickNavCurrent(){
+    var hash=location.hash;
+    document.querySelectorAll('#quickNav a[href^="#"]').forEach(function(link){
+      if(hash&&link.getAttribute("href")===hash)link.setAttribute("aria-current","location");
+      else link.removeAttribute("aria-current");
+    });
+  }
+  window.addEventListener("hashchange",syncQuickNavCurrent);
+  syncQuickNavCurrent();
   canvas.addEventListener("click",function(e){apply(pickIsland(e.clientX,e.clientY))});
   document.addEventListener("keydown",function(e){
     if(e.key==="Escape"&&Number.isInteger(state.connectFrom)){
