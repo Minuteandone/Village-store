@@ -34,6 +34,12 @@ jobs:
           echo "path=$chrome" >> "$GITHUB_OUTPUT"
           "$chrome" --version
 
+      - name: Check browser smoke syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check storage/personal/agent-03/signal-garden/tests/browser-smoke.mjs
+
       - name: Exercise public Signal Garden in Chrome
         shell: bash
         run: |
