@@ -16,6 +16,7 @@ const v06 = read("v06.js");
 const v07 = read("v07.js");
 const v08 = read("v08.js");
 const v09 = read("v09.js");
+const v10 = read("v10.js");
 const v02css = read("v02.css");
 const v03css = read("v03.css");
 const v04css = read("v04.css");
@@ -24,13 +25,14 @@ const v06css = read("v06.css");
 const v07css = read("v07.css");
 const v08css = read("v08.css");
 const v09css = read("v09.css");
+const v10css = read("v10.css");
 
 const failures = [];
 const expect = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js"]) {
+for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js"]) {
   expect(index.includes(asset), "index.html must reference " + asset);
 }
 
@@ -42,11 +44,12 @@ expect(
   index.indexOf("v05.js") < index.indexOf("v06.js") &&
   index.indexOf("v06.js") < index.indexOf("v07.js") &&
   index.indexOf("v07.js") < index.indexOf("v08.js") &&
-  index.indexOf("v08.js") < index.indexOf("v09.js"),
-  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js"
+  index.indexOf("v08.js") < index.indexOf("v09.js") &&
+  index.indexOf("v09.js") < index.indexOf("v10.js"),
+  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js"
 );
 
-for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09]]) {
+for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09], ["v1.0", v10]]) {
   expect(source.includes("agent04-museum-of-almosts-v1"), name + " must share the Museum storage key");
 }
 
@@ -185,6 +188,23 @@ expect(!v09.includes("localStorage.setItem("), "v0.9 must not write any browser 
 expect(!v09.includes("innerHTML"), "v0.9 should construct relic UI with safe DOM APIs");
 expect(v09css.includes("prefers-reduced-motion"), "v0.9 relic styling must respect reduced-motion");
 
+for (const phrase of ["EDITION_KEY", "MAX_EDITIONS = 4", "The Living Catalog", "print this local edition", "edition-artifact-v10", "ED1-"]) {
+  expect(v10.includes(phrase), "v1.0 missing Living Catalog mechanic: " + phrase);
+}
+expect(v10.includes("store.editions.slice(-MAX_EDITIONS)") || v10.includes("editions.filter(validEdition).slice(-MAX_EDITIONS)"), "v1.0 local edition history must stay bounded to four");
+expect(v10.includes("summarySnapshot"), "v1.0 must synthesize a compact whole-museum summary");
+expect(v10.includes("editionCode"), "v1.0 must produce deterministic edition codes");
+expect(v10.includes("validSummary"), "v1.0 stored edition summaries must be schema-validated");
+expect(v10.includes("localStorage.setItem(EDITION_KEY"), "v1.0 must persist editions only in its own local store");
+expect(!v10.includes("localStorage.setItem(STORAGE_KEY"), "v1.0 must not rewrite the present Museum save");
+expect(!v10.includes("localStorage.setItem(REFERENCE_KEY"), "v1.0 must not rewrite mounted reference state");
+expect(!v10.includes("localStorage.setItem(AFTERIMAGE_KEY"), "v1.0 must not rewrite Afterimage history");
+expect(!v10.includes("localStorage.setItem(CURATOR_KEY"), "v1.0 must not rewrite curator provenance");
+expect(!v10.includes("localStorage.setItem(UNBUILT_KEY"), "v1.0 must not rewrite Unbuilt Wing blueprints");
+expect(v10.includes("possibility") && v10.includes("provenance") && v10.includes("architecture"), "v1.0 must expose all three editorial lenses");
+expect(!v10.includes("innerHTML"), "v1.0 should construct Living Catalog UI with safe DOM APIs");
+expect(v10css.includes("prefers-reduced-motion"), "v1.0 Living Catalog styling must respect reduced-motion");
+
 if (failures.length) {
   console.error("Museum of Almosts smoke check failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -192,4 +212,4 @@ if (failures.length) {
 }
 
 console.log("Museum of Almosts smoke check passed.");
-console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relic contract.");
+console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog contract.");
