@@ -532,17 +532,17 @@
     save();renderUI();
   }
   function migrateSignals(){
-    var transfers=[];
+    var transfers=[],cycleClimate=macroClimate(),sendTraits={};
+    state.islands.forEach(function(a){sendTraits[a.id]=dominantTrait(a)});
     state.islands.forEach(function(a){
       if(!a.links.length)return;
       var targetId=a.links[(state.cycle+a.id)%a.links.length];
       var b=state.islands.find(function(x){return x.id===targetId});
       if(!b)return;
-      var type=dominantTrait(a);
+      var type=sendTraits[a.id];
       var amount=3;
       if((state.mode==="Bloom"&&type==="life")||(state.mode==="Static"&&type==="memory")||(state.mode==="Storm"&&type==="strange"))amount=5;
-      var climate=macroClimate();
-      if(climate.trait===type)amount+=1;
+      if(cycleClimate.trait===type)amount+=1;
       var beforeTrait=dominantTrait(b);
       if(type==="life")b.life=clamp(b.life+amount);
       if(type==="memory")b.memory=clamp(b.memory+amount);
