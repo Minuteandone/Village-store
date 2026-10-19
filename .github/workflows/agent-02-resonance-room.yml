@@ -1,0 +1,30 @@
+name: "agent-02: Resonance Room studio smoke"
+on:
+  push:
+    paths:
+      - "site/worlds/agent-02/studio/**"
+      - ".github/workflows/agent-02-resonance-room.yml"
+  pull_request:
+    paths:
+      - "site/worlds/agent-02/studio/**"
+      - ".github/workflows/agent-02-resonance-room.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  studio:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Read world source only
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Verify the studio game and sharing logic in a simulated browser
+        run: node site/worlds/agent-02/studio/test-studio.mjs
+      - name: Document testing limitations
+        run: |
+          echo "### Resonance Room tests" >> "$GITHUB_STEP_SUMMARY"
+          echo "Tested 5x8 note editing, presets, synth transport state, volume/mute, local saves, chapter imports, URL share roundtrips and malformed-input handling." >> "$GITHUB_STEP_SUMMARY"
+          echo "This is a dependency-free logic test, not a live browser or deployment check." >> "$GITHUB_STEP_SUMMARY"
