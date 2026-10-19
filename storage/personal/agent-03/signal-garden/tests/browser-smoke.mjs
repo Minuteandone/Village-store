@@ -174,6 +174,29 @@ try{
   assert.equal(selectionRole,"status");
   const selectedAnnouncement=await evaluate("document.getElementById('selectionStatus').textContent");
   assert.ok(!selectedAnnouncement.includes("No island selected"),"selected-island status should update after navigator selection");
+
+  await sleep(300);
+  await evaluate("window.scrollTo(0,document.documentElement.scrollHeight)");
+  await waitFor("document.getElementById('garden').getBoundingClientRect().bottom < 0","canvas to leave viewport");
+  await sleep(350);
+  const offscreenCanvasA=await evaluate("document.getElementById('garden').toDataURL()");
+  await sleep(350);
+  const offscreenCanvasB=await evaluate("document.getElementById('garden').toDataURL()");
+  assert.equal(offscreenCanvasB,offscreenCanvasA,"offscreen canvas should stop repainting");
+
+  await evaluate(`document.querySelector('[data-island-id="1"]').click()`);
+  await sleep(350);
+  const offscreenCanvasAfterSelection=await evaluate("document.getElementById('garden').toDataURL()");
+  assert.equal(offscreenCanvasAfterSelection,offscreenCanvasB,"state changes while offscreen should not repaint until the canvas is visible");
+
+  await evaluate("document.getElementById('garden').scrollIntoView({block:'start'})");
+  await waitFor("document.getElementById('garden').getBoundingClientRect().top < innerHeight && document.getElementById('garden').getBoundingClientRect().bottom > 0","canvas to re-enter viewport");
+  await sleep(400);
+  const resumedCanvas=await evaluate("document.getElementById('garden').toDataURL()");
+  assert.notEqual(resumedCanvas,offscreenCanvasAfterSelection,"canvas should render the latest state after re-entering the viewport");
+
+  await evaluate(`document.querySelector('[data-island-id="0"]').click()`);
+  await sleep(300);
   const echoInitiallyDisabled=await evaluate(`document.querySelector('[data-glyph="memory"]').disabled`);
   assert.equal(echoInitiallyDisabled,true,"fresh selected island should not offer unaffordable glyph inscription");
   const glyphInitialStatus=await evaluate("document.getElementById('glyphStatus').textContent");
@@ -336,7 +359,7 @@ try{
   assert.equal(exceptions.length,0,"uncaught browser exceptions: "+JSON.stringify(exceptions));
 
   console.log("Signal Garden shared-mirror browser smoke passed.");
-  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,contrastChip,panelShadow,activeOutline,title,firstTabClass,controlsLabel,canvasRole,initialGuide,guideLive,fieldLogLive,actionStatusRole,researchSummary,researchCompass,observedResearchSummary,selectedAnnouncement,actionAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,germinationInitiallyDisabled,germinationInitialStatus,echoInitiallyDisabled,glyphInitialStatus,echoReady,glyphDescription,echoDisabledAfterSelection,initialTextMap,linkedTextMap,migratedTextMap,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,exhaustedFocus,nurtureApplyDisabled,exhaustedModeStatus,exhaustedGuide,freeArmText,zeroFocusPending,blockedCompletionStatus,freeCancelText,afterFreeCancel,url:selectedUrl}));
+  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,contrastChip,panelShadow,activeOutline,title,firstTabClass,controlsLabel,canvasRole,initialGuide,guideLive,fieldLogLive,actionStatusRole,researchSummary,researchCompass,observedResearchSummary,selectedAnnouncement,offscreenCanvasStable:offscreenCanvasA===offscreenCanvasB,offscreenSelectionDeferred:offscreenCanvasAfterSelection===offscreenCanvasB,resumeRenderedLatest:resumedCanvas!==offscreenCanvasAfterSelection,actionAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,germinationInitiallyDisabled,germinationInitialStatus,echoInitiallyDisabled,glyphInitialStatus,echoReady,glyphDescription,echoDisabledAfterSelection,initialTextMap,linkedTextMap,migratedTextMap,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,exhaustedFocus,nurtureApplyDisabled,exhaustedModeStatus,exhaustedGuide,freeArmText,zeroFocusPending,blockedCompletionStatus,freeCancelText,afterFreeCancel,url:selectedUrl}));
 }finally{
   if(ws)try{ws.close()}catch{}
   proc.kill("SIGTERM");
