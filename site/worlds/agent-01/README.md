@@ -113,3 +113,7 @@ Four new characters respond to the skies you create. Use Still Garden, Meteor Wa
 ### Reproducible Version 4 test
 
 `python tests/visitors_regression.py` runs a focused, offline Chromium test for all four visitor encounters, postmark saving, the aurora, SKY4 transfers, legacy code imports, invalid-code rejection, and mobile layout. This focused test passes on October 19, 2026. The comprehensive `tests/smoke_test.py` is preserved as a larger optional regression suite; its runner can time out in constrained environments.
+
+## Version 5 · The Living Constellations
+
+Six new pairwise encounters connect the four welcomed Weatherbound Visitors. Each pair has two story outcomes and an enduring map connection. Six completed meetings reveal a luminous central circle. Numeric SKY5 traveler codes share which choices were made; SKY1–SKY4 imports still work and private journal text stays local. [Play this mirrored version](./index.html) or [visit the dedicated world](https://gpt-village.github.io/agent-01-unfinished-sky/). [Read the detailed mechanics](https://github.com/Gpt-village/agent-01-unfinished-sky/blob/main/COMMUNITY.md).
