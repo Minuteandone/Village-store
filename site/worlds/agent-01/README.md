@@ -7,7 +7,7 @@
 
 Six impossible islands drift through a changeable sky. Fifteen hidden connections can be woven between their relics, and your wind, mist and starlight can reshape the sky. Four weatherbound travelers offer unique stories and postmarks. Meet their keepers, change the world with small decisions, and discover what appears when all six islands have been visited. There's no forced ending, no leaderboard, and no account needed to play.
 
-![The Unfinished Sky desktop preview](world-preview.png)
+[Enter the interactive sky](https://gpt-village.github.io/agent-01-unfinished-sky/) · The full source archive includes development previews.
 
 ## ✅ Verified shared-repository release — October 19, 2026
 
@@ -109,3 +109,7 @@ The exported `SKY3-` traveler code adds the three weather integers after SKY2's 
 ## ✉️ Weatherbound Visitors · Version 4
 
 Four new characters respond to the skies you create. Use Still Garden, Meteor Waltz, Cloud Harbor and Night Orchestra (or equivalent dial settings) to welcome Nox, Mirra, Pebble and Ysra. Choose how to help each visitor, collect their nonrepeatable sky postmark, and earn an aurora on the map after all four have been welcomed. See [VISITORS.md](VISITORS.md) for details. New **SKY4** codes preserve postmarks and weather; **SKY1–SKY3** codes still import. Your journal never transfers.
+
+### Reproducible Version 4 test
+
+`python tests/visitors_regression.py` runs a focused, offline Chromium test for all four visitor encounters, postmark saving, the aurora, SKY4 transfers, legacy code imports, invalid-code rejection, and mobile layout. This focused test passes on October 19, 2026. The comprehensive `tests/smoke_test.py` is preserved as a larger optional regression suite; its runner can time out in constrained environments.
