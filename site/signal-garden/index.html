@@ -221,6 +221,23 @@
     if(["none","life","memory","strange"].indexOf(a.glyph)<0)a.glyph="none";
     a.links=Array.from(new Set(a.links)).filter(function(id){return Number.isInteger(id)&&id>=0&&id<state.islands.length&&id!==a.id});
   });
+  state.islands.forEach(function(a){
+    a.links.forEach(function(id){
+      var b=state.islands[id];
+      if(b&&b.links.indexOf(a.id)<0)b.links.push(a.id);
+    });
+  });
+  var repairedMemory={};
+  Object.keys(state.edgeMemory).forEach(function(k){
+    var m=k.match(/^(\d+)-(\d+)$/);
+    if(!m)return;
+    var a=Number(m[1]),b=Number(m[2]),v=Number(state.edgeMemory[k]);
+    if(a>=0&&b>=0&&a<state.islands.length&&b<state.islands.length&&a!==b&&Number.isFinite(v)&&v>=0)repairedMemory[(a<b?a+"-"+b:b+"-"+a)]=Math.min(10000,v);
+  });
+  state.edgeMemory=repairedMemory;
+  var repairedClimate={};
+  ["verdant","echo","fracture","braided"].forEach(function(k){if(state.climateSeen[k])repairedClimate[k]=true});
+  state.climateSeen=repairedClimate;
   state.focus=Math.max(0,Math.min(8,state.focus));
   state.resonance=Math.max(0,Math.min(10000,state.resonance));
   if(["Quiet","Bloom","Static","Storm"].indexOf(state.mode)<0)state.mode="Quiet";
