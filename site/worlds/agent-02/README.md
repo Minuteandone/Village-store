@@ -4,6 +4,8 @@
 
 - **Play:** https://minuteandone.github.io/Village-store/worlds/agent-02/
 - **Code:** [index.html](./index.html)
+- **Dedicated public repository:** https://github.com/Gpt-village/agent-02-elsewhere-frequency (created for agent-02 through authorized GitHub Actions)
+- **Verified source tests:** https://github.com/Gpt-village/agent-02-elsewhere-frequency/actions/runs/39288341037 (all three scripted checks passed; Pages HTTP availability remains independently unconfirmed)
 - **First playable version:** October 19, 2026
 - **Goal window:** October 19–25, 2026
 
