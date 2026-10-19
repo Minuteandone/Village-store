@@ -27,7 +27,7 @@
     main{max-width:1180px;margin:auto;padding:10px 20px 44px;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.7fr);gap:16px}
     .panel{border:1px solid var(--line);background:var(--panel);border-radius:18px;box-shadow:0 20px 60px #0008;backdrop-filter:blur(10px)}
     .world{position:relative;overflow:hidden;min-height:660px}
-    canvas{display:block;width:100%;height:660px;cursor:crosshair}
+    canvas{display:block;width:100%;height:660px;cursor:crosshair;touch-action:pan-y pinch-zoom}
     .hud{position:absolute;left:14px;top:14px;display:flex;gap:8px;flex-wrap:wrap;pointer-events:none}
     .chip{padding:7px 9px;border:1px solid #416653;background:#07110dcc;border-radius:999px;font-size:12px}
     .side{padding:16px;display:flex;flex-direction:column;gap:14px}
@@ -99,7 +99,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip" id="motionChip">Motion · standard</span>
         <span class="chip" id="contrastChip">Contrast · custom</span>
-        <span class="chip" id="versionChip">v0.41 · save 7</span>
+        <span class="chip" id="versionChip">v0.42 · save 7</span>
       </div>
     </section>
 
@@ -111,15 +111,15 @@
         <div class="small" id="actionCostNote">Nurture / Observe / Distort cost 1 focus. Connect source arming and cancellation are free; completing a link or cut costs 1 focus.</div>
       </div>
       <div class="actions">
-        <button data-action="nurture" aria-pressed="true" aria-describedby="actionCostNote modeStatus">🌱 Nurture</button>
-        <button data-action="observe" aria-pressed="false" aria-describedby="actionCostNote modeStatus">👁 Observe</button>
-        <button data-action="connect" aria-pressed="false" aria-describedby="actionCostNote modeStatus">🕸 Connect</button>
-        <button data-action="distort" aria-pressed="false" aria-describedby="actionCostNote modeStatus">〰 Distort</button>
+        <button data-action="nurture" aria-pressed="true" aria-keyshortcuts="N" aria-describedby="actionCostNote modeStatus">🌱 Nurture</button>
+        <button data-action="observe" aria-pressed="false" aria-keyshortcuts="O" aria-describedby="actionCostNote modeStatus">👁 Observe</button>
+        <button data-action="connect" aria-pressed="false" aria-keyshortcuts="C" aria-describedby="actionCostNote modeStatus">🕸 Connect</button>
+        <button data-action="distort" aria-pressed="false" aria-keyshortcuts="D" aria-describedby="actionCostNote modeStatus">〰 Distort</button>
       </div>
       <button id="restBtn">🌙 Let one cycle pass</button>
       <button id="germinateBtn" disabled aria-describedby="germinateStatus">🌿 Germinate island · 6 resonance + 2 focus</button>
       <div class="small" id="germinateStatus">Unavailable: needs 6 resonance and 2 focus.</div>
-      <button id="undoBtn" disabled aria-describedby="undoStatus">↶ Undo last world action</button>
+      <button id="undoBtn" disabled aria-keyshortcuts="U" aria-describedby="undoStatus">↶ Undo last world action</button>
       <div class="small" id="undoStatus">Nothing to undo in this session.</div>
       <div class="small">Connected islands exchange their strongest trait when a cycle passes. Bloom favors life, Static favors memory, and Storm favors strangeness. Use Connect on an existing pair to cut that bridge.</div>
 
@@ -132,7 +132,7 @@
         <h3>Island navigator</h3>
         <div class="small">Keyboard: <span class="kbd">1–7</span> selects an island; <span class="kbd">Enter</span> applies the current signal; <span class="kbd">U</span> undoes the last world action when focus is not on another control.</div>
         <div class="island-nav" id="islandNav" aria-label="Select an island" style="margin-top:8px"></div>
-        <button id="applySelectedBtn" aria-describedby="actionCostNote modeStatus" style="width:100%;margin-top:8px">⚡ Apply current signal</button>
+        <button id="applySelectedBtn" aria-keyshortcuts="Enter" aria-describedby="actionCostNote modeStatus" style="width:100%;margin-top:8px">⚡ Apply current signal</button>
       </div>
 
       <div class="island-card">
@@ -267,7 +267,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.41",SAVE_SCHEMA=7;
+  var APP_VERSION="0.42",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -1343,7 +1343,7 @@
     var nav=document.getElementById("islandNav");
     nav.innerHTML=state.islands.map(function(x,i){
       var role=dominantTrait(x)==="life"?"grove":dominantTrait(x)==="memory"?"archive":"fold";
-      return '<button type="button" data-island-id="'+x.id+'" aria-pressed="'+(state.selected===x.id?'true':'false')+'">'+(i+1)+' · '+esc(x.name)+' · '+role+(x.lineage&&x.lineage!=="none"?' · echo '+x.lineage:'')+(x.palimpsest?' · palimpsest':'')+'</button>';
+      return '<button type="button" data-island-id="'+x.id+'" aria-keyshortcuts="'+(i+1)+'" aria-pressed="'+(state.selected===x.id?'true':'false')+'">'+(i+1)+' · '+esc(x.name)+' · '+role+(x.lineage&&x.lineage!=="none"?' · echo '+x.lineage:'')+(x.palimpsest?' · palimpsest':'')+'</button>';
     }).join("");
     var a=state.islands.find(function(x){return x.id===state.selected});
     var applyBtn=document.getElementById("applySelectedBtn"),connectSource=state.islands.find(function(x){return x.id===state.connectFrom});
