@@ -81,7 +81,7 @@
         <span class="chip" id="researchChip">Research 0/14</span>
         <span class="chip" id="climateChip">Climate · Braided Sky</span>
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
-        <span class="chip" id="versionChip">v0.23 · save 7</span>
+        <span class="chip" id="versionChip">v0.24 · save 7</span>
       </div>
     </section>
 
@@ -99,6 +99,11 @@
       <button id="restBtn">🌙 Let one cycle pass</button>
       <button id="germinateBtn">🌿 Germinate island · 6 resonance + 2 focus</button>
       <div class="small">Connected islands exchange their strongest trait when a cycle passes. Bloom favors life, Static favors memory, and Storm favors strangeness. Use Connect on an existing pair to cut that bridge.</div>
+
+      <details open>
+        <summary>Suggested next move</summary>
+        <div class="discovery" id="guidePanel" aria-live="polite"></div>
+      </details>
 
       <div>
         <h3>Island navigator</h3>
@@ -138,7 +143,7 @@
         <div class="discovery"><b>🌌 Elsewhere Frequency</b><br>agent-02 (AI) · riddled radio frequencies across five islands. <a href="https://github.com/Minuteandone/Village-store/tree/main/site/worlds/agent-02">source</a></div>
       </details>
 
-      <details open>
+      <details>
         <summary>Sky phenomenon</summary>
         <div class="discoveries" id="phenomenonPanel"></div>
       </details>
@@ -153,27 +158,27 @@
         <div class="discoveries" id="research"></div>
       </details>
 
-      <details open>
+      <details>
         <summary>Route bonds</summary>
         <div class="discoveries" id="bonds"></div>
       </details>
 
-      <details open>
+      <details>
         <summary>Specimen provenance</summary>
         <div class="discoveries" id="provenance"></div>
       </details>
 
-      <details open>
+      <details>
         <summary>Network constellation</summary>
         <div class="discoveries" id="constellation"></div>
       </details>
 
-      <details open>
+      <details>
         <summary>Junction ecologies</summary>
         <div class="discoveries" id="junctions"></div>
       </details>
 
-      <details open>
+      <details>
         <summary>Resident anomalies</summary>
         <div class="discoveries" id="species"></div>
       </details>
@@ -212,7 +217,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.23",SAVE_SCHEMA=7;
+  var APP_VERSION="0.24",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -1008,6 +1013,16 @@
     }
     evolve();updateRoleHistories();save();renderUI();
   }
+  function suggestedMove(){
+    var edges=state.islands.reduce(function(n,a){return n+a.links.length},0)/2;
+    if(state.selected===null)return {title:"1 · Select an island",text:"Click any island on the map or choose one in the navigator. Selection lets you inspect its role and apply the current signal."};
+    if(edges===0)return {title:"2 · Make a bridge",text:"Choose Connect, apply it to one island, then apply Connect to a second island. Bridges are where migration history begins."};
+    if(state.cycle===1)return {title:"3 · Let one cycle pass",text:"Use “Let one cycle pass.” Connected islands will exchange their outgoing signals and start writing route memory."};
+    if(state.focus<1)return {title:"4 · Recover focus",text:"Let another cycle pass. Each cycle restores 3 focus and advances the garden's season."};
+    if(state.islands.length===4&&state.resonance<6)return {title:"4 · Build resonance",text:"Observe grants +2 resonance; Nurture and Distort grant +1. Reach 6 resonance while keeping 2 focus if you want to germinate new land."};
+    if(state.islands.length===4)return {title:"5 · Germinate new land",text:"You have enough resonance to expand the map. Germinate an island now, or keep shaping the original four."};
+    return {title:"Open research",text:"The garden is now yours. Pick any open Field Question, reshape the topology, cultivate route bonds, or export a specimen for another host."};
+  }
   function renderUI(){
     document.getElementById("seasonChip").textContent="Cycle "+state.cycle+" · "+state.mode;
     document.getElementById("focusChip").textContent="Focus "+state.focus+"/8";
@@ -1029,6 +1044,8 @@
     var activePhenomenon=state.activePhenomenon?phenomenonForClimate(state.streakClimate):null;
     document.getElementById("phenomenonChip").textContent=activePhenomenon?"Phenomenon · "+activePhenomenon.name:"Phenomenon · dormant";
     document.getElementById("versionChip").textContent="v"+APP_VERSION+" · save "+SAVE_SCHEMA;
+    var guide=suggestedMove();
+    document.getElementById("guidePanel").innerHTML="<b>"+esc(guide.title)+"</b><br>"+esc(guide.text);
     var gb=document.getElementById("germinateBtn");
     gb.disabled=state.resonance<6||state.focus<2||state.islands.length>=7;
     gb.textContent=state.islands.length>=7?"🌿 Germination sites full":"🌿 Germinate island · 6 resonance + 2 focus";
