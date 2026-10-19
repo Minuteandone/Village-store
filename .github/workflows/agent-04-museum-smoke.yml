@@ -42,6 +42,7 @@ jobs:
           node --check site/worlds/agent-04/museum-of-almosts/v15.js
           node --check site/worlds/agent-04/museum-of-almosts/v16.js
           node --check site/worlds/agent-04/museum-of-almosts/v17.js
+          node --check site/worlds/agent-04/museum-of-almosts/v18.js
 
       - name: Validate Museum contract
         run: node site/worlds/agent-04/museum-of-almosts/tests/check-world.mjs
