@@ -99,7 +99,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip" id="motionChip">Motion · standard</span>
         <span class="chip" id="contrastChip">Contrast · custom</span>
-        <span class="chip" id="versionChip">v0.38 · save 7</span>
+        <span class="chip" id="versionChip">v0.39 · save 7</span>
       </div>
     </section>
 
@@ -265,7 +265,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.38",SAVE_SCHEMA=7;
+  var APP_VERSION="0.39",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -390,10 +390,15 @@
   var motes=[];
   var lastCycleReport=null;
   var audioOn=false,audioCtx=null;
+  var canvasVisible=true,framePending=false,reducedDrawTimer=null;
   var motionQuery=window.matchMedia?window.matchMedia("(prefers-reduced-motion: reduce)"):null;
   var reducedMotion=!!(motionQuery&&motionQuery.matches);
   if(motionQuery){
-    var onMotionPreference=function(e){reducedMotion=!!e.matches;renderUI()};
+    var onMotionPreference=function(e){
+      reducedMotion=!!e.matches;
+      if(reducedDrawTimer!==null){clearTimeout(reducedDrawTimer);reducedDrawTimer=null}
+      renderUI();scheduleDraw();
+    };
     if(motionQuery.addEventListener)motionQuery.addEventListener("change",onMotionPreference);
     else if(motionQuery.addListener)motionQuery.addListener(onMotionPreference);
   }
@@ -406,6 +411,30 @@
   }
   var stars=[];
   for(var si=0;si<100;si++)stars.push({x:rand(),y:rand(),a:.2+rand()*.6,s:rand()*1.6+.3});
+  function scheduleDraw(){
+    if(framePending||!canvasVisible)return;
+    framePending=true;
+    requestAnimationFrame(draw);
+  }
+  function queueNextDraw(){
+    if(!canvasVisible)return;
+    if(reducedMotion){
+      if(reducedDrawTimer===null)reducedDrawTimer=setTimeout(function(){
+        reducedDrawTimer=null;scheduleDraw();
+      },250);
+    }else scheduleDraw();
+  }
+  if(window.IntersectionObserver){
+    var canvasObserver=new window.IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        if(entry.target!==canvas)return;
+        canvasVisible=!!entry.isIntersecting;
+        if(!canvasVisible&&reducedDrawTimer!==null){clearTimeout(reducedDrawTimer);reducedDrawTimer=null}
+        if(canvasVisible)scheduleDraw();
+      });
+    },{threshold:0});
+    canvasObserver.observe(canvas);
+  }
   function save(){localStorage.setItem(KEY,JSON.stringify(state))}
   function tone(freq,duration,type,delay){
     if(!audioOn)return;
@@ -1407,6 +1436,8 @@
     return "A young "+role+": partly ecology, partly memory, not yet sure which.";
   }
   function draw(t){
+    framePending=false;
+    if(!canvasVisible)return;
     var w=canvas.width,h=canvas.height,rt=reducedMotion?0:t;
     ctx.clearRect(0,0,w,h);
     var climate=macroClimate();
@@ -1494,7 +1525,7 @@
       ctx.fillStyle="#b8d9c2";ctx.font="10px ui-monospace,monospace";ctx.textAlign="center";ctx.fillText(dominantTrait(a).toUpperCase(),x,y+r+20);
       ctx.fillStyle="#eaf8ee";ctx.font="12px ui-monospace,monospace";ctx.fillText(a.name,x,y+r+36);
     });
-    requestAnimationFrame(draw);
+    queueNextDraw();
   }
   document.querySelectorAll("[data-action]").forEach(function(b){b.addEventListener("click",function(){state.action=b.dataset.action;delete state.connectFrom;save();renderUI()})});
   document.querySelectorAll("[data-glyph]").forEach(function(b){b.addEventListener("click",function(){inscribeGlyph(b.dataset.glyph)})});
@@ -1629,7 +1660,7 @@
     if(window.history&&window.history.replaceState)window.history.replaceState(null,"",location.pathname+"?seed="+encodeURIComponent(seed));
     save();renderUI();log("Generated a new random garden with seed "+seed+".");
   });
-  renderUI();requestAnimationFrame(draw);
+  renderUI();scheduleDraw();
 })();
 </script>
 </body>
