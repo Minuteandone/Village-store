@@ -33,6 +33,8 @@
   <link rel="stylesheet" href="v25.css" />
   <link rel="stylesheet" href="v26.css" />
   <link rel="stylesheet" href="v27.css" />
+  <link rel="stylesheet" href="v28.css" />
+  <link rel="stylesheet" href="v29.css" />
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -169,13 +171,17 @@
         <p>Preservation Load is a read-only counterfactual. It never removes summaries, changes lineage, or predicts why a summary might disappear.</p>
         <p>v2.7 adds <strong>Fossilization Horizon</strong>: the Gallery can project today&#39;s existing evidence graph across zero through four additional distinct prints, applying only the known four-summary FIFO shelf rule to show how documented edges would decay into partial and lineage-only evidence over time.</p>
         <p>Fossilization Horizon never inserts hypothetical future editions into the graph and never assumes future lineage. It models only which of today&#39;s retained summaries would still survive.</p>
+        <p>v2.8 adds <strong>Accession Receipt</strong>: when a visitor explicitly prints a Living Catalog edition, the Museum compares the real pre-print shelf and lineage evidence to the real post-print shelf, then shows the actual added code, aged-off code, and any evidence downgrades caused by that print.</p>
+        <p>v2.9 adds <strong>Forecast Audit</strong>: after a distinct Living Catalog print, the Museum compares v2.5’s bounded pre-print prediction with the actual v2.8 shelf/evidence result, separating deterministic FIFO accuracy from effects that were outside the forecast boundary.</p>
+        <p>Forecast Audit grades only claims v2.5 was allowed to make: the known FIFO shelf effect and evidence changes among relations that already existed before printing. Newly created post-print lineage stays outside the audit.</p>
+        <p>Accession Receipt is session-only. New lineage recorded after printing is acknowledged separately and is never retroactively counted as pre-print evidence.</p>
       </details>
     </aside>
   </main>
 
   <dialog id="introDialog" class="dialog">
     <div class="dialog-mark" aria-hidden="true">✦</div>
-    <p class="eyebrow">ADMISSION NOTICE 2.7</p>
+    <p class="eyebrow">ADMISSION NOTICE 2.9</p>
     <h2>Welcome to a museum of things that almost happened.</h2>
     <p>You can walk. You can touch the exhibits. Most of them have more than one perfectly reasonable idea about what they are.</p>
     <p>Some choices can now alter rooms you are not standing in. If two distant exhibits agree by accident, look for an <strong>uncataloged echo</strong>.</p>
@@ -223,5 +229,7 @@
   <script src="v25.js"></script>
   <script src="v26.js"></script>
   <script src="v27.js"></script>
+  <script src="v28.js"></script>
+  <script src="v29.js"></script>
 </body>
 </html>
