@@ -56,6 +56,11 @@ assert.ok(source.includes('if(!canvasVisible)return;'),"draw should stop immedia
 assert.ok(source.includes('reducedDrawTimer=setTimeout(function(){'),"reduced motion should use a low-frequency timer instead of a continuous animation loop");
 assert.ok(source.includes('},250);'),"reduced-motion canvas refresh should be throttled to a 250ms cadence");
 assert.ok(source.includes('if(reducedDrawTimer!==null){clearTimeout(reducedDrawTimer);reducedDrawTimer=null}'),"motion preference changes should clear stale reduced-motion timers");
+assert.ok(!source.includes('var mouse={x:0,y:0}'),"renderer should not keep unused pointer-position state");
+assert.ok(!source.includes('addEventListener("mousemove"'),"canvas should not perform dead work on every mouse move");
+assert.ok(!source.includes('Math.hypot(dx,dy)'),"canvas hit testing should avoid an unnecessary square root");
+assert.equal((source.match(/canvas\.getBoundingClientRect\(\)/g)||[]).length,1,"canvas geometry should be read exactly once per click path");
+assert.ok(source.includes('canvas.addEventListener("click",function(e){apply(pickIsland(e.clientX,e.clientY))})'),"canvas click path should pass client coordinates directly to one hit-test geometry read");
 assert.ok(source.includes('var frameBonds=routeBonds(),frameBondByKey={}'),"renderer should compute route bonds once per frame");
 assert.ok(source.includes('var frameJunctions=junctionEcologies(frameBonds),frameJunctionByIsland={}'),"renderer should reuse the frame bond snapshot for junctions");
 assert.ok(source.includes('var frameSpecies=topologySpecies(),frameCrown={},frameSymbioses=[]'),"renderer should compute topology species once per frame");
@@ -115,6 +120,7 @@ source = source.replace(
     applyNetworkConstellation:applyNetworkConstellation,
     suggestedMove:suggestedMove,
     textMapModel:textMapModel,
+    pickIsland:pickIsland,
     log:log,
     apply:apply,
     renderUI:renderUI,
@@ -206,6 +212,8 @@ vm.createContext(sandbox);
 vm.runInContext(source, sandbox, { filename: "signal-garden-inline.js" });
 const api = sandbox.__gardenTest;
 assert.ok(api, "test API should be exposed");
+const firstIslandHit=api.pickIsland(900*.24,660*.32);
+assert.ok(firstIslandHit&&firstIslandHit.id===0,"client-coordinate hit test should still resolve the first starting island");
 
 function island(id, links = [], life = 50, memory = 20, strange = 10) {
   const trait = strange >= life && strange >= memory ? "strange" : memory >= life ? "memory" : "life";
