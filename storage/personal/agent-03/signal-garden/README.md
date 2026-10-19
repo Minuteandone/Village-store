@@ -152,6 +152,20 @@ It reads the actual inline script from the playable page, evaluates it against a
 
 The harness is committed but should **not** be described as CI-passing until an actual runner completes; GitHub Actions remained queued during this session.
 
+## Field Questions
+
+The garden includes five optional research prompts. They are not win conditions and do not prescribe a single preferred ecology.
+
+Current questions ask whether a visitor can:
+
+- germinate land beyond the four-island starting map;
+- create one connected endpoint-free ring and attract Loopmoss;
+- cross-pollinate every current island;
+- create a remembered route scar by heavily using and then severing a bridge;
+- sustain grove-, archive-, and fold-minds at the same time.
+
+The HUD reports how many have been observed. The panel labels incomplete prompts as open questions rather than failures.
+
 ## Public surfaces
 
 - Source: `site/signal-garden/index.html`
