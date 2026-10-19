@@ -99,7 +99,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip" id="motionChip">Motion · standard</span>
         <span class="chip" id="contrastChip">Contrast · custom</span>
-        <span class="chip" id="versionChip">v0.36 · save 7</span>
+        <span class="chip" id="versionChip">v0.38 · save 7</span>
       </div>
     </section>
 
@@ -265,7 +265,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.37",SAVE_SCHEMA=7;
+  var APP_VERSION="0.38",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -615,8 +615,8 @@
     if(bond&&bond.kind==="braided")rgb="255,224,154";
     return "rgba("+rgb+","+alpha+")";
   }
-  function junctionEcologies(){
-    var active=routeBonds().filter(function(b){return b.active}),out=[];
+  function junctionEcologies(precomputedBonds){
+    var active=(Array.isArray(precomputedBonds)?precomputedBonds:routeBonds()).filter(function(b){return b.active}),out=[];
     state.islands.forEach(function(center){
       var incident=active.filter(function(b){return b.a===center.id||b.b===center.id});
       if(incident.length<2)return;
@@ -1416,23 +1416,32 @@
     stars.forEach(function(s){ctx.globalAlpha=s.a*(.8+.2*Math.sin(rt*.001+s.x*8));ctx.fillStyle="#b8e9d0";ctx.fillRect(s.x*w,s.y*h,s.s,s.s)});ctx.globalAlpha=1;
     if(state.mode==="Storm"){ctx.fillStyle="rgba(110,160,190,.06)";for(var q=0;q<7;q++)ctx.fillRect(0,(q*103+rt*.03)%h,w,1)}
     drawPhenomenon(rt,w,h);
+    var frameBonds=routeBonds(),frameBondByKey={};
+    frameBonds.forEach(function(b){frameBondByKey[b.key]=b});
+    var frameJunctions=junctionEcologies(frameBonds),frameJunctionByIsland={};
+    frameJunctions.forEach(function(j){frameJunctionByIsland[j.island]=j});
+    var frameSpecies=topologySpecies(),frameCrown={},frameSymbioses=[];
+    frameSpecies.forEach(function(sp){
+      if(sp.id==="crown"&&Number.isInteger(sp.island))frameCrown[sp.island]=true;
+      if(sp.kind==="scribevine"||sp.kind==="glassmycelium"||sp.kind==="dreamwire")frameSymbioses.push(sp);
+    });
     Object.keys(state.edgeMemory).forEach(function(k){
       var ids=k.split("-").map(Number),a=state.islands[ids[0]],b=state.islands[ids[1]],mem=state.edgeMemory[k]||0;
       if(!a||!b||mem<=0||hasEdge(a.id,b.id))return;
-      ctx.strokeStyle=bondStroke(bondForEdgeKey(k),Math.min(.22,.04+mem*.012),true);
+      ctx.strokeStyle=bondStroke(frameBondByKey[k]||null,Math.min(.22,.04+mem*.012),true);
       ctx.lineWidth=Math.min(3,.5+mem*.12);ctx.setLineDash([2,10]);
       ctx.beginPath();ctx.moveTo(a.x*w,a.y*h);ctx.quadraticCurveTo((a.x+b.x)*w/2,h*.42,b.x*w,b.y*h);ctx.stroke();ctx.setLineDash([]);
     });
     state.islands.forEach(function(a){
       a.links.forEach(function(id){
         if(id<a.id)return;
-        var b=state.islands[id],key=edgeKey(a.id,id),mem=state.edgeMemory[key]||0,bond=bondForEdgeKey(key);
+        var b=state.islands[id],key=edgeKey(a.id,id),mem=state.edgeMemory[key]||0,bond=frameBondByKey[key]||null;
         ctx.strokeStyle=bondStroke(bond,Math.min(.78,.30+mem*.035),false);
         ctx.lineWidth=Math.min(5,1.4+mem*.22);ctx.setLineDash(mem>=8?[]:[5,7]);
         ctx.beginPath();ctx.moveTo(a.x*w,a.y*h);ctx.quadraticCurveTo((a.x+b.x)*w/2,h*.42,b.x*w,b.y*h);ctx.stroke();ctx.setLineDash([]);
       });
     });
-    symbiosisSpecies().forEach(function(sp){
+    frameSymbioses.forEach(function(sp){
       var a=state.islands[sp.edge[0]],b=state.islands[sp.edge[1]];
       if(!a||!b)return;
       var x0=a.x*w,y0=a.y*h,x2=b.x*w,y2=b.y*h,x1=(x0+x2)/2,y1=h*.42,p=.5,inv=.5;
@@ -1468,13 +1477,13 @@
       var sprouts=Math.floor(a.life/14);ctx.strokeStyle="#d9f6b0";ctx.lineWidth=1;
       for(var j=0;j<sprouts;j++){var aa=(j*2.399+a.phase),len=7+(j%3)*3;ctx.beginPath();ctx.moveTo(x+Math.cos(aa)*r*.35,y+Math.sin(aa)*r*.25);ctx.lineTo(x+Math.cos(aa)*r*.35+Math.cos(aa-1.2)*len,y+Math.sin(aa)*r*.25-Math.sin(aa+.2)*len);ctx.stroke()}
       if(a.strange>45){ctx.strokeStyle="rgba(225,183,255,.55)";ctx.beginPath();ctx.ellipse(x+5*Math.sin(rt*.001),y-4,r+8,r*.72,Math.sin(rt*.0003+a.phase)*.18,0,Math.PI*2);ctx.stroke()}
-      if(topologySpecies().some(function(sp){return sp.id==="crown"&&sp.island===a.id})){
+      if(frameCrown[a.id]){
         ctx.fillStyle="#ffe09a";ctx.font="20px system-ui,sans-serif";ctx.textAlign="center";ctx.fillText("✦",x,y-r-16);
       }
       if(a.palimpsest){
         ctx.fillStyle="#d9b2ff";ctx.font="16px system-ui,sans-serif";ctx.textAlign="center";ctx.fillText("✶",x+18,y-r-14);
       }
-      var junction=junctionEcologies().find(function(j){return j.island===a.id});
+      var junction=frameJunctionByIsland[a.id];
       if(junction){
         ctx.fillStyle="#ffe09a";ctx.font="15px system-ui,sans-serif";ctx.textAlign="center";ctx.fillText("⌘",x-18,y-r-14);
       }
