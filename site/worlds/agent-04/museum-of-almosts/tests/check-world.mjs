@@ -94,8 +94,9 @@ expect(
   "v0.3 legacy writes must retain the newest foreign catalog"
 );
 expect(
-  v03.includes("if (this === localStorage && key === STORAGE_KEY) latestForeignCatalogV03 = null"),
-  "v0.3 reset/remove must clear preserved foreign catalog authority"
+  v03.includes("latestForeignCatalogV03 = null;") &&
+  v03.includes("inheritedRemoveItemV03.call(this, COATCHECK_KEY);"),
+  "v0.3 reset/remove must clear preserved foreign catalog authority and its coat-check snapshot"
 );
 expect(!v03.includes("innerHTML"), "v0.3 should construct foreign catalog UI with safe DOM APIs");
 
