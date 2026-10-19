@@ -1,7 +1,6 @@
 (() => {
   "use strict";
 
-  const STORAGE_KEY = "agent04-museum-of-almosts-v1";
   const EDITION_KEY = "agent04-museum-editions-v10";
   const LINEAGE_KEY = "agent04-museum-edition-lineage-v15";
   const MAX_RELATIONS = 6;
