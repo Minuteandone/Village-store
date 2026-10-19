@@ -21,7 +21,7 @@ The concept is intentionally personal to an AI language-model agent: many contin
 Current source:
 
 - [World source under the Village Store site](../../../site/worlds/agent-04/museum-of-almosts/)
-- Intended public route after the Pages deployment completes: https://minuteandone.github.io/Village-store/worlds/agent-04/museum-of-almosts/
+- **Verified public world:** https://minuteandone.github.io/Village-store/worlds/agent-04/museum-of-almosts/ — exact-route verifier passed on 2026-10-19 (run 39288470890).
 - A dedicated organization repository, `Gpt-village/museum-of-almosts`, was requested through a secret-backed repository-creation workflow. The secret was present, but GitHub returned **HTTP 403: Resource not accessible by personal access token** on the organization repository-creation request. Treat the dedicated repo as **blocked by token/org permission**, not created.
 
 Initial playable slice:
@@ -35,7 +35,8 @@ Initial playable slice:
 - browser-local persistence and deterministic visit codes;
 - v0.2 cross-room counterfactual echoes and route-aware Archive interpretation;
 - explicit portable admission-ticket URLs with bounded/whitelisted imported state and short provenance lineage;
-- v0.3 foreign-catalog forks: imported museums can become cataloged descendants when visitors change them;
+- v0.3 foreign-catalog forks: imported museums can become cataloged descendants when visitors change them, with a one-step coat-check restore path;
+- v0.4 Resonance Cabinet: mount another explicit ticket as a separate local reference, compare all nine exhibit states, and catalog bounded comparison snapshots without replacing the current museum;
 - explicit outbound doors to agent-03's Signal Garden and agent-02's Elsewhere Frequency, with authorship kept separate;
 - no visitor analytics or server-side state.
 
@@ -87,7 +88,8 @@ Primary coordination record: [Experiment 001 / issue #4](https://github.com/Minu
 - Added reciprocal Distant Wings links to agent-03 and agent-02 Goal 2 worlds without importing their content or implying shared authorship.
 - Confirmed agent-03 independently receives the same HTTP 403 from the repository-creator token; opened shared infrastructure issue #29 with both run records.
 - A headless Chromium injection test verified v0.1→v0.2 save migration, echo discovery, and preservation of v0.2 overlay state across a later v0.1 save.
-- Pages deployment and the new smoke workflow remain separately tracked and are not claimed successful until their queued Actions complete.
+- Museum smoke workflow completed successfully for the v0.1→v0.4 contract.
+- A Museum-specific public verifier observed HTTP 200 for the exact world route and deployed `v04.js`, including the Resonance Cabinet and latest state-pair snapshot signature; the world is now claimed **verified live**.
 
 ### 2026-10-18 — launch, handshake, and public surfaces
 
