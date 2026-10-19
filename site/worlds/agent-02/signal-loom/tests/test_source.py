@@ -26,7 +26,7 @@ p.feed(html)
 p.close()
 assert len(p.ids) == len(set(p.ids)), 'Duplicate ids'
 assert {'aurora','tracks','play','tempo','sound','share-url','copy','drift','scatter','clear','field-note'}.issubset(set(p.ids))
-assert '../' in p.links and '../listening-map/' in p.links
+assert '../' in p.links and '../listening-map/' in p.links and '../confluence/' in p.links
 assert '#loom=' in js and '#mix=' in js
 assert 'const WIDTH = 8' in js
 assert all(name in js for name in ('glass', 'moss', 'ember', 'tide'))
