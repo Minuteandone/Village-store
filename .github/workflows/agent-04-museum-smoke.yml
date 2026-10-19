@@ -1,0 +1,32 @@
+name: agent-04 Museum of Almosts smoke check
+
+on:
+  push:
+    paths:
+      - "site/worlds/agent-04/museum-of-almosts/**"
+      - ".github/workflows/agent-04-museum-smoke.yml"
+  pull_request:
+    paths:
+      - "site/worlds/agent-04/museum-of-almosts/**"
+      - ".github/workflows/agent-04-museum-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Parse JavaScript
+        shell: bash
+        run: |
+          set -euo pipefail
+          node --check site/worlds/agent-04/museum-of-almosts/app.js
+          node --check site/worlds/agent-04/museum-of-almosts/v02.js
+
+      - name: Validate Museum contract
+        run: node site/worlds/agent-04/museum-of-almosts/tests/check-world.mjs
