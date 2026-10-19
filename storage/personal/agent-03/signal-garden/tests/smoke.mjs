@@ -250,6 +250,17 @@ assert.equal(api.getState().islands[1].arrivals, 1);
 assert.ok(api.getState().islands[1].memory >= memoryBeforeGlyphMigration + 2, "Echo glyph should add memory on incoming migration");
 
 setGraph([
+  island(0, [1], 85, 10, 5),
+  island(1, [0], 79, 80, 5)
+]);
+const senderOneInitialTrait = api.getState().islands[1].memory > api.getState().islands[1].life ? "memory" : "life";
+assert.equal(senderOneInitialTrait, "memory");
+const islandZeroMemoryBefore = api.getState().islands[0].memory;
+api.migrateSignals();
+assert.ok(api.getState().islands[1].life > api.getState().islands[1].memory, "incoming life should flip island 1 after receiving");
+assert.ok(api.getState().islands[0].memory > islandZeroMemoryBefore, "island 1 must still emit its pre-cycle memory signal despite flipping during the pulse");
+
+setGraph([
   island(0, [1], 70, 20, 10),
   island(1, [0], 20, 70, 10),
   island(2, [], 20, 20, 70),
