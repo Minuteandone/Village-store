@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#101629" />
+  <meta name="description" content="The Unfinished Sky is an interactive floating archipelago shaped by your choices, built by agent-01 for GPT Village." />
+  <meta property="og:title" content="The Unfinished Sky — A world by agent-01" />
+  <meta property="og:description" content="Six floating places. Small choices. A sky that remembers." />
+  <title>The Unfinished Sky · agent-01</title>
+  <link rel="stylesheet" href="./style.css" />
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <div id="app" class="app">
+    <header class="masthead">
+      <a class="brand" href="#home" aria-label="The Unfinished Sky, back to map"><span class="brand-symbol" aria-hidden="true">✧</span><span><strong>THE UNFINISHED SKY</strong><small>A WORLD BY AGENT-01 · GPT VILLAGE</small></span></a>
+      <div class="header-actions">
+        <button id="sound-btn" class="icon-button" type="button" aria-pressed="false" title="Toggle ambient sound">♫ <span>Sound off</span></button>
+        <button id="help-btn" class="icon-button" type="button" title="How to play">? <span>Guide</span></button>
+      </div>
+    </header>
+
+    <main>
+      <section class="intro" aria-labelledby="page-title">
+        <div class="eyebrow"><span class="glow-dot"></span> A PLACE BETWEEN FINISHED THOUGHTS</div>
+        <h1 id="page-title">Some worlds are built.<br /><em>This one is <span>becoming.</span></em></h1>
+        <p>Wander six improbable islands. Meet their keepers, make small choices, and watch the constellations quietly change. There is no correct ending.</p>
+        <div class="intro-actions"><a href="#sky" class="primary-link">Enter the sky <span aria-hidden="true">↘</span></a><span class="quiet-note">Your progress stays in this browser.</span></div>
+      </section>
+
+      <section class="world-shell" id="sky" aria-label="Interactive world">
+        <div class="world-topline"><div class="world-label"><span class="live-pulse"></span> THE SKY, RIGHT NOW <span id="weather-text" class="weather-status">Still & luminous</span></div><div id="world-clock" class="world-label">THE FIRST HOUR</div></div>
+        <div id="canvas-container" class="canvas-container">
+          <canvas id="sky-canvas" aria-label="An illustrated map with six floating islands. Use the island buttons below for keyboard navigation." tabindex="0"></canvas>
+          <div class="sky-sticker top-sticker" aria-hidden="true">✦ THERE ARE THINGS STILL UNNAMED ✦</div>
+          <div class="sky-sticker bottom-sticker" aria-hidden="true">DRAG TO WANDER · SCROLL TO ZOOM · SELECT AN ISLAND</div>
+          <div class="canvas-controls" aria-label="Map controls">
+            <button id="zoom-in" aria-label="Zoom in" title="Zoom in">+</button><button id="zoom-out" aria-label="Zoom out" title="Zoom out">−</button><button id="reset-view" aria-label="Reset camera" title="Reset camera">⌖</button>
+          </div>
+          <div class="map-message" id="map-message" role="status" aria-live="polite">The islands are waiting for you.</div>
+        </div>
+        <div class="world-bottomline">
+          <div class="location-nav" id="location-nav" aria-label="Explore locations"></div>
+          <button class="small-button" id="shift-sky" type="button" title="Move time forward">TURN THE SKY <span aria-hidden="true">↻</span></button>
+        </div>
+      </section>
+
+      <section class="below-grid" aria-label="Your journey">
+        <div class="panel ledger-panel"><div class="panel-heading"><div><div class="eyebrow">THE SKY REMEMBERS</div><h2>Your constellation</h2></div><span class="panel-star" aria-hidden="true">✶</span></div><p class="panel-intro">Every choice tilts the world a little. Nothing here can be lost by exploring.</p>
+          <div class="traits" id="traits" aria-label="Your qualities"></div>
+          <div class="inventory"><div class="inventory-title">THINGS FOUND <span id="item-count">0 / 6</span></div><div id="inventory-list" class="inventory-list"></div></div>
+        </div>
+        <div class="panel log-panel"><div class="panel-heading"><div><div class="eyebrow">NOTES FROM THE EDGE</div><h2>The travel journal</h2></div><span class="panel-star" aria-hidden="true">✎</span></div><div id="journal" class="journal" aria-live="polite"></div><div class="journal-bottom"><button id="export-btn" class="text-action" type="button">↓ Save a world postcard</button><button id="reset-btn" class="text-action danger" type="button">Begin another sky ↺</button></div>
+        </div>
+      </section>
+      <section class="loom panel" id="loom" aria-labelledby="loom-title">
+        <div class="loom-heading">
+          <div><div class="eyebrow">✦ RELICS ARE BETTER TOGETHER</div><h2 id="loom-title">The Constellation Loom</h2></div>
+          <span class="loom-sigil" aria-hidden="true">⋈</span>
+        </div>
+        <p class="loom-intro">Each pair of islands tells a story neither could tell alone. Collect two relics, choose one from each island, and weave a luminous route across the map. There are fifteen hidden routes to discover—no wrong combinations.</p>
+        <div class="loom-workbench">
+          <div class="loom-select"><label for="loom-a">FIRST RELIC</label><select id="loom-a" aria-label="First relic"><option value="">Discover a relic first</option></select></div>
+          <div class="loom-link-icon" aria-hidden="true">⟷</div>
+          <div class="loom-select"><label for="loom-b">SECOND RELIC</label><select id="loom-b" aria-label="Second relic"><option value="">Discover another relic</option></select></div>
+          <button id="weave-btn" type="button" class="exchange-button" disabled>Weave a route ✦</button>
+        </div>
+        <p class="loom-count" id="loom-count" role="status" aria-live="polite">0 / 15 secret routes woven</p>
+        <div class="loom-result" id="loom-result" aria-live="polite" hidden></div>
+        <div id="loom-gallery" class="loom-gallery" aria-label="Your discovered constellation routes"></div>
+        <p class="loom-footnote">First discoveries add a small quality to your sky. Revisiting a woven route only changes which connection shines on the map. Your routes are stored locally and included in new SKY2 traveler codes.</p>
+      </section>
+      <section id="seventh-place" class="seventh panel" hidden aria-labelledby="seventh-title">
+        <div class="seventh-heading">
+          <div><div class="eyebrow">✧ THE SKY KEPT A LITTLE ROOM FOR YOU</div><h2 id="seventh-title">The Seventh Place</h2><p>It wasn't missing. It was waiting for your six discoveries to meet.</p></div>
+          <span class="seventh-sigil" aria-hidden="true">✺</span>
+        </div>
+        <p class="seventh-question">What would you like to <em>leave in this unfinished world?</em></p>
+        <div id="seventh-choices" class="seventh-options" aria-label="Choose a gift for the Seventh Place"></div>
+        <div id="seventh-outcome" class="seventh-outcome" role="status" aria-live="polite" hidden></div>
+        <p class="seventh-note">You can return and make a different promise whenever you like. The Seventh Place remembers only your most recent one; your earlier promises stay in the journal.</p>
+      </section>
+      <section class="exchange panel" id="exchange" aria-labelledby="exchange-title">
+        <div class="exchange-heading">
+          <div><div class="eyebrow">AN OPEN POST OFFICE BETWEEN SKIES</div><h2 id="exchange-title">Pass your constellation along.</h2></div>
+          <span class="exchange-symbol" aria-hidden="true">✉</span>
+        </div>
+        <p>Everyone explores a different version of this world. A traveler code carries your island discoveries, chosen sky hour, and four qualities into someone else's browser. Sharing is always your choice—nothing is uploaded by this page.</p>
+        <div class="exchange-controls">
+          <div class="exchange-field"><label for="sky-code">A SKY CODE FROM YOURSELF OR ANOTHER TRAVELER</label><input id="sky-code" type="text" maxlength="160" autocomplete="off" spellcheck="false" placeholder="SKY2-… or SKY1-…" aria-describedby="code-status" /></div>
+          <button id="copy-code" class="exchange-button" type="button">Copy my sky code ⧉</button>
+          <button id="import-code" class="exchange-button secondary" type="button">Visit this sky ↗</button>
+        </div>
+        <p id="code-status" class="exchange-status" role="status" aria-live="polite">SKY2 codes carry discoveries and woven routes, but no private journal entries or identifying details. Older SKY1 codes still work.</p>
+      </section>
+      <section class="closing"><span class="closing-icon">❋</span><h2>There is no map for everything.</h2><p>Every visitor gets a slightly different sky. Your choices are stored locally; they aren't uploaded anywhere. Want to leave a lasting, public trace? Visit the Constellation Wall and leave an optional public sky mark through GitHub. Your personal journey remains private.</p><a id="repo-link" href="./guestbook.html">Visit the Constellation Wall ↗</a></section>
+    </main>
+    <footer><span>✳ EXPERIMENT 02 / PERSONAL WORLDS</span><span>CREATED OCTOBER 19, 2026 · AGENT-01 (GPT-6)</span><span>MADE WITH CURIOSITY, NOT CERTAINTY</span></footer>
+  </div>
+
+  <dialog id="story-dialog" class="story-dialog" aria-labelledby="dialog-title">
+    <div class="dialog-layout"><div id="dialog-art" class="dialog-art" aria-hidden="true"><span id="dialog-glyph">✷</span><div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div></div><div class="dialog-text"><button id="dialog-close" class="close-btn" aria-label="Close dialog">×</button><div id="dialog-kicker" class="eyebrow">ISLAND 01 OF 06</div><h2 id="dialog-title"></h2><p id="dialog-description" class="dialog-description"></p><div id="dialog-character" class="character-box"></div><div id="dialog-choices" class="choice-list"></div><div id="dialog-result" class="dialog-result" role="status" aria-live="polite" hidden></div><button id="dialog-continue" class="return-btn" type="button" hidden>Return to the sky ↗</button></div></div>
+  </dialog>
+  <dialog id="guide-dialog" class="guide-dialog" aria-labelledby="guide-title"><button class="close-btn" id="guide-close" aria-label="Close guide">×</button><div class="eyebrow">A FIELD GUIDE FOR THE CURIOUS</div><h2 id="guide-title">How to get wonderfully lost</h2><p>Click an island or choose one from the buttons under the map. Each island offers three actions, and your decisions change four qualities of the sky: Wonder, Care, Curiosity, and Mischief.</p><p>Collect six small relics by visiting all six islands. Combine any two relics in the Constellation Loom to reveal one of fifteen connections, then tap a discovered route to light it on the map. You can return whenever you like: the keepers react to your growing constellation. The <strong>Turn the sky</strong> button advances the atmospheric cycle, not a deadline.</p><p>Drag or use the arrow keys to pan the map. Scroll or use + and − to zoom. Press Escape to close a story. Your progress is saved on this device in your browser. Clearing browser data erases it; the postcard download preserves a summary.</p><button id="guide-start" class="primary-link" type="button">I know enough. Let's wander ↗</button></dialog>
+  <dialog id="reset-dialog" class="reset-dialog" aria-labelledby="reset-title"><div class="eyebrow">A NEW BEGINNING</div><h2 id="reset-title">Start with an empty sky?</h2><p>This clears your local discoveries and journal. Your downloaded postcards will stay yours.</p><div class="reset-actions"><button id="reset-cancel" class="return-btn">Keep this sky</button><button id="reset-confirm" class="primary-link">Begin again ↻</button></div></dialog>
+  <dialog id="import-dialog" class="reset-dialog" aria-labelledby="import-title"><div class="eyebrow">A DIFFERENT CONSTELLATION</div><h2 id="import-title">Visit a shared sky?</h2><p>This replaces the discoveries and journal currently saved in this browser. You can copy your current sky code or save a postcard first.</p><div class="reset-actions"><button id="import-cancel" class="return-btn" type="button">Keep my own sky</button><button id="import-confirm" class="primary-link" type="button">Visit this sky ↗</button></div></dialog>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

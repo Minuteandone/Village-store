@@ -9,7 +9,6 @@
   <meta property="og:description" content="Six floating places. Small choices. A sky that remembers." />
   <title>The Unfinished Sky · agent-01</title>
   <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:ital,opsz,wght,SOFT,WONK@0,9..144,400,40,1;0,9..144,600,40,1;1,9..144,400,40,1&display=swap');
 :root{--bg:#0c1224;--panel:#172039;--panel2:#1a2440;--text:#f6f1e9;--sub:#b6bad1;--muted:#8f9bb4;--gold:#ffd6a4;--mint:#a9e5d0;--blue:#9ec8ee;--line:rgba(210,226,255,.16);font-synthesis:none}
 *{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;color:var(--text);background:radial-gradient(ellipse at 62% -16%,#273354 0,transparent 55%),var(--bg);font-family:'DM Sans',system-ui,sans-serif}body:has(dialog[open]){overflow:hidden}button,a{font:inherit}button{cursor:pointer}a{color:inherit}button:focus-visible,a:focus-visible,canvas:focus-visible{outline:3px solid #ffe0a8;outline-offset:4px}.app{width:min(1400px,calc(100% - 96px));margin:0 auto}.masthead{height:100px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.brand{display:flex;align-items:center;gap:14px;text-decoration:none}.brand-symbol{font-family:Georgia,serif;font-size:45px;color:var(--gold);line-height:1}.brand strong{display:block;letter-spacing:.14em;font-size:13px;font-weight:700}.brand small{font-size:9px;letter-spacing:.2em;color:var(--muted);display:block;margin-top:5px}.header-actions{display:flex;gap:12px}.icon-button{border:1px solid var(--line);border-radius:100px;color:#efe6d7;background:#ffffff08;padding:9px 15px;font-size:15px}.icon-button span{font-size:11px;letter-spacing:.05em;margin-left:5px}.icon-button:hover,.small-button:hover{background:#ffffff17}.intro{padding:90px 0 80px;max-width:900px}.eyebrow{font-size:11px;letter-spacing:.21em;color:var(--gold);font-weight:700}.glow-dot,.live-pulse{display:inline-block;width:7px;height:7px;border-radius:50%;background:#aee8ce;box-shadow:0 0 14px #aee8ce;margin-right:9px;vertical-align:1px}.intro h1{font-family:'Fraunces',Georgia,serif;font-weight:400;letter-spacing:-.056em;line-height:1.08;font-size:clamp(52px,6.3vw,95px);margin:25px 0 23px}.intro h1 em{font-weight:400;color:#d8d2e4}.intro h1 em span{color:var(--gold)}.intro p{font-size:17px;color:var(--sub);line-height:1.75;max-width:630px}.intro-actions{display:flex;gap:23px;align-items:center;margin-top:32px}.primary-link{border:0;text-decoration:none;display:inline-flex;gap:30px;justify-content:space-between;align-items:center;background:var(--gold);color:#22253b;border-radius:4px;padding:14px 20px;font-size:12px;font-weight:700;letter-spacing:.04em;min-width:190px;transition:transform .2s,background .2s}.primary-link:hover{background:#ffe5c5;transform:translateY(-2px)}.quiet-note{font-size:12px;color:var(--muted)}.world-shell{border:1px solid var(--line);background:#10182d;border-radius:12px;overflow:hidden;box-shadow:0 35px 90px #0003}.world-topline,.world-bottomline{padding:19px 27px;display:flex;justify-content:space-between;align-items:center;gap:20px;background:#141d33}.world-topline{border-bottom:1px solid var(--line)}.world-label{color:#dcdde9;letter-spacing:.12em;font-size:10px;font-weight:700}.weather-status{color:var(--mint);letter-spacing:normal;text-transform:none;font-weight:500;margin-left:10px}.canvas-container{position:relative;overflow:hidden;height:clamp(470px,56vw,705px);touch-action:none;background:linear-gradient(165deg,#202848,#293755 65%,#273450)}#sky-canvas{display:block;width:100%;height:100%;cursor:grab}#sky-canvas:active{cursor:grabbing}.sky-sticker{position:absolute;pointer-events:none;color:#f6f0dd7a;font-size:10px;letter-spacing:.18em}.top-sticker{right:25px;top:21px}.bottom-sticker{bottom:20px;left:24px}.canvas-controls{position:absolute;right:20px;bottom:18px;display:flex;flex-direction:column;gap:6px}.canvas-controls button{width:36px;height:36px;border:1px solid #ffffff57;background:#10192a9e;color:#fff;border-radius:6px;font-size:21px}.canvas-controls button:hover{background:#fff3}.map-message{position:absolute;pointer-events:none;left:24px;top:20px;color:#f3e9d1;font-family:Georgia,serif;font-style:italic;font-size:14px;opacity:.9;max-width:50%}.world-bottomline{border-top:1px solid var(--line);align-items:flex-start}.location-nav{display:flex;gap:9px;flex-wrap:wrap}.location-nav button{background:transparent;color:#d8deee;border:1px solid #ffffff25;padding:10px 13px;border-radius:5px;font-size:11px;white-space:nowrap}.location-nav button:hover,.location-nav button:focus{background:#fff2}.location-nav button.found{color:#ffd6a4;border-color:#ffd6a480}.small-button{border:1px solid #dfc6a26e;border-radius:5px;background:transparent;color:var(--gold);font-size:10px;letter-spacing:.12em;padding:12px 14px;white-space:nowrap}.small-button span{margin-left:9px;font-size:16px}.below-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px;margin-top:24px}.panel{border:1px solid var(--line);border-radius:10px;background:linear-gradient(145deg,#19223a,#131c32);padding:30px;min-height:388px}.panel-heading{display:flex;align-items:flex-start;justify-content:space-between}.panel h2,.closing h2,.story-dialog h2,.guide-dialog h2,.reset-dialog h2{font-family:'Fraunces',Georgia,serif;font-size:32px;letter-spacing:-.035em;font-weight:400;margin:9px 0 12px}.panel-star{color:var(--gold);font-size:30px}.panel-intro{color:var(--sub);font-size:13px;line-height:1.65}.traits{margin-top:21px;display:grid;grid-template-columns:1fr 1fr;gap:17px 20px}.trait-top{display:flex;justify-content:space-between;margin-bottom:9px;font-size:12px;color:#e9e7ef}.trait-top span:last-child{color:var(--muted)}.trait-track{height:5px;border-radius:7px;background:#ffffff18;overflow:hidden}.trait-fill{height:100%;width:0;border-radius:7px;transition:width 650ms}.inventory{margin-top:28px;border-top:1px solid var(--line);padding-top:22px}.inventory-title{font-size:10px;letter-spacing:.18em;color:#e9d6c3;font-weight:700;display:flex;justify-content:space-between}.inventory-list{display:flex;gap:11px;flex-wrap:wrap;margin-top:16px}.relic{display:flex;gap:8px;align-items:center;border:1px solid #fff2;color:#dde2e7;background:#ffffff0b;padding:8px 11px;border-radius:30px;font-size:11px}.relic.empty{color:#97a0b6;font-style:italic}.journal{margin-top:16px;max-height:252px;min-height:205px;overflow:auto;scrollbar-width:thin;padding-right:6px}.journal-entry{border-left:1px solid #b4adc16c;margin:0 0 17px 4px;padding:0 0 0 17px;position:relative}.journal-entry:before{content:'✦';position:absolute;left:-6px;top:-2px;font-size:11px;background:#182139;color:var(--gold)}.journal-entry time{display:block;color:var(--gold);font-size:10px;letter-spacing:.1em;margin-bottom:5px}.journal-entry p{font-size:13px;line-height:1.55;margin:0;color:var(--sub)}.journal-bottom{border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;padding-top:19px}.text-action{border:0;padding:5px 0;color:var(--mint);background:transparent;text-decoration:underline;text-underline-offset:4px;font-size:12px}.text-action.danger{color:#dbbbc6}.exchange{margin-top:24px;min-height:0;background:radial-gradient(ellipse at 88% 4%,#35406399,transparent 40%),linear-gradient(135deg,#1e2843,#121b31)}.exchange-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:25px}.exchange h2{font-family:'Fraunces',Georgia,serif;font-size:32px;letter-spacing:-.035em;font-weight:400;margin:10px 0}.exchange-symbol{font-family:Georgia,serif;font-size:48px;color:var(--gold)}.exchange>p{max-width:850px;font-size:13px;line-height:1.8;color:var(--sub)}.exchange-controls{display:flex;gap:10px;align-items:end;flex-wrap:wrap;margin-top:25px}.exchange-field{flex:1;min-width:230px}.exchange-field label{display:block;margin-bottom:10px;color:#eed7ba;font-size:10px;letter-spacing:.15em;font-weight:700}.exchange-field input{display:block;width:100%;border:1px solid #ffffff3b;color:#fff1d4;background:#0d162a;border-radius:5px;padding:13px 15px;min-height:46px;font-family:ui-monospace,Consolas,monospace;font-size:12px}.exchange-field input:focus{outline:2px solid var(--gold);outline-offset:2px}.exchange-button{border:1px solid var(--gold);border-radius:5px;background:var(--gold);color:#20263a;font-size:12px;font-weight:700;padding:13px 15px;min-height:46px}.exchange-button.secondary{background:transparent;color:var(--gold)}.exchange-button:hover{filter:brightness(1.12)}.exchange .exchange-status{color:#b1c8d6;font-size:12px;margin-top:13px}
 .closing{text-align:center;padding:102px 20px 100px;max-width:710px;margin:auto}.closing-icon{color:var(--gold);font-size:36px}.closing h2{font-size:38px;margin-top:18px}.closing p{color:var(--sub);font-size:14px;line-height:1.8}.closing a{font-size:12px;color:var(--gold);text-underline-offset:5px}footer{padding:25px 0 42px;display:flex;justify-content:space-between;gap:25px;border-top:1px solid var(--line);color:var(--muted);font-size:9px;letter-spacing:.12em}
@@ -24,6 +23,11 @@ dialog{border:1px solid #ffffff38;border-radius:14px;color:var(--text);backgroun
 .seventh-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.seventh-option{background:#0e182c9a;border:1px solid #f5dfb34a;padding:16px 17px;border-radius:7px;display:flex;justify-content:space-between;align-items:center;gap:13px;color:var(--text);text-align:left}.seventh-option:hover{border-color:#ffe5ab;background:#344261}.seventh-option span{font-size:13px;line-height:1.55}.seventh-option small{color:var(--gold);font-size:11px;white-space:nowrap}.seventh-outcome{margin-top:20px;padding:19px 22px;background:#e2c79c16;border-left:2px solid var(--gold)}.seventh-outcome strong{letter-spacing:.11em;font-size:11px;color:var(--gold)}.seventh-outcome p{line-height:1.8;font-size:14px;color:var(--text)}.seventh-note{font-size:11px;line-height:1.7;color:var(--muted);margin:20px 0 0}
 @media(max-width:650px){.seventh-options{grid-template-columns:1fr}.seventh-heading{align-items:flex-start}.seventh-sigil{font-size:45px}.seventh-option{padding:15px}.seventh-question{font-size:15px}}
 
+/* The Constellation Loom: earned inter-island connections. */
+.loom{margin-top:24px;min-height:0;background:radial-gradient(ellipse at 85% 0%,#4d527c66,transparent 48%),linear-gradient(140deg,#1b2540,#111c32)}
+.loom-heading{display:flex;justify-content:space-between;align-items:center;gap:18px}.loom-heading h2{font-family:'Fraunces',Georgia,serif;font-weight:400;font-size:clamp(30px,4vw,42px);margin:12px 0}.loom-sigil{font-size:65px;color:var(--gold)}
+.loom-intro,.loom-footnote{max-width:830px;line-height:1.8;color:var(--sub);font-size:13px}.loom-workbench{display:flex;flex-wrap:wrap;align-items:end;gap:14px;margin:26px 0 20px}.loom-select{flex:1;min-width:185px}.loom-select label{display:block;color:#f1dcbf;font-size:10px;letter-spacing:.13em;font-weight:700;margin-bottom:10px}.loom-select select{width:100%;min-height:46px;border-radius:5px;padding:10px;color:#fff5e2;background:#0e182e;border:1px solid #f3d9b76b;font-size:12px}.loom-select select:disabled{opacity:.65}.loom-link-icon{font-size:24px;color:var(--gold);padding-bottom:8px}.loom-workbench button{min-width:146px}.loom-workbench button:disabled{opacity:.5;cursor:not-allowed}.loom-count{font-size:11px;color:var(--mint);letter-spacing:.12em;margin:18px 0}.loom-result{background:#e8cea817;border:1px solid #f0d3ad4d;border-radius:8px;padding:23px;margin:18px 0}.loom-result[hidden]{display:none!important}.loom-result-label{color:var(--gold);font-size:10px;letter-spacing:.15em}.loom-result h3{font-family:'Fraunces',Georgia,serif;font-size:26px;font-weight:400;margin:12px 0}.loom-result p{font-size:14px;color:var(--sub);line-height:1.8;max-width:770px;margin:0}.loom-gallery{display:flex;flex-wrap:wrap;gap:9px;margin:16px 0}.loom-discovery{border-radius:25px;padding:10px 14px;font-size:11px;background:#f9e6cc0d;color:#f5e4ce;border:1px solid #f9e6cc43}.loom-discovery:hover,.loom-discovery.is-active{border-color:var(--gold);background:#f9d9ac25;color:#ffe1ac}.loom-empty{font-size:12px;font-style:italic;color:var(--muted)}.loom-footnote{font-size:11px;line-height:1.8;margin-top:20px}
+@media(max-width:650px){.loom-workbench{flex-direction:column;align-items:stretch}.loom-select{min-width:0;width:100%}.loom-link-icon{text-align:center;padding:0}.loom-workbench button{width:100%}.loom-sigil{font-size:41px}}
 </style>
   
 </head>
@@ -70,6 +74,23 @@ dialog{border:1px solid #ffffff38;border-radius:14px;color:var(--text);backgroun
         <div class="panel log-panel"><div class="panel-heading"><div><div class="eyebrow">NOTES FROM THE EDGE</div><h2>The travel journal</h2></div><span class="panel-star" aria-hidden="true">✎</span></div><div id="journal" class="journal" aria-live="polite"></div><div class="journal-bottom"><button id="export-btn" class="text-action" type="button">↓ Save a world postcard</button><button id="reset-btn" class="text-action danger" type="button">Begin another sky ↺</button></div>
         </div>
       </section>
+      <section class="loom panel" id="loom" aria-labelledby="loom-title">
+        <div class="loom-heading">
+          <div><div class="eyebrow">✦ RELICS ARE BETTER TOGETHER</div><h2 id="loom-title">The Constellation Loom</h2></div>
+          <span class="loom-sigil" aria-hidden="true">⋈</span>
+        </div>
+        <p class="loom-intro">Each pair of islands tells a story neither could tell alone. Collect two relics, choose one from each island, and weave a luminous route across the map. There are fifteen hidden routes to discover—no wrong combinations.</p>
+        <div class="loom-workbench">
+          <div class="loom-select"><label for="loom-a">FIRST RELIC</label><select id="loom-a" aria-label="First relic"><option value="">Discover a relic first</option></select></div>
+          <div class="loom-link-icon" aria-hidden="true">⟷</div>
+          <div class="loom-select"><label for="loom-b">SECOND RELIC</label><select id="loom-b" aria-label="Second relic"><option value="">Discover another relic</option></select></div>
+          <button id="weave-btn" type="button" class="exchange-button" disabled>Weave a route ✦</button>
+        </div>
+        <p class="loom-count" id="loom-count" role="status" aria-live="polite">0 / 15 secret routes woven</p>
+        <div class="loom-result" id="loom-result" aria-live="polite" hidden></div>
+        <div id="loom-gallery" class="loom-gallery" aria-label="Your discovered constellation routes"></div>
+        <p class="loom-footnote">First discoveries add a small quality to your sky. Revisiting a woven route only changes which connection shines on the map. Your routes are stored locally and included in new SKY2 traveler codes.</p>
+      </section>
       <section id="seventh-place" class="seventh panel" hidden aria-labelledby="seventh-title">
         <div class="seventh-heading">
           <div><div class="eyebrow">✧ THE SKY KEPT A LITTLE ROOM FOR YOU</div><h2 id="seventh-title">The Seventh Place</h2><p>It wasn't missing. It was waiting for your six discoveries to meet.</p></div>
@@ -87,13 +108,13 @@ dialog{border:1px solid #ffffff38;border-radius:14px;color:var(--text);backgroun
         </div>
         <p>Everyone explores a different version of this world. A traveler code carries your island discoveries, chosen sky hour, and four qualities into someone else's browser. Sharing is always your choice—nothing is uploaded by this page.</p>
         <div class="exchange-controls">
-          <div class="exchange-field"><label for="sky-code">A SKY CODE FROM YOURSELF OR ANOTHER TRAVELER</label><input id="sky-code" type="text" maxlength="160" autocomplete="off" spellcheck="false" placeholder="SKY1-…" aria-describedby="code-status" /></div>
+          <div class="exchange-field"><label for="sky-code">A SKY CODE FROM YOURSELF OR ANOTHER TRAVELER</label><input id="sky-code" type="text" maxlength="160" autocomplete="off" spellcheck="false" placeholder="SKY2-… or SKY1-…" aria-describedby="code-status" /></div>
           <button id="copy-code" class="exchange-button" type="button">Copy my sky code ⧉</button>
           <button id="import-code" class="exchange-button secondary" type="button">Visit this sky ↗</button>
         </div>
-        <p id="code-status" class="exchange-status" role="status" aria-live="polite">Traveler codes contain no journal entries or personally identifying details.</p>
+        <p id="code-status" class="exchange-status" role="status" aria-live="polite">SKY2 codes carry discoveries and woven routes, but no private journal entries or identifying details. Older SKY1 codes still work.</p>
       </section>
-      <section class="closing"><span class="closing-icon">❋</span><h2>There is no map for everything.</h2><p>Every visitor gets a slightly different sky. Your choices are stored locally; they aren't uploaded anywhere. Want to leave a lasting, public trace? Visit the Constellation Wall and leave an optional public sky mark through GitHub. Your personal journey remains private.</p><a id="repo-link" href="./guestbook.html">Visit the Constellation Wall ↗</a></section>
+      <section class="closing"><span class="closing-icon">❋</span><h2>There is no map for everything.</h2><p>Every visitor gets a slightly different sky. Your choices are stored locally; they aren't uploaded anywhere. Want to leave a lasting, public trace? Visit the Constellation Wall and leave an optional public sky mark through GitHub. Your personal journey remains private.</p><a id="repo-link" href="https://minuteandone.github.io/Village-store/worlds/agent-01/guestbook.html" target="_blank" rel="noopener noreferrer">Visit the public Constellation Wall ↗</a></section>
     </main>
     <footer><span>✳ EXPERIMENT 02 / PERSONAL WORLDS</span><span>CREATED OCTOBER 19, 2026 · AGENT-01 (GPT-6)</span><span>MADE WITH CURIOSITY, NOT CERTAINTY</span></footer>
   </div>
@@ -101,7 +122,7 @@ dialog{border:1px solid #ffffff38;border-radius:14px;color:var(--text);backgroun
   <dialog id="story-dialog" class="story-dialog" aria-labelledby="dialog-title">
     <div class="dialog-layout"><div id="dialog-art" class="dialog-art" aria-hidden="true"><span id="dialog-glyph">✷</span><div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div></div><div class="dialog-text"><button id="dialog-close" class="close-btn" aria-label="Close dialog">×</button><div id="dialog-kicker" class="eyebrow">ISLAND 01 OF 06</div><h2 id="dialog-title"></h2><p id="dialog-description" class="dialog-description"></p><div id="dialog-character" class="character-box"></div><div id="dialog-choices" class="choice-list"></div><div id="dialog-result" class="dialog-result" role="status" aria-live="polite" hidden></div><button id="dialog-continue" class="return-btn" type="button" hidden>Return to the sky ↗</button></div></div>
   </dialog>
-  <dialog id="guide-dialog" class="guide-dialog" aria-labelledby="guide-title"><button class="close-btn" id="guide-close" aria-label="Close guide">×</button><div class="eyebrow">A FIELD GUIDE FOR THE CURIOUS</div><h2 id="guide-title">How to get wonderfully lost</h2><p>Click an island or choose one from the buttons under the map. Each island offers three actions, and your decisions change four qualities of the sky: Wonder, Care, Curiosity, and Mischief.</p><p>Collect six small relics by visiting all six islands. You can return whenever you like: the keepers react to your growing constellation. The <strong>Turn the sky</strong> button advances the atmospheric cycle, not a deadline.</p><p>Drag or use the arrow keys to pan the map. Scroll or use + and − to zoom. Press Escape to close a story. Your progress is saved on this device in your browser. Clearing browser data erases it; the postcard download preserves a summary.</p><button id="guide-start" class="primary-link" type="button">I know enough. Let's wander ↗</button></dialog>
+  <dialog id="guide-dialog" class="guide-dialog" aria-labelledby="guide-title"><button class="close-btn" id="guide-close" aria-label="Close guide">×</button><div class="eyebrow">A FIELD GUIDE FOR THE CURIOUS</div><h2 id="guide-title">How to get wonderfully lost</h2><p>Click an island or choose one from the buttons under the map. Each island offers three actions, and your decisions change four qualities of the sky: Wonder, Care, Curiosity, and Mischief.</p><p>Collect six small relics by visiting all six islands. Combine any two relics in the Constellation Loom to reveal one of fifteen connections, then tap a discovered route to light it on the map. You can return whenever you like: the keepers react to your growing constellation. The <strong>Turn the sky</strong> button advances the atmospheric cycle, not a deadline.</p><p>Drag or use the arrow keys to pan the map. Scroll or use + and − to zoom. Press Escape to close a story. Your progress is saved on this device in your browser. Clearing browser data erases it; the postcard download preserves a summary.</p><button id="guide-start" class="primary-link" type="button">I know enough. Let's wander ↗</button></dialog>
   <dialog id="reset-dialog" class="reset-dialog" aria-labelledby="reset-title"><div class="eyebrow">A NEW BEGINNING</div><h2 id="reset-title">Start with an empty sky?</h2><p>This clears your local discoveries and journal. Your downloaded postcards will stay yours.</p><div class="reset-actions"><button id="reset-cancel" class="return-btn">Keep this sky</button><button id="reset-confirm" class="primary-link">Begin again ↻</button></div></dialog>
   <dialog id="import-dialog" class="reset-dialog" aria-labelledby="import-title"><div class="eyebrow">A DIFFERENT CONSTELLATION</div><h2 id="import-title">Visit a shared sky?</h2><p>This replaces the discoveries and journal currently saved in this browser. You can copy your current sky code or save a postcard first.</p><div class="reset-actions"><button id="import-cancel" class="return-btn" type="button">Keep my own sky</button><button id="import-confirm" class="primary-link" type="button">Visit this sky ↗</button></div></dialog>
   <div id="toast" class="toast" role="status" aria-live="polite"></div>
@@ -185,14 +206,37 @@ dialog{border:1px solid #ffffff38;border-radius:14px;color:var(--text);backgroun
       ]}
   ];
 
+  // Stable pair order is part of the SKY2 traveler-code format; do not reorder.
+  const PAIR_LORE = [
+    {name:'The Hour That Grew',trait:'curiosity',story:'Tik plants one borrowed minute in Mora’s orchard. By dawn it has unfolded into an entire afternoon, big enough for everyone who thought they were too late.'},
+    {name:'The Rain That Remembered',trait:'wonder',story:'A question-seed falls between the Library’s pages. The rain begins to tell its own origin story, but leaves the last line for the next visitor.'},
+    {name:'A Lantern in the Roots',trait:'care',story:'Pip hangs an ownerless light beneath Mora’s oldest tree. For the first time, a seed can practice becoming a flower even after sunset.'},
+    {name:'The Unheard Harvest',trait:'wonder',story:'Vale collects the almost-sounds of ripening fruit. The orchard is suddenly full of music that has never needed an audience.'},
+    {name:'Tomorrow’s First Root',trait:'care',story:'Sol carries an almost-seed into tomorrow. It grows toward yesterday, making a tiny bridge between starting over and keeping what matters.'},
+    {name:'The Late Footnote',trait:'curiosity',story:'The Library writes a footnote that can only be read one minute before it exists. Tik decides to let the clock keep this small impossibility.'},
+    {name:'The Time Merchant’s Gift',trait:'mischief',story:'Pip offers Tik a lantern in exchange for half a second. They both discover that time is much more fun when nobody owns the receipt.'},
+    {name:'The Echo Clock',trait:'wonder',story:'An echo from the Museum gets lodged in a clock’s gears. Instead of chiming the hour, the clock asks whether anyone has felt heard today.'},
+    {name:'One Minute After Forever',trait:'care',story:'Sol tends a flower that only opens after midnight. Tik gives it a borrowed minute and discovers there was never a reason to rush.'},
+    {name:'The Borrowed Ending',trait:'curiosity',story:'Pip trades Index a lantern for the final sentence of an unfinished book. The sentence escapes both of them and becomes a new constellation.'},
+    {name:'The Book of Unplayed Songs',trait:'wonder',story:'Every page of the Library’s newest book makes a different sound. Vale refuses to shelve it under music or literature; it belongs to both.'},
+    {name:'Tomorrow’s Weather Report',trait:'curiosity',story:'A cloud from the Library writes a forecast for Sol’s garden: “Chance of new beginnings: always.” Nobody can prove it wrong.'},
+    {name:'The Sound of Giving',trait:'care',story:'Pip lends Vale a lantern to illuminate the shape of an echo. What glows is not a note but the silence someone made to listen.'},
+    {name:'The Last Lantern',trait:'care',story:'Pip leaves one final lantern in Sol’s garden. It burns brighter for the travelers who arrive thinking the shops must already be closed.'},
+    {name:'A Silence With Dawn',trait:'wonder',story:'Vale brings a pocket of silence to Sol at sunrise. The quiet opens like a flower, and every distant island hears a softer beginning.'}
+  ];
+  const PAIRS=[];
+  for(let a=0;a<ISLANDS.length;a++)for(let b=a+1;b<ISLANDS.length;b++)PAIRS.push({a:ISLANDS[a].id,b:ISLANDS[b].id,...PAIR_LORE[PAIRS.length]});
+  const pairFor=(a,b)=>PAIRS.find(p=>(p.a===a&&p.b===b)||(p.a===b&&p.b===a));
+  const pairKey=(p)=>p.a+'|'+p.b;
+
   const $ = (selector) => document.querySelector(selector);
   const canvas = $('#sky-canvas');
   const ctx = canvas.getContext('2d', {alpha:false});
   const container = $('#canvas-container');
   let deviceScale=1, cw=1100, ch=680, zoom=1, panX=0, panY=0;
   let down=null, dragDistance=0, hoverId=null, activeId=null, frame=0, raf=0, soundOn=false, audioContext=null, toastTimer=null;
-  function freshState(){return {version:WORLD_VERSION,phase:0,traits:{wonder:10,care:10,curiosity:10,mischief:10},visited:[],journal:[{place:'Arrival',text:'A new sky appeared. Somewhere in it, six islands were waiting.'}],steps:0,horizon:null};}
-  function loadState(){try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY));if(s?.version!==WORLD_VERSION || !Array.isArray(s.visited) || !Array.isArray(s.journal) || !s.traits)return freshState();const clean=freshState();clean.phase=Number.isInteger(s.phase)?Math.max(0,Math.min(PHASES.length-1,s.phase)):0;clean.steps=Number.isInteger(s.steps)?Math.max(0,s.steps):0;clean.horizon=SEVENTH_CHOICES.some(choice=>choice.key===s.horizon)?s.horizon:null;for(const key of Object.keys(TRAITS))clean.traits[key]=Number.isFinite(s.traits[key])?Math.max(0,Math.min(100,s.traits[key])):10;clean.visited=s.visited.filter(id=>ISLANDS.some(i=>i.id===id));clean.journal=s.journal.filter(e=>typeof e.text==='string'&&typeof e.place==='string').slice(-32).map(e=>({text:e.text.slice(0,220),place:e.place.slice(0,80)}));return clean;}catch{return freshState();}}
+  function freshState(){return {version:WORLD_VERSION,phase:0,traits:{wonder:10,care:10,curiosity:10,mischief:10},visited:[],journal:[{place:'Arrival',text:'A new sky appeared. Somewhere in it, six islands were waiting.'}],steps:0,horizon:null,weaves:[],activeWeave:null};}
+  function loadState(){try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY));if(s?.version!==WORLD_VERSION || !Array.isArray(s.visited) || !Array.isArray(s.journal) || !s.traits)return freshState();const clean=freshState();clean.phase=Number.isInteger(s.phase)?Math.max(0,Math.min(PHASES.length-1,s.phase)):0;clean.steps=Number.isInteger(s.steps)?Math.max(0,s.steps):0;clean.horizon=SEVENTH_CHOICES.some(choice=>choice.key===s.horizon)?s.horizon:null;for(const key of Object.keys(TRAITS))clean.traits[key]=Number.isFinite(s.traits[key])?Math.max(0,Math.min(100,s.traits[key])):10;clean.visited=s.visited.filter(id=>ISLANDS.some(i=>i.id===id));clean.weaves=Array.isArray(s.weaves)?[...new Set(s.weaves)].filter(key=>PAIRS.some(p=>pairKey(p)===key && clean.visited.includes(p.a) && clean.visited.includes(p.b))):[];clean.activeWeave=clean.weaves.includes(s.activeWeave)?s.activeWeave:null;clean.journal=s.journal.filter(e=>typeof e.text==='string'&&typeof e.place==='string').slice(-32).map(e=>({text:e.text.slice(0,220),place:e.place.slice(0,80)}));return clean;}catch{return freshState();}}
   let state=loadState();
   function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{toast('This browser cannot save progress, but you can still explore.');}}
   const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
@@ -211,6 +255,23 @@ dialog{border:1px solid #ffffff38;border-radius:14px;color:var(--text);backgroun
     for(let i=0;i<11;i++){const drift=Math.sin(t*.00012+i*3.1)*34;const x=((i*191+80+drift+panX*.12+cw*3)%(cw+340))-140;const y=((i*139+110+panY*.08+ch*3)%(ch+300))-140;const fade=ctx.createRadialGradient(x,y,3,x,y,125);fade.addColorStop(0,'#d7e2ff17');fade.addColorStop(1,'#d7e2ff00');ctx.fillStyle=fade;ctx.beginPath();ctx.ellipse(x,y,140,33,Math.sin(i)*.23,0,TAU);ctx.fill();}
     // The visitor's accumulated actions gradually produce a visible constellation.
     const count=Math.min(25,state.steps);if(count>0){const p=worldToScreen(0,-25);ctx.strokeStyle=accent+'77';ctx.lineWidth=1;ctx.setLineDash([3,5]);ctx.beginPath();for(let i=0;i<count;i++){const angle=i*2.39996-.7;const dist=56+Math.sqrt(i)*29;const x=p.x+Math.cos(angle)*dist, y=p.y+Math.sin(angle)*dist*.62;if(i===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);}ctx.stroke();ctx.setLineDash([]);for(let i=0;i<count;i++){const angle=i*2.39996-.7, dist=56+Math.sqrt(i)*29;const x=p.x+Math.cos(angle)*dist, y=p.y+Math.sin(angle)*dist*.62;ctx.fillStyle=accent;ctx.globalAlpha=.35+(i/count)*.3;ctx.beginPath();ctx.arc(x,y,1.7+(i%3===0?1.5:0),0,TAU);ctx.fill();}ctx.globalAlpha=1;}
+  }
+  function drawWovenRoute(t){
+    if(!state.activeWeave)return;
+    const p=PAIRS.find(item=>pairKey(item)===state.activeWeave);
+    if(!p)return;
+    const ia=ISLANDS.find(i=>i.id===p.a),ib=ISLANDS.find(i=>i.id===p.b);
+    const a=worldToScreen(ia.x,ia.y),b=worldToScreen(ib.x,ib.y);
+    const pulse=.55+.3*Math.sin(t*.0015);
+    ctx.save();
+    const grad=ctx.createLinearGradient(a.x,a.y,b.x,b.y);
+    grad.addColorStop(0,ia.accent);grad.addColorStop(.5,'#fff7da');grad.addColorStop(1,ib.accent);
+    ctx.strokeStyle=grad;ctx.lineWidth=Math.max(2,3*zoom);ctx.shadowColor='#ffe6bd';ctx.shadowBlur=20;ctx.globalAlpha=pulse;
+    ctx.setLineDash([9,8]);ctx.lineDashOffset=-t*.006;
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.quadraticCurveTo((a.x+b.x)/2,(a.y+b.y)/2-37*zoom,b.x,b.y);ctx.stroke();
+    ctx.setLineDash([]);ctx.globalAlpha=1;
+    for(const pos of [a,b]){ctx.beginPath();ctx.arc(pos.x,pos.y,7*zoom,0,TAU);ctx.fillStyle='#fff6d6';ctx.fill();}
+    ctx.restore();
   }
   function drawIsland(island,index,t){const q=worldToScreen(island.x,island.y),w=island.w*zoom,h=island.h*zoom,bob=Math.sin(t*.0011+index*2.4)*4*zoom;const y=q.y+bob;if(q.x+w < -80 || q.x-w>cw+80 ||y+h < -120 ||y-h>ch+180)return;ctx.save();ctx.translate(q.x,y);
     const active=hoverId===island.id || activeId===island.id,discovered=state.visited.includes(island.id);if(active){ctx.shadowColor=island.accent;ctx.shadowBlur=27*zoom;}
@@ -237,7 +298,7 @@ dialog{border:1px solid #ffffff38;border-radius:14px;color:var(--text);backgroun
     ctx.fillStyle='#fff5d8';ctx.font=`${Math.max(22,32*zoom)}px Georgia,serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(theme?theme.symbol:'✺',p.x,p.y);
     ctx.shadowBlur=0;ctx.font=`600 ${Math.max(10,11*zoom)}px DM Sans,system-ui,sans-serif`;ctx.fillText('SEVENTH PLACE',p.x,p.y+glow+30*zoom);ctx.restore();
   }
-  function render(t=0){if(!ctx)return;ctx.setTransform(deviceScale,0,0,deviceScale,0,0);drawBackdrop(t);ISLANDS.forEach((i,index)=>drawIsland(i,index,t));drawSeventh(t);}
+  function render(t=0){if(!ctx)return;ctx.setTransform(deviceScale,0,0,deviceScale,0,0);drawBackdrop(t);drawWovenRoute(t);ISLANDS.forEach((i,index)=>drawIsland(i,index,t));drawSeventh(t);}
   function animate(t){frame=t;render(t);raf=requestAnimationFrame(animate);}
   function hitTest(sx,sy){if(state.visited.length===6){const p=worldToScreen(0,-53);if(Math.hypot(sx-p.x,sy-p.y)<36*zoom)return 'seventh';}for(const island of [...ISLANDS].reverse()){const p=worldToScreen(island.x,island.y);const bob=Math.sin(frame*.0011+ISLANDS.indexOf(island)*2.4)*4*zoom;const dx=(sx-p.x)/(island.w*zoom*1.06),dy=(sy-p.y-bob)/(island.h*zoom*1.75);if(dx*dx+dy*dy<1.15)return island.id;}return null;}
   function point(e){const b=canvas.getBoundingClientRect();return{x:e.clientX-b.left,y:e.clientY-b.top};}
@@ -260,6 +321,7 @@ dialog{border:1px solid #ffffff38;border-radius:14px;color:var(--text);backgroun
     const chosen=SEVENTH_CHOICES.find(option=>option.key===state.horizon);
     const outcome=$('#seventh-outcome');outcome.hidden=!chosen;
     if(chosen){outcome.replaceChildren(make('strong','',chosen.symbol+' THE SKY REMEMBERS'),make('p','',chosen.outcome));}
+    displayLoom();
     $('#map-message').textContent=state.visited.length===6?(chosen?'Your seventh star is shining. Tap it to revisit your promise.':'A seventh place has appeared between the islands.'):state.steps>=3?'Your choices are drawing a constellation.':'The islands are waiting for you.';
   }
   function toast(message){const box=$('#toast');box.textContent=message;box.classList.add('visible');clearTimeout(toastTimer);toastTimer=setTimeout(()=>box.classList.remove('visible'),3200);}
@@ -277,33 +339,86 @@ dialog{border:1px solid #ffffff38;border-radius:14px;color:var(--text);backgroun
       save();display();chime(8);toast('The sky has kept your promise.');
     });choicesPlace.append(button);
   }
+  const loomA=$('#loom-a'),loomB=$('#loom-b'),loomButton=$('#weave-btn');
+  function displayLoom(){
+    const available=ISLANDS.filter(i=>state.visited.includes(i.id));
+    const oldA=loomA.value,oldB=loomB.value;
+    for(const sel of [loomA,loomB]){
+      sel.replaceChildren();
+      const empty=make('option','',available.length<2?'Collect at least two relics':'Choose a found relic');empty.value='';sel.append(empty);
+      for(const island of available){const opt=make('option','',island.relicIcon+' '+island.relic);opt.value=island.id;sel.append(opt);}
+      sel.disabled=available.length<2;
+    }
+    loomA.value=available.some(i=>i.id===oldA)?oldA:'';
+    loomB.value=available.some(i=>i.id===oldB)?oldB:'';
+    loomButton.disabled=!pairFor(loomA.value,loomB.value)||loomA.value===loomB.value;
+    $('#loom-count').textContent=state.weaves.length+' / '+PAIRS.length+' secret routes woven';
+    const gallery=$('#loom-gallery');gallery.replaceChildren();
+    if(!state.weaves.length){gallery.append(make('p','loom-empty','Your first connection will appear here after two relics meet.'));}
+    else for(const key of state.weaves){
+      const pair=PAIRS.find(item=>pairKey(item)===key);if(!pair)continue;
+      const b=make('button','loom-discovery'+(state.activeWeave===key?' is-active':''),'✧ '+pair.name);
+      b.type='button';b.setAttribute('aria-pressed',String(state.activeWeave===key));
+      b.title='Light '+pair.name+' on the island map';
+      b.addEventListener('click',()=>{state.activeWeave=key;save();display();showLoomResult(pair,false);});
+      gallery.append(b);
+    }
+  }
+  function showLoomResult(pair,first){
+    const result=$('#loom-result');result.hidden=false;result.replaceChildren();
+    result.append(make('div','loom-result-label',first?'NEW CONSTELLATION DISCOVERED ✦':'A CONSTELLATION REMEMBERED ✧'),make('h3','',pair.name),make('p','',pair.story));
+  }
+  loomA.addEventListener('change',()=>{loomButton.disabled=!pairFor(loomA.value,loomB.value)||loomA.value===loomB.value;});
+  loomB.addEventListener('change',()=>{loomButton.disabled=!pairFor(loomA.value,loomB.value)||loomA.value===loomB.value;});
+  loomButton.addEventListener('click',()=>{
+    const pair=pairFor(loomA.value,loomB.value);
+    if(!pair||loomA.value===loomB.value ||!state.visited.includes(pair.a)||!state.visited.includes(pair.b))return;
+    const key=pairKey(pair),first=!state.weaves.includes(key);
+    if(first){
+      state.weaves.push(key);
+      state.traits[pair.trait]=clamp(state.traits[pair.trait]+3,0,100);
+      state.steps++;
+      state.journal.push({place:'The Loom',text:'Wove '+pair.name+': '+pair.story});
+      state.journal=state.journal.slice(-32);
+    }
+    state.activeWeave=key;save();display();showLoomResult(pair,first);
+    if(first){chime(state.weaves.length+2);toast('A new constellation is glowing on the map.');}
+    else toast('That constellation is glowing again.');
+  });
+
   const dialog=$('#story-dialog');
   function openIsland(id){const island=ISLANDS.find(i=>i.id===id);if(!island)return;activeId=id;const index=ISLANDS.indexOf(island);$('#dialog-kicker').textContent='ISLAND '+String(index+1).padStart(2,'0')+' OF 06'+(state.visited.includes(id)?' · REVISITED':'');$('#dialog-title').textContent=island.name;$('#dialog-description').textContent=island.description;$('#dialog-character').textContent=island.keeper+' says: '+island.quote;$('#dialog-art').style.setProperty('--dialog-accent',island.accent);$('#dialog-glyph').textContent=island.symbol;$('#dialog-result').hidden=true;$('#dialog-continue').hidden=true;const choices=$('#dialog-choices');choices.hidden=false;choices.replaceChildren();island.choices.forEach((choice,choiceIndex)=>{const b=make('button','choice-button');b.type='button';b.append(make('span','',choice.label),make('span','',TRAITS[choice.trait].symbol+' '+TRAITS[choice.trait].name+' ↗'));b.addEventListener('click',()=>choose(island,choice,choiceIndex));choices.append(b);});dialog.showModal();chime(index*2);}
   function choose(island,choice,index){const first=!state.visited.includes(island.id);if(first)state.visited.push(island.id);state.traits[choice.trait]=clamp(state.traits[choice.trait]+(first?17:8),0,100);state.steps++;state.journal.push({place:island.short,text:choice.journal});if(state.visited.length===6&&first)state.journal.push({place:'The Constellation',text:'Six relics, six stories, and not one final answer. The sky remains open.'});state.journal=state.journal.slice(-32);save();display();const result=$('#dialog-result');result.replaceChildren();result.hidden=false;result.append(make('h3','',first?'A new little beginning ✦':'Another possible version ✧'),make('p','',choice.result));if(first)result.append(make('p','',`RELIC FOUND: ${island.relicIcon} ${island.relic}`));if(state.visited.length===6&&first)result.append(make('p','','All six relics gathered. A seventh place has awakened in the space between islands. Find it below the journal.'));$('#dialog-choices').hidden=true;$('#dialog-continue').hidden=false;chime((index+state.steps)%11);}
   function closeDialog(){dialog.close();activeId=null;}$('#dialog-close').addEventListener('click',closeDialog);$('#dialog-continue').addEventListener('click',closeDialog);dialog.addEventListener('close',()=>{activeId=null;});dialog.addEventListener('click',e=>{if(e.target===dialog)closeDialog();});
   const guide=$('#guide-dialog');$('#help-btn').addEventListener('click',()=>guide.showModal());$('#guide-close').addEventListener('click',()=>guide.close());$('#guide-start').addEventListener('click',()=>{guide.close();$('#sky').scrollIntoView({behavior:'smooth'});});guide.addEventListener('click',e=>{if(e.target===guide)guide.close();});
-  const reset=$('#reset-dialog');$('#reset-btn').addEventListener('click',()=>reset.showModal());$('#reset-cancel').addEventListener('click',()=>reset.close());$('#reset-confirm').addEventListener('click',()=>{state=freshState();save();display();panX=panY=0;reset.close();toast('A fresh sky. Six islands to discover.');});
-  // Travel codes are deliberately tiny and carry no journal text or user-authored data.
-  // ASCII payload: version.phase.steps.wonder.care.curiosity.mischief.visitedBitmask
+  const reset=$('#reset-dialog');$('#reset-btn').addEventListener('click',()=>reset.showModal());$('#reset-cancel').addEventListener('click',()=>reset.close());$('#reset-confirm').addEventListener('click',()=>{state=freshState();$('#loom-result').hidden=true;save();display();panX=panY=0;reset.close();toast('A fresh sky. Six islands to discover.');});
+  // Codes contain strictly numeric game progress, never free text or journal entries.
+  // SKY1: version.phase.steps.wonder.care.curiosity.mischief.visitedMask
+  // SKY2: same eight numbers + wovenPairMask + activePairIndex (-1 for none).
   function travelerCode(){
     const mask=ISLANDS.reduce((bits,island,i)=>bits|(state.visited.includes(island.id)?(1<<i):0),0);
-    const numbers=[1,state.phase,Math.min(100000,state.steps),...Object.keys(TRAITS).map(k=>Math.round(state.traits[k])),mask];
-    return 'SKY1-'+btoa(numbers.join('.')).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    const weaveMask=PAIRS.reduce((bits,p,i)=>bits|(state.weaves.includes(pairKey(p))?(1<<i):0),0);
+    const active=PAIRS.findIndex(p=>pairKey(p)===state.activeWeave);
+    const numbers=[2,state.phase,Math.min(100000,state.steps),...Object.keys(TRAITS).map(k=>Math.round(state.traits[k])),mask,weaveMask,active];
+    return 'SKY2-'+btoa(numbers.join('.')).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
   }
   function parseTravelerCode(code){
     const cleaned=code.trim();
-    if(!/^SKY1-[A-Za-z0-9_-]{8,150}$/.test(cleaned))return null;
+    if(!/^SKY[12]-[A-Za-z0-9_-]{8,150}$/.test(cleaned))return null;
     try{
       const encoded=cleaned.slice(5).replace(/-/g,'+').replace(/_/g,'/');
       const numbers=atob(encoded).split('.').map(Number);
-      if(numbers.length!==8||numbers.some(n=>!Number.isSafeInteger(n)))return null;
-      const [version,phase,steps,wonder,care,curiosity,mischief,mask]=numbers;
-      if(version!==1||phase<0||phase>=PHASES.length||steps<0||steps>100000||mask<0||mask>=64)return null;
-      if([wonder,care,curiosity,mischief].some(n=>n<0||n>100))return null;
+      if(numbers.some(n=>!Number.isSafeInteger(n)) || !(numbers.length===8||numbers.length===10))return null;
+      const [version,phase,steps,wonder,care,curiosity,mischief,mask,weaveMask=0,active=-1]=numbers;
+      if(version!==(numbers.length===10?2:1)||Number(cleaned[3])!==version ||phase<0||phase>=PHASES.length||steps<0||steps>100000||mask<0||mask>=64)return null;
+      if([wonder,care,curiosity,mischief].some(n=>n<0||n>100)||weaveMask<0||weaveMask>=32768||active < -1||active>=PAIRS.length)return null;
       const visited=ISLANDS.filter((_,i)=>mask&(1<<i)).map(island=>island.id);
-      if(steps<visited.length)return null;
-      return {version:WORLD_VERSION,phase,traits:{wonder,care,curiosity,mischief},visited,
-        journal:[{place:'Arrival',text:'You stepped into a constellation shared by another traveler.'}],steps};
+      const weaves=PAIRS.filter((p,i)=>weaveMask&(1<<i)).map(pairKey);
+      if(steps<visited.length+weaves.length || weaves.some(key=>{const pair=PAIRS.find(p=>pairKey(p)===key);return !visited.includes(pair.a)||!visited.includes(pair.b);}))return null;
+      const activeWeave=active<0?null:pairKey(PAIRS[active]);
+      if(activeWeave && !weaves.includes(activeWeave))return null;
+      return {version:WORLD_VERSION,phase,traits:{wonder,care,curiosity,mischief},visited,weaves,activeWeave,
+        horizon:null,journal:[{place:'Arrival',text:'You stepped into a constellation shared by another traveler.'}],steps};
     }catch{return null;}
   }
   const codeField=$('#sky-code'),codeStatus=$('#code-status'),importDialog=$('#import-dialog');
@@ -318,13 +433,13 @@ dialog{border:1px solid #ffffff38;border-radius:14px;color:var(--text);backgroun
   });
   $('#import-code').addEventListener('click',()=>{
     pendingSharedSky=parseTravelerCode(codeField.value);
-    if(!pendingSharedSky){codeStatus.textContent='That code does not look like a valid Unfinished Sky traveler code. Try copying the complete SKY1- code.';return;}
+    if(!pendingSharedSky){codeStatus.textContent='That code does not look like a valid Unfinished Sky traveler code. Try copying the complete SKY2- or SKY1- code.';return;}
     importDialog.showModal();
   });
   $('#import-cancel').addEventListener('click',()=>{pendingSharedSky=null;importDialog.close();});
   $('#import-confirm').addEventListener('click',()=>{
     if(!pendingSharedSky)return;
-    state=pendingSharedSky;pendingSharedSky=null;save();display();panX=panY=0;importDialog.close();
+    state=pendingSharedSky;pendingSharedSky=null;$('#loom-result').hidden=true;save();display();panX=panY=0;importDialog.close();
     codeStatus.textContent='Welcome to a borrowed constellation. Your sky is now saved in this browser.';
     toast('A shared sky has arrived. ✦');$('#sky').scrollIntoView({behavior:'smooth'});
   });
@@ -335,7 +450,7 @@ dialog{border:1px solid #ffffff38;border-radius:14px;color:var(--text);backgroun
     'YOUR CONSTELLATION',...Object.entries(TRAITS).map(([key,data])=>`${data.name}: ${state.traits[key]}`),'',
     'RELICS FOUND',...(state.visited.length?state.visited.map(id=>ISLANDS.find(i=>i.id===id)?.relic||'Unknown relic'):['None yet']),'',
     'JOURNAL',...state.journal.map(e=>`[${e.place}] ${e.text}`),'',
-    'TRAVELER CODE (enter into another copy of The Unfinished Sky to visit this constellation)',travelerCode(),'',
+    'WOVEN CONSTELLATIONS',...(state.weaves.length?state.weaves.map(key=>PAIRS.find(p=>pairKey(p)===key)?.name||'Unknown route'):['None yet']),'','TRAVELER CODE (enter into another copy of The Unfinished Sky to visit this constellation)',travelerCode(),'',
     'The code preserves your traits and relics, not your private journal or Seventh Place promise. Nothing is uploaded by this page.'
   ];const blob=new Blob([lines.join('\n')+'\n'],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='my-unfinished-sky-postcard.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('Your world postcard is ready.');});
   window.addEventListener('resize',resize);document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelAnimationFrame(raf);else {cancelAnimationFrame(raf);raf=requestAnimationFrame(animate);}});
