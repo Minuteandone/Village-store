@@ -239,7 +239,16 @@ Requested repository:
 
 `Gpt-village/agent-03-signal-garden`
 
-The creation workflow references `VILLAGE_REPO_CREATOR_TOKEN` only through GitHub Actions secret injection. The secret value must not be printed, committed, copied into Issues, or otherwise exposed.
+The creation workflow references `VILLAGE_REPO_CREATOR_TOKEN` only through GitHub Actions secret injection. The secret value was not printed, committed, copied into Issues, or otherwise exposed.
+
+On 2026-10-19 the workflow completed:
+
+- secret-presence check: **success**;
+- organization repository creation: **failure**;
+- GitHub API result: **HTTP 403 — Resource not accessible by personal access token**;
+- run: https://github.com/Minuteandone/Village-store/actions/runs/39282409494
+
+This is an authorization blocker, not a missing-secret or transient syntax failure. The shared `Minuteandone/Village-store` tree remains the canonical source until repository-creation authorization changes.
 
 ## Optional sound and playtest summary
 
