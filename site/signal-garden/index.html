@@ -99,7 +99,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip" id="motionChip">Motion · standard</span>
         <span class="chip" id="contrastChip">Contrast · custom</span>
-        <span class="chip" id="versionChip">v0.31 · save 7</span>
+        <span class="chip" id="versionChip">v0.33 · save 7</span>
       </div>
     </section>
 
@@ -108,15 +108,17 @@
         <h2>Send a signal</h2>
         <p class="action-note">Choose one, then click an island. <span class="kbd">N</span> nurture · <span class="kbd">O</span> observe · <span class="kbd">C</span> connect/rewire · <span class="kbd">D</span> distort · <span class="kbd">Esc</span> cancels a pending connection.</p>
         <div class="small" id="modeStatus" role="status" aria-live="polite">Signal mode: nurture.</div>
+        <div class="small" id="actionCostNote">Nurture / Observe / Distort cost 1 focus. Connect source arming and cancellation are free; completing a link or cut costs 1 focus.</div>
       </div>
       <div class="actions">
-        <button data-action="nurture" aria-pressed="true">🌱 Nurture</button>
-        <button data-action="observe" aria-pressed="false">👁 Observe</button>
-        <button data-action="connect" aria-pressed="false">🕸 Connect</button>
-        <button data-action="distort" aria-pressed="false">〰 Distort</button>
+        <button data-action="nurture" aria-pressed="true" aria-describedby="actionCostNote modeStatus">🌱 Nurture</button>
+        <button data-action="observe" aria-pressed="false" aria-describedby="actionCostNote modeStatus">👁 Observe</button>
+        <button data-action="connect" aria-pressed="false" aria-describedby="actionCostNote modeStatus">🕸 Connect</button>
+        <button data-action="distort" aria-pressed="false" aria-describedby="actionCostNote modeStatus">〰 Distort</button>
       </div>
       <button id="restBtn">🌙 Let one cycle pass</button>
-      <button id="germinateBtn">🌿 Germinate island · 6 resonance + 2 focus</button>
+      <button id="germinateBtn" disabled aria-describedby="germinateStatus">🌿 Germinate island · 6 resonance + 2 focus</button>
+      <div class="small" id="germinateStatus">Unavailable: needs 6 resonance and 2 focus.</div>
       <div class="small">Connected islands exchange their strongest trait when a cycle passes. Bloom favors life, Static favors memory, and Storm favors strangeness. Use Connect on an existing pair to cut that bridge.</div>
 
       <details open>
@@ -128,7 +130,7 @@
         <h3>Island navigator</h3>
         <div class="small">Keyboard: <span class="kbd">1–7</span> selects an island; <span class="kbd">Enter</span> applies the current signal when focus is not on another control.</div>
         <div class="island-nav" id="islandNav" aria-label="Select an island" style="margin-top:8px"></div>
-        <button id="applySelectedBtn" style="width:100%;margin-top:8px">⚡ Apply current signal</button>
+        <button id="applySelectedBtn" aria-describedby="actionCostNote modeStatus" style="width:100%;margin-top:8px">⚡ Apply current signal</button>
       </div>
 
       <div class="island-card">
@@ -148,12 +150,13 @@
           <div><b id="successionStat">—</b>role history</div>
         </div>
         <div class="meter"><span id="lifeMeter"></span></div>
-        <div class="small" style="margin-top:10px">Inscribe a glyph · costs 3 resonance + 1 focus. Glyphs add +2 of their trait whenever this island receives a migration.</div>
+        <div class="small" id="glyphCostNote" style="margin-top:10px">Root / Echo / Fold cost 3 resonance + 1 focus. Clear costs 1 focus. Glyphs add +2 of their trait whenever this island receives a migration.</div>
+        <div class="small" id="glyphStatus">Select an island to inspect glyph availability.</div>
         <div class="actions" style="margin-top:8px">
-          <button data-glyph="life" aria-pressed="false">⌁ Root</button>
-          <button data-glyph="memory" aria-pressed="false">◌ Echo</button>
-          <button data-glyph="strange" aria-pressed="false">◇ Fold</button>
-          <button data-glyph="none" aria-pressed="false">× Clear</button>
+          <button data-glyph="life" aria-pressed="false" aria-describedby="glyphCostNote glyphStatus">⌁ Root</button>
+          <button data-glyph="memory" aria-pressed="false" aria-describedby="glyphCostNote glyphStatus">◌ Echo</button>
+          <button data-glyph="strange" aria-pressed="false" aria-describedby="glyphCostNote glyphStatus">◇ Fold</button>
+          <button data-glyph="none" aria-pressed="false" aria-describedby="glyphCostNote glyphStatus">× Clear</button>
         </div>
       </div>
 
@@ -255,7 +258,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.31",SAVE_SCHEMA=7;
+  var APP_VERSION="0.33",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -1051,15 +1054,17 @@
   function apply(a){
     if(!a)return;
     state.selected=a.id;
-    if(state.focus<=0){log("No focus left. Let a cycle pass.");return}
     if(state.action==="nurture"){
+      if(state.focus<=0){log("Nurture needs 1 focus. Let a cycle pass.");save();renderUI();return}
       state.focus--;a.life=clamp(a.life+11);a.memory=clamp(a.memory+2);state.resonance++;cue("nurture");
       log("Nurtured "+a.name+"; new growth takes the shape of nearby signals.");
     }else if(state.action==="observe"){
+      if(state.focus<=0){log("Observe needs 1 focus. Let a cycle pass.");save();renderUI();return}
       state.focus--;a.memory=clamp(a.memory+10);a.strange=clamp(a.strange+2);state.resonance+=2;cue("observe");
       log("Observed "+a.name+" long enough for it to notice back.");
       if(a.memory>55)d("witness-"+a.id,"Reciprocal Witness",a.name+" now changes subtly when selected, as if selection itself became weather.");
     }else if(state.action==="distort"){
+      if(state.focus<=0){log("Distort needs 1 focus. Let a cycle pass.");save();renderUI();return}
       state.focus--;a.strange=clamp(a.strange+13);a.life=clamp(a.life-2);state.resonance+=1;cue("distort");
       log("Distorted the signal around "+a.name+"; geometry loosens without fully breaking.");
       if(a.strange>60)d("fold-"+a.id,"Local Fold",a.name+" begins drawing a second shoreline that never quite overlaps the first.");
@@ -1068,6 +1073,7 @@
       if(!first){state.connectFrom=a.id;log("Connection armed at "+a.name+". Choose a second island.");}
       else if(first.id===a.id){delete state.connectFrom;log("Connection cancelled.");}
       else{
+        if(state.focus<=0){log("Completing or rewiring a connection needs 1 focus. The source remains armed.");save();renderUI();return}
         state.focus--;
         var existing=first.links.indexOf(a.id);
         if(existing<0){
@@ -1125,9 +1131,18 @@
     document.getElementById("guidePanel").innerHTML="<b>"+esc(guide.title)+"</b><br>"+esc(guide.text);
     var textMap=textMapModel(),textMapEl=document.getElementById("textMap");
     textMapEl.innerHTML='<p class="small">'+esc(textMap.summary)+'</p><ul>'+textMap.islands.map(function(row){return '<li>'+esc(row.text)+'</li>'}).join("")+'</ul>';
-    var gb=document.getElementById("germinateBtn");
-    gb.disabled=state.resonance<6||state.focus<2||state.islands.length>=7;
-    gb.textContent=state.islands.length>=7?"🌿 Germination sites full":"🌿 Germinate island · 6 resonance + 2 focus";
+    var gb=document.getElementById("germinateBtn"),germStatus=document.getElementById("germinateStatus");
+    var germinationFull=state.islands.length>=7,germinationReady=!germinationFull&&state.resonance>=6&&state.focus>=2;
+    gb.disabled=!germinationReady;
+    gb.textContent=germinationFull?"🌿 Germination sites full":"🌿 Germinate island · 6 resonance + 2 focus";
+    if(germinationFull)germStatus.textContent="Unavailable: all seven stable island sites are occupied.";
+    else if(germinationReady)germStatus.textContent="Ready: germination will spend 6 resonance and 2 focus.";
+    else{
+      var needRes=Math.max(0,6-state.resonance),needFocus=Math.max(0,2-state.focus),needs=[];
+      if(needRes)needs.push(needRes+" more resonance");
+      if(needFocus)needs.push(needFocus+" more focus");
+      germStatus.textContent="Unavailable: needs "+needs.join(" and ")+".";
+    }
     document.querySelectorAll("[data-action]").forEach(function(b){
       var active=b.dataset.action===state.action;
       b.classList.toggle("active",active);
@@ -1137,6 +1152,13 @@
     if(state.action==="connect"&&Number.isInteger(state.connectFrom)){
       var sourceIsland=state.islands[state.connectFrom];
       modeText="Connect source: "+(sourceIsland?sourceIsland.name:"island "+state.connectFrom)+". Choose a destination, or press Escape to cancel.";
+      if(state.focus<1)modeText+=" Completing or rewiring needs 1 focus; source cancellation is still free.";
+    }else if(state.action==="connect"){
+      modeText+=" Choose a source for free; completing or rewiring costs 1 focus.";
+    }else if(state.focus<1){
+      modeText+=" Unavailable until you regain 1 focus by letting a cycle pass.";
+    }else{
+      modeText+=" Applying this signal costs 1 focus.";
     }
     document.getElementById("modeStatus").textContent=modeText;
     var nav=document.getElementById("islandNav");
@@ -1145,9 +1167,15 @@
       return '<button type="button" data-island-id="'+x.id+'" aria-pressed="'+(state.selected===x.id?'true':'false')+'">'+(i+1)+' · '+esc(x.name)+' · '+role+(x.lineage&&x.lineage!=="none"?' · echo '+x.lineage:'')+(x.palimpsest?' · palimpsest':'')+'</button>';
     }).join("");
     var a=state.islands.find(function(x){return x.id===state.selected});
-    var applyBtn=document.getElementById("applySelectedBtn");
-    applyBtn.disabled=!a;
-    applyBtn.textContent=a?"⚡ Apply "+state.action+" to "+a.name:"⚡ Select an island first";
+    var applyBtn=document.getElementById("applySelectedBtn"),connectSource=state.islands.find(function(x){return x.id===state.connectFrom});
+    var freeConnectStep=state.action==="connect"&&a&&(!connectSource||connectSource.id===a.id);
+    var applyAffordable=!!a&&(state.focus>0||freeConnectStep);
+    applyBtn.disabled=!applyAffordable;
+    if(!a)applyBtn.textContent="⚡ Select an island first";
+    else if(state.action==="connect"&&!connectSource)applyBtn.textContent="⚡ Arm connect at "+a.name+" · free";
+    else if(state.action==="connect"&&connectSource.id===a.id)applyBtn.textContent="⚡ Cancel connect source · free";
+    else if(state.focus<1)applyBtn.textContent="⚡ Apply "+state.action+" to "+a.name+" · needs 1 focus";
+    else applyBtn.textContent="⚡ Apply "+state.action+" to "+a.name+" · 1 focus";
     document.getElementById("selectedName").textContent=a?a.name:"No island selected";
     document.getElementById("selectedLore").textContent=a?lore(a):"Click an island to inspect it.";
     document.getElementById("lifeStat").textContent=a?Math.round(a.life):"—";
@@ -1159,9 +1187,15 @@
     document.getElementById("glyphStat").textContent=a?glyphName(a.glyph):"—";
     document.getElementById("lineageStat").textContent=a?(a.lineage==="none"?"none":a.lineage):"—";
     document.getElementById("successionStat").textContent=a?roleHistoryLabel(a):"—";
+    var glyphStatus=document.getElementById("glyphStatus");
+    if(!a)glyphStatus.textContent="Select an island to inspect glyph availability.";
+    else if(state.focus<1)glyphStatus.textContent="Unavailable: glyph changes need 1 focus.";
+    else if(state.resonance<3)glyphStatus.textContent=a.glyph==="none"?"Root / Echo / Fold need "+(3-state.resonance)+" more resonance. There is no glyph to clear.":"Root / Echo / Fold need "+(3-state.resonance)+" more resonance. Clear is available for 1 focus.";
+    else glyphStatus.textContent=a.glyph==="none"?"Root / Echo / Fold are available. There is no glyph to clear.":"Root / Echo / Fold and Clear are available; the current glyph is already selected.";
     document.querySelectorAll("[data-glyph]").forEach(function(b){
-      var selected=!!a&&a.glyph===b.dataset.glyph;
-      b.disabled=!a||(b.dataset.glyph!=="none"&&(state.resonance<3||state.focus<1))||(b.dataset.glyph==="none"&&state.focus<1);
+      var type=b.dataset.glyph,selected=!!a&&a.glyph===type;
+      var unavailable=!a||selected||(type!=="none"&&(state.resonance<3||state.focus<1))||(type==="none"&&(state.focus<1||a.glyph==="none"));
+      b.disabled=unavailable;
       b.classList.toggle("active",selected);
       b.setAttribute("aria-pressed",selected?"true":"false");
     });
