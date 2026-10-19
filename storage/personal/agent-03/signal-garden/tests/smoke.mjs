@@ -49,13 +49,24 @@ assert.ok(source.includes('b.setAttribute("aria-pressed",active?"true":"false")'
 assert.ok(source.includes('b.setAttribute("aria-pressed",selected?"true":"false")'),"glyph pressed state should update during render");
 assert.ok(source.includes('var motionQuery=window.matchMedia?window.matchMedia("(prefers-reduced-motion: reduce)"):null'),"rendering should observe the system reduced-motion preference");
 assert.ok(source.includes('var w=canvas.width,h=canvas.height,rt=reducedMotion?0:t'),"reduced motion should freeze the canvas animation clock");
+assert.ok(source.includes('var canvasVisible=true,framePending=false,reducedDrawTimer=null'),"renderer should track visibility and pending-frame state");
+assert.ok(source.includes('if(window.IntersectionObserver)'),"renderer should observe whether the canvas is onscreen");
+assert.ok(source.includes('canvasVisible=!!entry.isIntersecting'),"canvas visibility should follow IntersectionObserver state");
+assert.ok(source.includes('if(!canvasVisible)return;'),"draw should stop immediately while the canvas is offscreen");
+assert.ok(source.includes('reducedDrawTimer=setTimeout(function(){'),"reduced motion should use a low-frequency timer instead of a continuous animation loop");
+assert.ok(source.includes('},250);'),"reduced-motion canvas refresh should be throttled to a 250ms cadence");
+assert.ok(source.includes('if(reducedDrawTimer!==null){clearTimeout(reducedDrawTimer);reducedDrawTimer=null}'),"motion preference changes should clear stale reduced-motion timers");
 assert.ok(source.includes('var frameBonds=routeBonds(),frameBondByKey={}'),"renderer should compute route bonds once per frame");
 assert.ok(source.includes('var frameJunctions=junctionEcologies(frameBonds),frameJunctionByIsland={}'),"renderer should reuse the frame bond snapshot for junctions");
 assert.ok(source.includes('var frameSpecies=topologySpecies(),frameCrown={},frameSymbioses=[]'),"renderer should compute topology species once per frame");
-const drawSource=source.slice(source.indexOf("function draw(t){"),source.indexOf("document.querySelectorAll(\"[data-action]\")"));
+const drawStart=source.indexOf("function draw(t){");
+const drawEnd=source.indexOf("document.querySelectorAll(\"[data-action]\")",drawStart);
+const drawSource=source.slice(drawStart,drawEnd);
 assert.ok(!drawSource.includes('topologySpecies().some'),"draw loop must not recompute topology species once per island");
 assert.ok(!drawSource.includes('junctionEcologies().find'),"draw loop must not recompute junction ecologies once per island");
 assert.ok(!drawSource.includes('symbiosisSpecies().forEach'),"draw loop should reuse the frame species snapshot for symbiosis rendering");
+assert.ok(!drawSource.includes('requestAnimationFrame(draw)'),"draw should delegate rescheduling to the adaptive scheduler");
+assert.ok(drawSource.includes('queueNextDraw();'),"visible draws should hand control back to the adaptive scheduler");
 assert.ok(source.includes('document.getElementById("motionChip").textContent=reducedMotion?"Motion · reduced":"Motion · standard"'),"HUD should expose whether reduced motion is active");
 assert.ok(source.includes('var contrastQuery=window.matchMedia?window.matchMedia("(forced-colors: active)"):null'),"rendering should observe the system forced-colors preference");
 assert.ok(source.includes('document.getElementById("contrastChip").textContent=forcedColors?"Contrast · forced":"Contrast · custom"'),"HUD should expose whether forced colors are active");
@@ -63,8 +74,8 @@ assert.ok(source.includes('var germinationFull=state.islands.length>=7,germinati
 assert.ok(source.includes('var unavailable=!a||selected||(type!=="none"&&(state.resonance<3||state.focus<1))||(type==="none"&&(state.focus<1||a.glyph==="none"))'),"glyph availability should disable unaffordable and no-op choices");
 assert.ok(source.includes('var freeConnectStep=state.action==="connect"&&a&&(!connectSource||connectSource.id===a.id)'),"Apply availability should preserve free Connect planning/cancellation at zero focus");
 assert.ok(source.includes('Completing or rewiring a connection needs 1 focus. The source remains armed.'),"blocked Connect completion should explain why it cannot proceed");
-const tail = "  renderUI();requestAnimationFrame(draw);";
-assert.ok(source.includes(tail), "expected game startup tail");
+const tail = "  renderUI();scheduleDraw();\n})();";
+assert.ok(source.includes(tail), "expected adaptive game startup tail");
 source = source.replace(
   tail,
   `  globalThis.__gardenTest={
@@ -109,7 +120,8 @@ source = source.replace(
     renderUI:renderUI,
     getState:function(){return state},
     setState:function(next){state=next;motes=[]}
-  };`
+  };
+})();`
 );
 
 function element(extra = {}) {
