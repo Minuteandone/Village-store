@@ -80,6 +80,21 @@ The intended result is that bridges are consequences, not decoration.
 - **Cross-Pollinated Archipelago** — every island has received at least one foreign signal.
 - **Three Ecologies** — grove-, archive-, and fold-minds coexist.
 
+## Germination and progression
+
+Resonance is also a world-building resource.
+
+Once the visitor has at least **6 resonance** and **2 focus**, they may germinate a new island. Up to three additional stable sites exist, allowing the archipelago to grow from four starting islands to seven.
+
+New islands:
+
+- begin unlinked;
+- are generated deterministically from the garden seed plus their birth index;
+- inherit a seasonal bias at birth (Bloom → life, Static → memory, Storm → strangeness);
+- immediately participate in later migration and specialization systems.
+
+The first successful birth unlocks **New Land**. Filling all seven stable sites unlocks **Seven-Island Sky**.
+
 ## Persistence and sharing
 
 The garden persists in browser `localStorage`.
