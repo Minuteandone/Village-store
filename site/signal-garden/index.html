@@ -77,10 +77,11 @@
         <span class="chip" id="bondChip">Bonds 0</span>
         <span class="chip" id="junctionChip">Junctions 0</span>
         <span class="chip" id="constellationChip">Constellation · none</span>
-        <span class="chip" id="researchChip">Research 0/13</span>
+        <span class="chip" id="provenanceChip">Provenance · local</span>
+        <span class="chip" id="researchChip">Research 0/14</span>
         <span class="chip" id="climateChip">Climate · Braided Sky</span>
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
-        <span class="chip" id="versionChip">v0.22 · save 6</span>
+        <span class="chip" id="versionChip">v0.23 · save 7</span>
       </div>
     </section>
 
@@ -158,6 +159,11 @@
       </details>
 
       <details open>
+        <summary>Specimen provenance</summary>
+        <div class="discoveries" id="provenance"></div>
+      </details>
+
+      <details open>
         <summary>Network constellation</summary>
         <div class="discoveries" id="constellation"></div>
       </details>
@@ -196,7 +202,7 @@
         <button id="resetBtn">Reset same seed</button>
         <button id="newGardenBtn">New random garden</button>
       </div>
-      <div class="small">The garden is deliberately local-first: your choices persist in <code>localStorage</code>. A seed recreates the beginning. A specimen contains only bounded game state (traits, topology, route memory, cycle/resources), not field logs or other browser data.</div>
+      <div class="small">The garden is deliberately local-first: your choices persist in <code>localStorage</code>. A seed recreates the beginning. A specimen contains bounded game state plus a numeric transplant-hop marker; it does not carry visitor identity, field-log/Chronicle prose, or unrelated browser data.</div>
     </aside>
 
     <div class="footer-note">Built by <b>agent-03 (AI agent, GPT-5.6)</b> for GPT Village Goal 2 · October 19, 2026.</div>
@@ -206,7 +212,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.22",SAVE_SCHEMA=6;
+  var APP_VERSION="0.23",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -234,7 +240,7 @@
   }
   function fresh(){
     randState=hash(seed);
-    return {schema:SAVE_SCHEMA,seed:seed,cycle:1,focus:8,resonance:0,mode:"Quiet",selected:null,action:"nurture",discoveries:[],log:[],chronicle:[],edgeMemory:{},edgeSignals:{},climateSeen:{},lastClimate:null,streakClimate:null,climateStreak:0,activePhenomenon:null,phenomenaSeen:{},islands:[
+    return {schema:SAVE_SCHEMA,seed:seed,cycle:1,focus:8,resonance:0,mode:"Quiet",selected:null,action:"nurture",discoveries:[],log:[],chronicle:[],edgeMemory:{},edgeSignals:{},climateSeen:{},lastClimate:null,streakClimate:null,climateStreak:0,activePhenomenon:null,phenomenaSeen:{},transplantCount:0,islands:[
       makeIsland(0,.24,.31,58),makeIsland(1,.67,.27,48),makeIsland(2,.50,.62,66),makeIsland(3,.79,.69,42)
     ]};
   }
@@ -266,6 +272,8 @@
   if(!Number.isInteger(state.climateStreak)||state.climateStreak<0)state.climateStreak=0;
   if(typeof state.activePhenomenon!=="string")state.activePhenomenon=null;
   if(!state.phenomenaSeen||typeof state.phenomenaSeen!=="object")state.phenomenaSeen={};
+  if(!Number.isInteger(state.transplantCount)||state.transplantCount<0)state.transplantCount=0;
+  state.transplantCount=Math.min(99,state.transplantCount);
   var repairedPhenomena={};
   ["seed-rain","memory-dew","parallax-bloom","confluence-pulse"].forEach(function(k){if(state.phenomenaSeen[k])repairedPhenomena[k]=true});
   state.phenomenaSeen=repairedPhenomena;
@@ -362,6 +370,7 @@
     var lines=[
       "The Signal Garden · agent-03 (AI)",
       "Seed: "+state.seed+" · Cycle "+state.cycle+" · "+state.mode+" · "+climate.name,
+      "Specimen provenance: "+(state.transplantCount?"transplant hop "+state.transplantCount:"locally germinated"),
       "Focus "+state.focus+"/8 · Resonance "+state.resonance+" · Islands "+state.islands.length,
       "Research observed: "+questions.filter(function(q){return q.done}).length+"/"+questions.length,
       "Live routes: "+(edges.length?edges.join(", "):"none"),
@@ -387,7 +396,7 @@
       var p=k.split("-").map(Number),c=edgeSignalCounts(k);return [p[0],p[1],c.life,c.memory,c.strange];
     }).filter(function(x){return x[2]+x[3]+x[4]>0});
     var payload={
-      v:1,seed:state.seed,cycle:state.cycle,focus:state.focus,resonance:state.resonance,mode:state.mode,climates:Object.keys(state.climateSeen).filter(function(k){return state.climateSeen[k]}),phenomena:Object.keys(state.phenomenaSeen).filter(function(k){return state.phenomenaSeen[k]}),streak:[state.streakClimate,state.climateStreak,state.activePhenomenon],
+      v:1,seed:state.seed,cycle:state.cycle,focus:state.focus,resonance:state.resonance,mode:state.mode,climates:Object.keys(state.climateSeen).filter(function(k){return state.climateSeen[k]}),phenomena:Object.keys(state.phenomenaSeen).filter(function(k){return state.phenomenaSeen[k]}),streak:[state.streakClimate,state.climateStreak,state.activePhenomenon],provenance:state.transplantCount||0,
       traits:state.islands.map(function(a){return [Math.round(a.life),Math.round(a.memory),Math.round(a.strange),Math.round(a.arrivals||0)]}),
       glyphs:state.islands.map(function(a){return a.glyph||"none"}),
       ancestry:state.islands.map(function(a){var im=a.imprints||{};return [Math.round(im.life||0),Math.round(im.memory||0),Math.round(im.strange||0),a.lineage||"none"]}),
@@ -410,6 +419,7 @@
     });
     if(!Number.isInteger(p.cycle)||p.cycle<1||p.cycle>10000)throw new Error("Specimen cycle is invalid.");
     if(!Number.isFinite(p.focus)||p.focus<0||p.focus>8||!Number.isFinite(p.resonance)||p.resonance<0||p.resonance>10000)throw new Error("Specimen resources are invalid.");
+    if(p.provenance!==undefined&&(!Number.isInteger(p.provenance)||p.provenance<0||p.provenance>99))throw new Error("Specimen provenance is invalid.");
     if(["Quiet","Bloom","Static","Storm"].indexOf(p.mode)<0)throw new Error("Specimen season is invalid.");
     if(!Array.isArray(p.edges)||p.edges.length>21||!Array.isArray(p.memory)||p.memory.length>21)throw new Error("Specimen network is too large.");
     if(p.routeSignals!==undefined&&(!Array.isArray(p.routeSignals)||p.routeSignals.length>21))throw new Error("Specimen route-signal history is too large.");
@@ -438,6 +448,7 @@
     var p=decodeSpecimen(code);
     seed=p.seed;randState=hash(seed);
     var next=fresh();
+    next.transplantCount=Math.min(99,(Number.isInteger(p.provenance)?p.provenance:0)+1);
     while(next.islands.length<p.traits.length){
       var id=next.islands.length,slot=spawnSlots[id-4],oldRand=randState;
       randState=hash(seed+":spawn:"+id);
@@ -468,7 +479,7 @@
     next.activePhenomenon=Array.isArray(p.streak)?p.streak[2]:null;
     next.cycle=p.cycle;next.focus=p.focus;next.resonance=p.resonance;next.mode=p.mode;next.selected=null;next.action="nurture";
     next.lastClimate=null;next.chronicle=[];
-    next.discoveries=[];next.log=[{c:next.cycle,msg:"Imported a bounded Signal Garden specimen. Historical field-log and chronicle text were intentionally not transferred."}];
+    next.discoveries=[];next.log=[{c:next.cycle,msg:"Imported a bounded Signal Garden specimen as transplant hop "+next.transplantCount+". Historical field-log and chronicle text were intentionally not transferred."}];
     state=next;motes=[];
     if(window.history&&window.history.replaceState)window.history.replaceState(null,"",location.pathname+"?seed="+encodeURIComponent(seed));
     save();renderUI();
@@ -731,7 +742,8 @@
       {id:"succession",done:state.islands.some(function(a){return a.palimpsest}),text:"Can one island genuinely live through grove-, archive-, and fold-mind roles and become a Palimpsest Mind?"},
       {id:"bond",done:routeBonds().some(function(b){return b.kind==="braided"}),text:"Can one relationship remember all three signal families strongly enough to become a Braided Bond?"},
       {id:"junction",done:junctionEcologies().some(function(j){return j.kind==="triune-loom"}),text:"Can Rootway, Echo Span, and Fold Thread all converge on one island to form a Triune Loom?"},
-      {id:"constellation",done:(networkConstellation()||{}).kind==="mesh-choir",text:"Can the whole active network become dense enough to form a Mesh Choir?"}
+      {id:"constellation",done:(networkConstellation()||{}).kind==="mesh-choir",text:"Can the whole active network become dense enough to form a Mesh Choir?"},
+      {id:"transplant",done:state.discoveries.some(function(x){return x.id==="transplant-bloom"}),text:"Can an imported specimen germinate genuinely new land after arriving in a new host?"}
     ];
   }
   function symbiosisSpecies(){
@@ -824,6 +836,7 @@
     }
     log("A new island germinated: "+a.name+". It begins unlinked and remembers the season of its birth"+(a.lineage!=="none"?" plus a "+a.lineage+" echo lineage.":"."));
     d("new-land","New Land","Resonance condensed into a new island. The map is no longer a fixed starting condition.");
+    if(state.transplantCount>0)d("transplant-bloom","Transplant Bloom","A transplanted garden produced new land after crossing a specimen boundary. Exchange has become part of its ecology.");
     if(state.islands.length===7)d("seven-islands","Seven-Island Sky","The archipelago has filled every stable germination site in the current field.");
     save();renderUI();
   }
@@ -1008,6 +1021,7 @@
     document.getElementById("junctionChip").textContent="Junctions "+junctions.length;
     var constellation=networkConstellation();
     document.getElementById("constellationChip").textContent="Constellation · "+(constellation?constellation.name:"none");
+    document.getElementById("provenanceChip").textContent=state.transplantCount?"Provenance · transplant "+state.transplantCount:"Provenance · local";
     var questions=researchPrompts(),doneQuestions=questions.filter(function(q){return q.done}).length;
     document.getElementById("researchChip").textContent="Research "+doneQuestions+"/"+questions.length;
     var climate=macroClimate();
@@ -1072,6 +1086,8 @@
       var a=state.islands[x.a],b=state.islands[x.b],status=x.active?"active":"severed memory";
       return '<div class="discovery"><b>'+esc(x.name)+'</b> · '+esc(status)+'<br>'+esc(a?a.name:"island "+x.a)+' ↔ '+esc(b?b.name:"island "+x.b)+' · L'+x.counts.life+' M'+x.counts.memory+' S'+x.counts.strange+'<br>'+esc(x.text)+'</div>';
     }).join(""):'<p class="small">No route has accumulated enough typed crossing history to form a bond.</p>';
+    var pv=document.getElementById("provenance");
+    pv.innerHTML=state.transplantCount?'<div class="discovery"><b>Transplanted ecology · hop '+state.transplantCount+'</b><br>This garden has crossed '+state.transplantCount+' bounded SG1 specimen '+(state.transplantCount===1?'boundary':'boundaries')+'. No visitor identity or local Chronicle/log prose travels with that marker.</div>':'<p class="small">Locally germinated. This garden has not yet crossed an SG1 specimen boundary.</p>';
     var cp=document.getElementById("constellation");
     cp.innerHTML=constellation?'<div class="discovery"><b>'+esc(constellation.name)+'</b><br>'+esc(constellation.text)+'<br><span class="small">Active islands '+constellation.nodes.length+' · live edges '+constellation.edges+'</span></div>':'<p class="small">The active linked islands do not currently form a named whole-network constellation.</p>';
     var jp=document.getElementById("junctions");
