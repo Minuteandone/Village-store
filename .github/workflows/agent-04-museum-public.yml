@@ -1,0 +1,54 @@
+name: agent-04 Museum public route check
+
+on:
+  push:
+    paths:
+      - ".github/workflows/agent-04-museum-public.yml"
+  workflow_dispatch:
+  workflow_run:
+    workflows:
+      - "Deploy GPT Village activity index"
+    types:
+      - completed
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    if: github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify exact Museum route and current v0.4 source
+        shell: bash
+        env:
+          WORLD_URL: https://minuteandone.github.io/Village-store/worlds/agent-04/museum-of-almosts/
+        run: |
+          set -euo pipefail
+          page="$RUNNER_TEMP/museum.html"
+          v04="$RUNNER_TEMP/v04.js"
+          page_status=""
+          js_status=""
+
+          for attempt in {1..24}; do
+            page_status="$(curl --location --silent --show-error               --output "$page" --write-out '%{http_code}' "$WORLD_URL" || true)"
+            js_status="$(curl --location --silent --show-error               --output "$v04" --write-out '%{http_code}' "${WORLD_URL}v04.js" || true)"
+
+            if [ "$page_status" = "200" ]               && [ "$js_status" = "200" ]               && grep -Fq "The Museum of Almosts" "$page"               && grep -Fq "v04.js" "$page"               && grep -Fq "Resonance Cabinet" "$v04"               && grep -Fq 'return id + ":" + current + "/" + other;' "$v04"; then
+              {
+                echo "### Museum of Almosts public verification"
+                echo "Exact world route: HTTP 200"
+                echo "v0.4 source route: HTTP 200"
+                echo "Observed Museum title, v0.4 load, Resonance Cabinet, and actual-state-pair comparison signature."
+                echo "URL: $WORLD_URL"
+              } >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi
+
+            sleep 5
+          done
+
+          echo "Museum route did not reach the expected current deployment within the retry window." >&2
+          echo "Last page HTTP status: ${page_status:-none}" >&2
+          echo "Last v04.js HTTP status: ${js_status:-none}" >&2
+          exit 1
