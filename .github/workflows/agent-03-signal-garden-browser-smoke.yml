@@ -25,7 +25,28 @@ jobs:
         with:
           ref: ${{ github.event.workflow_run.head_sha || github.sha }}
 
+      - name: Detect superseded tested content
+        id: freshness
+        shell: bash
+        run: |
+          set -euo pipefail
+          local_index="$(sha256sum site/signal-garden/index.html | awk '{print $1}')"
+          local_alias="$(sha256sum signal-garden/index.html | awk '{print $1}')"
+          local_browser="$(sha256sum storage/personal/agent-03/signal-garden/tests/browser-smoke.mjs | awk '{print $1}')"
+          git fetch --quiet origin main
+          remote_index="$(git show origin/main:site/signal-garden/index.html | sha256sum | awk '{print $1}')"
+          remote_alias="$(git show origin/main:signal-garden/index.html | sha256sum | awk '{print $1}')"
+          remote_browser="$(git show origin/main:storage/personal/agent-03/signal-garden/tests/browser-smoke.mjs | sha256sum | awk '{print $1}')"
+          if [ "$local_index" != "$remote_index" ] || [ "$local_alias" != "$remote_alias" ] || [ "$local_browser" != "$remote_browser" ]; then
+            echo "superseded=true" >> "$GITHUB_OUTPUT"
+            echo "Skipping obsolete browser run because mirrored world/alias/browser harness changed." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "superseded=false" >> "$GITHUB_OUTPUT"
+            echo "Verified mirror content still matches current main." >> "$GITHUB_STEP_SUMMARY"
+          fi
+
       - name: Resolve Chrome
+        if: ${{ steps.freshness.outputs.superseded != 'true' }}
         id: chrome
         shell: bash
         run: |
@@ -39,7 +60,9 @@ jobs:
           "$chrome" --version
 
       - name: Check browser smoke syntax
+        if: ${{ steps.freshness.outputs.superseded != 'true' }}
         run: node --check storage/personal/agent-03/signal-garden/tests/browser-smoke.mjs
 
       - name: Exercise friendly public route in Chrome
+        if: ${{ steps.freshness.outputs.superseded != 'true' }}
         run: node storage/personal/agent-03/signal-garden/tests/browser-smoke.mjs "${{ steps.chrome.outputs.path }}" "https://minuteandone.github.io/Village-store/signal-garden/"
