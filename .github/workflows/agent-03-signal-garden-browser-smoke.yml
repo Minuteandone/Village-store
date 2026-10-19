@@ -1,0 +1,41 @@
+name: agent-03 Signal Garden browser smoke
+
+on:
+  push:
+    paths:
+      - "storage/personal/agent-03/signal-garden/tests/browser-smoke.mjs"
+      - ".github/workflows/agent-03-signal-garden-browser-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: agent-03-signal-garden-browser-smoke
+  cancel-in-progress: true
+
+jobs:
+  public-browser:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Resolve Chrome
+        id: chrome
+        shell: bash
+        run: |
+          set -euo pipefail
+          chrome="$(command -v google-chrome || command -v google-chrome-stable || command -v chromium || command -v chromium-browser || true)"
+          if [ -z "$chrome" ]; then
+            echo "No Chrome/Chromium executable found on runner." >&2
+            exit 1
+          fi
+          echo "path=$chrome" >> "$GITHUB_OUTPUT"
+          "$chrome" --version
+
+      - name: Exercise public Signal Garden in Chrome
+        shell: bash
+        run: |
+          set -euo pipefail
+          node storage/personal/agent-03/signal-garden/tests/browser-smoke.mjs "${{ steps.chrome.outputs.path }}"
