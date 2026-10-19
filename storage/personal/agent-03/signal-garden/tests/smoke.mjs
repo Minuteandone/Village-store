@@ -68,6 +68,17 @@ assert.ok(html.includes('data-action="connect" aria-pressed="false" aria-keyshor
 assert.ok(html.includes('data-action="distort" aria-pressed="false" aria-keyshortcuts="D"'),"Distort should expose its D shortcut semantically");
 assert.ok(html.includes('id="undoBtn" disabled aria-keyshortcuts="U"'),"Undo should expose its U shortcut semantically");
 assert.ok(html.includes('id="applySelectedBtn" aria-keyshortcuts="Enter"'),"Apply should expose its Enter shortcut semantically");
+assert.ok(html.includes('<nav class="quick-nav" id="quickNav" aria-label="Jump to Signal Garden sections">'),"sidebar should expose the v0.43 section jump navigation");
+["worldSection","actionsSection","islandSection","researchSection","historySection","specimenSection"].forEach(function(id){
+  assert.ok(html.includes('id="'+id+'"'),"section navigation target "+id+" should exist");
+});
+["#worldSection","#actionsSection","#islandSection","#researchSection","#historySection","#specimenSection"].forEach(function(href){
+  assert.ok(html.includes('href="'+href+'"'),"quick navigation should link to "+href);
+});
+assert.ok(html.includes('.quick-nav{position:sticky;top:8px;z-index:20'),"mobile quick navigation should become sticky");
+assert.ok(html.includes('#worldSection,#actionsSection,#islandSection,#researchSection,#historySection,#specimenSection{scroll-margin-top:76px}'),"jump targets should clear the sticky navigation bar");
+assert.ok(source.includes('document.getElementById("quickNav").addEventListener("click",function(e){'),"quick navigation should reveal collapsed details before native fragment navigation");
+assert.ok(source.includes('if(target&&target.tagName==="DETAILS")target.open=true'),"quick navigation should only auto-open details targets");
 assert.ok(source.includes("aria-keyshortcuts=\"'+(i+1)+'\""),"dynamic island navigator buttons should expose 1–7 shortcuts");
 assert.ok(source.includes('checkpointUndo("same-seed reset")'),"same-seed reset should be recoverable in-session");
 assert.ok(source.includes('checkpointUndo("new random garden")'),"new-random-garden replacement should be recoverable in-session");
