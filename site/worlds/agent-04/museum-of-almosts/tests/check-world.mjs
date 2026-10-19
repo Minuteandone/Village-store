@@ -26,6 +26,7 @@ const v16 = read("v16.js");
 const v17 = read("v17.js");
 const v18 = read("v18.js");
 const v19 = read("v19.js");
+const v20 = read("v20.js");
 const v02css = read("v02.css");
 const v03css = read("v03.css");
 const v04css = read("v04.css");
@@ -44,13 +45,14 @@ const v16css = read("v16.css");
 const v17css = read("v17.css");
 const v18css = read("v18.css");
 const v19css = read("v19.css");
+const v20css = read("v20.css");
 
 const failures = [];
 const expect = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "v13.css", "v14.css", "v15.css", "v16.css", "v17.css", "v18.css", "v19.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js", "v13.js", "v14.js", "v15.js", "v16.js", "v17.js", "v18.js", "v19.js"]) {
+for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "v12.css", "v13.css", "v14.css", "v15.css", "v16.css", "v17.css", "v18.css", "v19.css", "v20.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js", "v12.js", "v13.js", "v14.js", "v15.js", "v16.js", "v17.js", "v18.js", "v19.js", "v20.js"]) {
   expect(index.includes(asset), "index.html must reference " + asset);
 }
 
@@ -72,11 +74,12 @@ expect(
   index.indexOf("v15.js") < index.indexOf("v16.js") &&
   index.indexOf("v16.js") < index.indexOf("v17.js") &&
   index.indexOf("v17.js") < index.indexOf("v18.js") &&
-  index.indexOf("v18.js") < index.indexOf("v19.js"),
-  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js -> v13.js -> v14.js -> v15.js -> v16.js -> v17.js -> v18.js -> v19.js"
+  index.indexOf("v18.js") < index.indexOf("v19.js") &&
+  index.indexOf("v19.js") < index.indexOf("v20.js"),
+  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js -> v12.js -> v13.js -> v14.js -> v15.js -> v16.js -> v17.js -> v18.js -> v19.js -> v20.js"
 );
 
-for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09], ["v1.0", v10], ["v1.1", v11], ["v1.2", v12], ["v1.3", v13], ["v1.4", v14], ["v1.5", v15], ["v1.6", v16], ["v1.7", v17], ["v1.8", v18], ["v1.9", v19]]) {
+for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09], ["v1.0", v10], ["v1.1", v11], ["v1.2", v12], ["v1.3", v13], ["v1.4", v14], ["v1.5", v15], ["v1.6", v16], ["v1.7", v17], ["v1.8", v18], ["v1.9", v19], ["v2.0", v20]]) {
   expect(source.includes("agent04-museum-of-almosts-v1"), name + " must share the Museum storage key");
 }
 
@@ -366,6 +369,20 @@ expect(!v19.includes("localStorage.setItem("), "v1.9 Branch Compass must remain 
 expect(!v19.includes("innerHTML"), "v1.9 should construct Branch Compass UI with safe DOM APIs");
 expect(v19css.includes("prefers-reduced-motion"), "v1.9 Branch Compass styling must respect reduced-motion");
 
+for (const phrase of ["EDITION GALLERY · v2.0", "ROOM 07 · EDITIONS AS ARCHITECTURE", "galleryNodes", "layoutNodes", "gallery-door-v20", "SUMMARY NOT RETAINED"]) {
+  expect(v20.includes(phrase), "v2.0 missing Edition Gallery mechanic: " + phrase);
+}
+expect(v20.includes("raw.editions.filter") && v20.includes("slice(-4)"), "v2.0 retained lecterns must come only from the bounded four-edition Living Catalog shelf");
+expect(v20.includes("slice(-MAX_RELATIONS)"), "v2.0 lineage threads must remain bounded to the existing lineage relation limit");
+expect(v20.includes("const MAX_NODES = 12"), "v2.0 gallery node projection must remain explicitly bounded");
+expect(v20.includes("codes.add(relation.parentCode)") && v20.includes("codes.add(relation.childCode)"), "v2.0 fossil plaques must come only from explicit retained lineage codes");
+expect(v20.includes("createElementNS") && v20.includes("gallery-thread-v20"), "v2.0 must render visible threads from explicit lineage relations");
+expect(v20.includes("Detailed contents are unavailable and are not reconstructed"), "v2.0 must explicitly refuse to reconstruct fossil summaries");
+expect(v20.includes("item.retained ?") && v20.includes("fossil citation"), "v2.0 must visibly distinguish retained editions from fossil-only codes");
+expect(!v20.includes("localStorage.setItem("), "v2.0 Edition Gallery must remain read-only");
+expect(!v20.includes("innerHTML"), "v2.0 should construct Edition Gallery UI with safe DOM/SVG APIs");
+expect(v20css.includes("prefers-reduced-motion"), "v2.0 Edition Gallery styling must respect reduced-motion");
+
 if (failures.length) {
   console.error("Museum of Almosts smoke check failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -373,4 +390,4 @@ if (failures.length) {
 }
 
 console.log("Museum of Almosts smoke check passed.");
-console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes + v1.3 Cross-Reference Route + v1.4 Second Edition + v1.5 Edition Lineage + v1.6 Inheritance Notes + v1.7 Fossil Citations + v1.8 Sibling Margins + v1.9 Branch Compass contract.");
+console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata + v1.2 Walking Footnotes + v1.3 Cross-Reference Route + v1.4 Second Edition + v1.5 Edition Lineage + v1.6 Inheritance Notes + v1.7 Fossil Citations + v1.8 Sibling Margins + v1.9 Branch Compass + v2.0 Edition Gallery contract.");
