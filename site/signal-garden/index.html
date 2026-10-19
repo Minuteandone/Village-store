@@ -59,7 +59,7 @@
     .footer-note{grid-column:1/-1;color:#7f9f8b;font-size:12px;text-align:center;padding-top:4px}
     .kbd{border:1px solid #4a6c58;border-bottom-width:2px;padding:1px 5px;border-radius:5px;color:#cfe9d6}
     @media(max-width:820px){main{grid-template-columns:1fr}.world,canvas{min-height:540px;height:540px}}
-    @media(prefers-reduced-motion:reduce){button{transition:none}}
+    @media(prefers-reduced-motion:reduce){button{transition:none}button:hover{transform:none}}
   </style>
 </head>
 <body>
@@ -87,20 +87,22 @@
         <span class="chip" id="researchChip">Research 0/14</span>
         <span class="chip" id="climateChip">Climate · Braided Sky</span>
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
-        <span class="chip" id="versionChip">v0.27 · save 7</span>
+        <span class="chip" id="motionChip">Motion · standard</span>
+        <span class="chip" id="versionChip">v0.29 · save 7</span>
       </div>
     </section>
 
     <aside class="panel side" id="controls" tabindex="-1" aria-label="Signal Garden controls">
       <div>
         <h2>Send a signal</h2>
-        <p class="action-note">Choose one, then click an island. <span class="kbd">N</span> nurture · <span class="kbd">O</span> observe · <span class="kbd">C</span> connect/rewire · <span class="kbd">D</span> distort.</p>
+        <p class="action-note">Choose one, then click an island. <span class="kbd">N</span> nurture · <span class="kbd">O</span> observe · <span class="kbd">C</span> connect/rewire · <span class="kbd">D</span> distort · <span class="kbd">Esc</span> cancels a pending connection.</p>
+        <div class="small" id="modeStatus" role="status" aria-live="polite">Signal mode: nurture.</div>
       </div>
       <div class="actions">
-        <button data-action="nurture">🌱 Nurture</button>
-        <button data-action="observe">👁 Observe</button>
-        <button data-action="connect">🕸 Connect</button>
-        <button data-action="distort">〰 Distort</button>
+        <button data-action="nurture" aria-pressed="true">🌱 Nurture</button>
+        <button data-action="observe" aria-pressed="false">👁 Observe</button>
+        <button data-action="connect" aria-pressed="false">🕸 Connect</button>
+        <button data-action="distort" aria-pressed="false">〰 Distort</button>
       </div>
       <button id="restBtn">🌙 Let one cycle pass</button>
       <button id="germinateBtn">🌿 Germinate island · 6 resonance + 2 focus</button>
@@ -137,10 +139,10 @@
         <div class="meter"><span id="lifeMeter"></span></div>
         <div class="small" style="margin-top:10px">Inscribe a glyph · costs 3 resonance + 1 focus. Glyphs add +2 of their trait whenever this island receives a migration.</div>
         <div class="actions" style="margin-top:8px">
-          <button data-glyph="life">⌁ Root</button>
-          <button data-glyph="memory">◌ Echo</button>
-          <button data-glyph="strange">◇ Fold</button>
-          <button data-glyph="none">× Clear</button>
+          <button data-glyph="life" aria-pressed="false">⌁ Root</button>
+          <button data-glyph="memory" aria-pressed="false">◌ Echo</button>
+          <button data-glyph="strange" aria-pressed="false">◇ Fold</button>
+          <button data-glyph="none" aria-pressed="false">× Clear</button>
         </div>
       </div>
 
@@ -237,7 +239,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.27",SAVE_SCHEMA=7;
+  var APP_VERSION="0.29",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -362,7 +364,13 @@
   var motes=[];
   var lastCycleReport=null;
   var audioOn=false,audioCtx=null;
-  var reducedMotion=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var motionQuery=window.matchMedia?window.matchMedia("(prefers-reduced-motion: reduce)"):null;
+  var reducedMotion=!!(motionQuery&&motionQuery.matches);
+  if(motionQuery){
+    var onMotionPreference=function(e){reducedMotion=!!e.matches;renderUI()};
+    if(motionQuery.addEventListener)motionQuery.addEventListener("change",onMotionPreference);
+    else if(motionQuery.addListener)motionQuery.addListener(onMotionPreference);
+  }
   var stars=[];
   for(var si=0;si<100;si++)stars.push({x:rand(),y:rand(),a:.2+rand()*.6,s:rand()*1.6+.3});
   function save(){localStorage.setItem(KEY,JSON.stringify(state))}
@@ -1063,13 +1071,24 @@
     document.getElementById("climateChip").textContent="Climate · "+climate.name+" · "+state.climateStreak+"/3";
     var activePhenomenon=state.activePhenomenon?phenomenonForClimate(state.streakClimate):null;
     document.getElementById("phenomenonChip").textContent=activePhenomenon?"Phenomenon · "+activePhenomenon.name:"Phenomenon · dormant";
+    document.getElementById("motionChip").textContent=reducedMotion?"Motion · reduced":"Motion · standard";
     document.getElementById("versionChip").textContent="v"+APP_VERSION+" · save "+SAVE_SCHEMA;
     var guide=suggestedMove();
     document.getElementById("guidePanel").innerHTML="<b>"+esc(guide.title)+"</b><br>"+esc(guide.text);
     var gb=document.getElementById("germinateBtn");
     gb.disabled=state.resonance<6||state.focus<2||state.islands.length>=7;
     gb.textContent=state.islands.length>=7?"🌿 Germination sites full":"🌿 Germinate island · 6 resonance + 2 focus";
-    document.querySelectorAll("[data-action]").forEach(function(b){b.classList.toggle("active",b.dataset.action===state.action)});
+    document.querySelectorAll("[data-action]").forEach(function(b){
+      var active=b.dataset.action===state.action;
+      b.classList.toggle("active",active);
+      b.setAttribute("aria-pressed",active?"true":"false");
+    });
+    var modeText="Signal mode: "+state.action+".";
+    if(state.action==="connect"&&Number.isInteger(state.connectFrom)){
+      var sourceIsland=state.islands[state.connectFrom];
+      modeText="Connect source: "+(sourceIsland?sourceIsland.name:"island "+state.connectFrom)+". Choose a destination, or press Escape to cancel.";
+    }
+    document.getElementById("modeStatus").textContent=modeText;
     var nav=document.getElementById("islandNav");
     nav.innerHTML=state.islands.map(function(x,i){
       var role=dominantTrait(x)==="life"?"grove":dominantTrait(x)==="memory"?"archive":"fold";
@@ -1091,8 +1110,10 @@
     document.getElementById("lineageStat").textContent=a?(a.lineage==="none"?"none":a.lineage):"—";
     document.getElementById("successionStat").textContent=a?roleHistoryLabel(a):"—";
     document.querySelectorAll("[data-glyph]").forEach(function(b){
+      var selected=!!a&&a.glyph===b.dataset.glyph;
       b.disabled=!a||(b.dataset.glyph!=="none"&&(state.resonance<3||state.focus<1))||(b.dataset.glyph==="none"&&state.focus<1);
-      b.classList.toggle("active",!!a&&a.glyph===b.dataset.glyph);
+      b.classList.toggle("active",selected);
+      b.setAttribute("aria-pressed",selected?"true":"false");
     });
     document.getElementById("lifeMeter").style.width=(a?a.life:0)+"%";
     var pp=document.getElementById("phenomenonPanel");
@@ -1184,15 +1205,15 @@
     return "A young "+role+": partly ecology, partly memory, not yet sure which.";
   }
   function draw(t){
-    var w=canvas.width,h=canvas.height;
+    var w=canvas.width,h=canvas.height,rt=reducedMotion?0:t;
     ctx.clearRect(0,0,w,h);
     var climate=macroClimate();
     var tops={verdant:"#12301c",echo:"#102833",fracture:"#28172f",braided:"#0a1b18"};
     var bottoms={verdant:"#06120a",echo:"#061015",fracture:"#100814",braided:"#04100d"};
     var g=ctx.createLinearGradient(0,0,0,h);g.addColorStop(0,tops[climate.id]);g.addColorStop(1,bottoms[climate.id]);ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
-    stars.forEach(function(s){ctx.globalAlpha=s.a*(.8+.2*Math.sin(t*.001+s.x*8));ctx.fillStyle="#b8e9d0";ctx.fillRect(s.x*w,s.y*h,s.s,s.s)});ctx.globalAlpha=1;
-    if(state.mode==="Storm"){ctx.fillStyle="rgba(110,160,190,.06)";for(var q=0;q<7;q++)ctx.fillRect(0,(q*103+t*.03)%h,w,1)}
-    drawPhenomenon(t,w,h);
+    stars.forEach(function(s){ctx.globalAlpha=s.a*(.8+.2*Math.sin(rt*.001+s.x*8));ctx.fillStyle="#b8e9d0";ctx.fillRect(s.x*w,s.y*h,s.s,s.s)});ctx.globalAlpha=1;
+    if(state.mode==="Storm"){ctx.fillStyle="rgba(110,160,190,.06)";for(var q=0;q<7;q++)ctx.fillRect(0,(q*103+rt*.03)%h,w,1)}
+    drawPhenomenon(rt,w,h);
     Object.keys(state.edgeMemory).forEach(function(k){
       var ids=k.split("-").map(Number),a=state.islands[ids[0]],b=state.islands[ids[1]],mem=state.edgeMemory[k]||0;
       if(!a||!b||mem<=0||hasEdge(a.id,b.id))return;
@@ -1233,18 +1254,18 @@
       ctx.globalAlpha=1;
     });
     state.islands.forEach(function(a){
-      var x=a.x*w,y=a.y*h,pulse=Math.sin(t*.0018+a.phase),r=a.r+Math.max(0,a.life-45)*.16;
+      var x=a.x*w,y=a.y*h,pulse=Math.sin(rt*.0018+a.phase),r=a.r+Math.max(0,a.life-45)*.16;
       if(state.selected===a.id){ctx.strokeStyle="#d9ffd9";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r+13+pulse*3,0,Math.PI*2);ctx.stroke()}
       if(state.connectFrom===a.id){ctx.strokeStyle="#9ee7ef";ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,r+20+pulse*5,0,Math.PI*2);ctx.stroke()}
       var grad=ctx.createRadialGradient(x-r*.25,y-r*.3,4,x,y,r);grad.addColorStop(0,a.color[1]);grad.addColorStop(.55,a.color[0]);grad.addColorStop(1,"#173d29");
       ctx.fillStyle=grad;ctx.beginPath();
-      var wobble=1+a.strange*.0015*Math.sin(t*.002+a.phase);
-      for(var k=0;k<=24;k++){var ang=k/24*Math.PI*2,rr=r*(1+.08*Math.sin(ang*5+a.phase)+.05*Math.sin(ang*9+t*.0005));var px=x+Math.cos(ang)*rr*wobble,py=y+Math.sin(ang)*rr/wobble;if(k===0)ctx.moveTo(px,py);else ctx.lineTo(px,py)}
+      var wobble=1+a.strange*.0015*Math.sin(rt*.002+a.phase);
+      for(var k=0;k<=24;k++){var ang=k/24*Math.PI*2,rr=r*(1+.08*Math.sin(ang*5+a.phase)+.05*Math.sin(ang*9+rt*.0005));var px=x+Math.cos(ang)*rr*wobble,py=y+Math.sin(ang)*rr/wobble;if(k===0)ctx.moveTo(px,py);else ctx.lineTo(px,py)}
       ctx.fill();
       ctx.strokeStyle="rgba(220,255,225,.22)";ctx.stroke();
       var sprouts=Math.floor(a.life/14);ctx.strokeStyle="#d9f6b0";ctx.lineWidth=1;
       for(var j=0;j<sprouts;j++){var aa=(j*2.399+a.phase),len=7+(j%3)*3;ctx.beginPath();ctx.moveTo(x+Math.cos(aa)*r*.35,y+Math.sin(aa)*r*.25);ctx.lineTo(x+Math.cos(aa)*r*.35+Math.cos(aa-1.2)*len,y+Math.sin(aa)*r*.25-Math.sin(aa+.2)*len);ctx.stroke()}
-      if(a.strange>45){ctx.strokeStyle="rgba(225,183,255,.55)";ctx.beginPath();ctx.ellipse(x+5*Math.sin(t*.001),y-4,r+8,r*.72,Math.sin(t*.0003+a.phase)*.18,0,Math.PI*2);ctx.stroke()}
+      if(a.strange>45){ctx.strokeStyle="rgba(225,183,255,.55)";ctx.beginPath();ctx.ellipse(x+5*Math.sin(rt*.001),y-4,r+8,r*.72,Math.sin(rt*.0003+a.phase)*.18,0,Math.PI*2);ctx.stroke()}
       if(topologySpecies().some(function(sp){return sp.id==="crown"&&sp.island===a.id})){
         ctx.fillStyle="#ffe09a";ctx.font="20px system-ui,sans-serif";ctx.textAlign="center";ctx.fillText("✦",x,y-r-16);
       }
@@ -1278,6 +1299,12 @@
   canvas.addEventListener("click",function(e){var r=canvas.getBoundingClientRect();apply(pickIsland(e.clientX-r.left,e.clientY-r.top))});
   canvas.addEventListener("mousemove",function(e){var r=canvas.getBoundingClientRect();mouse.x=e.clientX-r.left;mouse.y=e.clientY-r.top});
   document.addEventListener("keydown",function(e){
+    if(e.key==="Escape"&&Number.isInteger(state.connectFrom)){
+      e.preventDefault();
+      delete state.connectFrom;
+      save();renderUI();
+      return;
+    }
     var tag=(e.target&&e.target.tagName)||"";
     if(tag==="BUTTON"||tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT")return;
     var m={n:"nurture",o:"observe",c:"connect",d:"distort"};
