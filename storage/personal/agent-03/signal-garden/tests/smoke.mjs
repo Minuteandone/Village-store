@@ -16,6 +16,8 @@ source = source.replace(
     topologySpecies:topologySpecies,
     symbiosisSpecies:symbiosisSpecies,
     macroClimate:macroClimate,
+    recordClimate:recordClimate,
+    inscribeGlyph:inscribeGlyph,
     researchPrompts:researchPrompts,
     specimenCode:specimenCode,
     decodeSpecimen:decodeSpecimen,
@@ -58,8 +60,8 @@ ids.set("garden", canvas);
 [
   "seasonChip","focusChip","resChip","transitChip","historyChip","researchChip","climateChip","germinateBtn",
   "islandNav","applySelectedBtn","selectedName","selectedLore","lifeStat",
-  "memoryStat","strangeStat","linksStat","arrivalsStat","trafficStat","lifeMeter",
-  "research","species","discoveries","log","restBtn","exportBtn","specimenBtn","importBtn","resetBtn"
+  "memoryStat","strangeStat","linksStat","arrivalsStat","trafficStat","glyphStat","lifeMeter",
+  "research","species","discoveries","chronicle","log","restBtn","exportBtn","specimenBtn","importBtn","resetBtn"
 ].forEach(id => ids.set(id, element()));
 
 const actionButtons = ["nurture","observe","connect","distort"].map(action =>
@@ -102,7 +104,7 @@ const api = sandbox.__gardenTest;
 assert.ok(api, "test API should be exposed");
 
 function island(id, links = [], life = 50, memory = 20, strange = 10) {
-  return { id, links: [...links], life, memory, strange, arrivals: 0 };
+  return { id, links: [...links], life, memory, strange, arrivals: 0, glyph: "none" };
 }
 function setGraph(islands, edgeMemory = {}) {
   api.setState({
@@ -115,8 +117,10 @@ function setGraph(islands, edgeMemory = {}) {
     action: "nurture",
     discoveries: [],
     log: [],
+    chronicle: [],
     edgeMemory: { ...edgeMemory },
     climateSeen: {},
+    lastClimate: null,
     islands
   });
 }
@@ -131,6 +135,9 @@ setGraph([
   island(3, [], 90, 10, 5)
 ]);
 assert.equal(api.macroClimate().id, "verdant", "life-heavy archipelago should produce Verdant Air");
+api.recordClimate();
+assert.equal(api.getState().climateSeen.verdant, true);
+assert.ok(api.getState().chronicle.some(x => x.kind === "climate"), "first recorded climate should enter the chronicle");
 
 setGraph([
   island(0, [], 10, 85, 5),
@@ -216,10 +223,13 @@ setGraph([
   island(0, [1], 80, 10, 5),
   island(1, [0], 10, 80, 5)
 ]);
+api.getState().islands[1].glyph = "memory";
+const memoryBeforeGlyphMigration = api.getState().islands[1].memory;
 api.migrateSignals();
 assert.equal(api.getState().edgeMemory["0-1"], 2, "two linked islands should each record one crossing in a cycle");
 assert.equal(api.getState().islands[0].arrivals, 1);
 assert.equal(api.getState().islands[1].arrivals, 1);
+assert.ok(api.getState().islands[1].memory >= memoryBeforeGlyphMigration + 2, "Echo glyph should add memory on incoming migration");
 
 setGraph([
   island(0, [1], 70, 20, 10),
@@ -228,6 +238,8 @@ setGraph([
   island(3, [], 50, 20, 10)
 ], { "0-1": 9 });
 api.getState().resonance = 7;
+api.getState().islands[0].glyph = "life";
+api.getState().climateSeen = { verdant: true, braided: true };
 const code = api.specimenCode();
 assert.ok(code.startsWith("SG1."));
 const decoded = api.decodeSpecimen(code);
@@ -235,7 +247,23 @@ assert.equal(decoded.seed, "testseed");
 assert.equal(decoded.traits.length, 4);
 assert.deepEqual(Array.from(decoded.edges[0]), [0, 1]);
 assert.equal(decoded.memory[0][2], 9);
+assert.equal(decoded.glyphs[0], "life");
+assert.deepEqual(Array.from(decoded.climates).sort(), ["braided","verdant"]);
 assert.ok(!("log" in decoded), "specimen must not contain field-log text");
+assert.ok(!("chronicle" in decoded), "specimen must not contain chronicle text");
 assert.throws(() => api.decodeSpecimen("SG1.not-valid-base64!"));
+
+setGraph([
+  island(0, [], 50, 20, 10),
+  island(1), island(2), island(3)
+]);
+api.getState().selected = 0;
+api.getState().resonance = 5;
+api.getState().focus = 3;
+api.inscribeGlyph("strange");
+assert.equal(api.getState().islands[0].glyph, "strange");
+assert.equal(api.getState().resonance, 2, "glyph inscription should cost 3 resonance");
+assert.equal(api.getState().focus, 2, "glyph inscription should cost 1 focus");
+assert.ok(api.getState().chronicle.some(x => x.kind === "glyph"), "glyph inscription should enter chronicle");
 
 console.log("Signal Garden invariant tests passed.");
