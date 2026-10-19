@@ -61,6 +61,8 @@ function mount(store=new Map(),hash=''){
 const world=mount();
 assert.equal(world.state().route.length,0);
 assert.equal(world.element('keeper-card').hidden,true,'Uncharted island has no encounter card');
+assert.equal(world.element('keeper-audio-link').hidden,true,'Music link stays hidden until a keeper is answered');
+assert(html.includes('id="keeper-audio-link"')&&html.includes('href="../studio/"'),'Atlas has reciprocal music navigation');
 world.keeper(0);
 assert.deepEqual(world.state().echoes,[null,null,null,null,null],'Encounter cannot be chosen before an island is charted');
 assert.equal(world.element('route-count').textContent,'0 / 5 STOPS CHARTED');
@@ -74,8 +76,10 @@ assert.equal(world.focused()?.getAttribute('aria-describedby'),'map-instructions
 world.visit(1);
 assert.equal(world.element('keeper-card').hidden,false,'Stamped island reveals its keeper');
 assert(world.element('keeper-title').textContent.includes('Fox'),'Hushwood has its unique encounter');
+assert.equal(world.element('keeper-audio-link').hidden,true,'Encounter alone does not advertise an imported motif');
 world.keeper(0);
 assert.equal(world.state().echoes[1],0,'First keeper choice persists');
+assert.equal(world.element('keeper-audio-link').hidden,false,'Answered encounter reveals the music portal');
 assert(world.element('report').value.includes('Seven bells sing'),'Encounter shapes field report');
 world.keeper(1);
 assert.equal(world.state().echoes[1],1,'Keeper decision is reversible');
