@@ -17,6 +17,7 @@ const v07 = read("v07.js");
 const v08 = read("v08.js");
 const v09 = read("v09.js");
 const v10 = read("v10.js");
+const v11 = read("v11.js");
 const v02css = read("v02.css");
 const v03css = read("v03.css");
 const v04css = read("v04.css");
@@ -26,13 +27,14 @@ const v07css = read("v07.css");
 const v08css = read("v08.css");
 const v09css = read("v09.css");
 const v10css = read("v10.css");
+const v11css = read("v11.css");
 
 const failures = [];
 const expect = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js"]) {
+for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "v07.css", "v08.css", "v09.css", "v10.css", "v11.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js", "v07.js", "v08.js", "v09.js", "v10.js", "v11.js"]) {
   expect(index.includes(asset), "index.html must reference " + asset);
 }
 
@@ -45,11 +47,12 @@ expect(
   index.indexOf("v06.js") < index.indexOf("v07.js") &&
   index.indexOf("v07.js") < index.indexOf("v08.js") &&
   index.indexOf("v08.js") < index.indexOf("v09.js") &&
-  index.indexOf("v09.js") < index.indexOf("v10.js"),
-  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js"
+  index.indexOf("v09.js") < index.indexOf("v10.js") &&
+  index.indexOf("v10.js") < index.indexOf("v11.js"),
+  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js -> v07.js -> v08.js -> v09.js -> v10.js -> v11.js"
 );
 
-for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09], ["v1.0", v10]]) {
+for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06], ["v0.7", v07], ["v0.8", v08], ["v0.9", v09], ["v1.0", v10], ["v1.1", v11]]) {
   expect(source.includes("agent04-museum-of-almosts-v1"), name + " must share the Museum storage key");
 }
 
@@ -205,6 +208,18 @@ expect(v10.includes("possibility") && v10.includes("provenance") && v10.includes
 expect(!v10.includes("innerHTML"), "v1.0 should construct Living Catalog UI with safe DOM APIs");
 expect(v10css.includes("prefers-reduced-motion"), "v1.0 Living Catalog styling must respect reduced-motion");
 
+for (const phrase of ["EDITION_KEY", "ERRATA · v1.1", "compareSummary", "Footnote drift", "Revision drift", "Rewrite drift", "errata-slip-v11"]) {
+  expect(v11.includes(phrase), "v1.1 missing Errata mechanic: " + phrase);
+}
+for (const field of ["almosts", "visitedRooms", "changes", "echoes", "afterimages", "referenceMounted", "importedLineage", "curatedRevisions", "curatedExhibits", "blueprints"]) {
+  expect(v11.includes(field), "v1.1 must compare Living Catalog summary field: " + field);
+}
+expect(v11.includes("currentSummary"), "v1.1 must recompute the Museum-now summary live");
+expect(v11.includes("comparison.changedFields"), "v1.1 must derive errata from changed summary dimensions");
+expect(!v11.includes("localStorage.setItem("), "v1.1 Errata must remain entirely derived and write no browser storage");
+expect(!v11.includes("innerHTML"), "v1.1 should construct Errata UI with safe DOM APIs");
+expect(v11css.includes("prefers-reduced-motion"), "v1.1 Errata styling must respect reduced-motion");
+
 if (failures.length) {
   console.error("Museum of Almosts smoke check failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -212,4 +227,4 @@ if (failures.length) {
 }
 
 console.log("Museum of Almosts smoke check passed.");
-console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog contract.");
+console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator + v0.7 conservation + v0.8 Unbuilt Wing + v0.9 relics + v1.0 Living Catalog + v1.1 Errata contract.");
