@@ -28,6 +28,7 @@ source = source.replace(
     researchPrompts:researchPrompts,
     specimenCode:specimenCode,
     decodeSpecimen:decodeSpecimen,
+    importSpecimenCode:importSpecimenCode,
     migrateSignals:migrateSignals,
     globalImprints:globalImprints,
     ancestralSignal:ancestralSignal,
@@ -79,10 +80,10 @@ const canvas = element({
 const ids = new Map();
 ids.set("garden", canvas);
 [
-  "seasonChip","focusChip","resChip","transitChip","historyChip","bondChip","junctionChip","constellationChip","researchChip","climateChip","germinateBtn",
+  "seasonChip","focusChip","resChip","transitChip","historyChip","bondChip","junctionChip","constellationChip","provenanceChip","researchChip","climateChip","germinateBtn",
   "islandNav","applySelectedBtn","selectedName","selectedLore","lifeStat",
   "memoryStat","strangeStat","linksStat","arrivalsStat","trafficStat","glyphStat","lineageStat","successionStat","lifeMeter",
-  "research","bonds","constellation","junctions","species","discoveries","chronicle","log","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
+  "research","bonds","provenance","constellation","junctions","species","discoveries","chronicle","log","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
 ].forEach(id => ids.set(id, element()));
 
 const actionButtons = ["nurture","observe","connect","distort"].map(action =>
@@ -150,6 +151,7 @@ function setGraph(islands, edgeMemory = {}, edgeSignals = {}) {
     climateStreak: 0,
     activePhenomenon: null,
     phenomenaSeen: {},
+    transplantCount: 0,
     islands
   });
 }
@@ -553,6 +555,7 @@ assert.ok(api.getState().islands[0].memory > islandZeroMemoryBefore, "island 1 m
 setGraph([island(0),island(1),island(2),island(3)]);
 api.getState().resonance=10;
 api.getState().focus=4;
+api.getState().transplantCount=1;
 api.getState().islands[0].imprints={life:3,memory:0,strange:0};
 api.getState().islands[1].imprints={life:3,memory:1,strange:0};
 api.getState().islands[2].imprints={life:0,memory:0,strange:1};
@@ -561,6 +564,8 @@ assert.equal(api.getState().islands.length,5,"germination should add a fifth isl
 assert.equal(api.getState().islands[4].lineage,"life","new land should inherit dominant migration ancestry");
 assert.ok(api.getState().chronicle.some(x=>x.kind==="lineage"),"inherited lineage should enter the Chronicle");
 assert.equal(api.researchPrompts().find(x=>x.id==="lineage").done,true,"lineage inheritance should complete its Field Question");
+assert.ok(api.getState().discoveries.some(x=>x.id==="transplant-bloom"),"new land grown after import should unlock Transplant Bloom");
+assert.equal(api.researchPrompts().find(x=>x.id==="transplant").done,true,"Transplant Bloom should complete its Field Question");
 
 setGraph([
   island(0, [1], 70, 20, 10),
@@ -580,6 +585,7 @@ api.getState().islands[0].lineage="life";
 api.getState().islands[0].rolesSeen={life:true,memory:true,strange:true};
 api.getState().islands[0].palimpsest=true;
 api.getState().edgeSignals={"0-1":{life:4,memory:2,strange:1}};
+api.getState().transplantCount=2;
 const code = api.specimenCode();
 assert.ok(code.startsWith("SG1."));
 const decoded = api.decodeSpecimen(code);
@@ -594,6 +600,14 @@ assert.deepEqual(Array.from(decoded.streak), ["verdant",4,"seed-rain"]);
 assert.deepEqual(Array.from(decoded.ancestry[0]), [8,2,1,"life"]);
 assert.equal(decoded.succession[0],7,"SG1 specimen should preserve a full Palimpsest succession mask");
 assert.deepEqual(Array.from(decoded.routeSignals[0]),[0,1,4,2,1],"SG1 specimen should preserve bounded typed route history");
+assert.equal(decoded.provenance,2,"SG1 specimen should preserve only the bounded transplant-hop count");
+api.importSpecimenCode(code);
+assert.equal(api.getState().transplantCount,3,"import should advance specimen provenance by one hop");
+const legacyPayload=JSON.parse(JSON.stringify(decoded));
+delete legacyPayload.provenance;
+const legacyCode="SG1."+Buffer.from(JSON.stringify(legacyPayload),"binary").toString("base64").replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
+api.importSpecimenCode(legacyCode);
+assert.equal(api.getState().transplantCount,1,"older SG1 specimens without provenance should import as first-hop transplants");
 assert.ok(!("log" in decoded), "specimen must not contain field-log text");
 assert.ok(!("chronicle" in decoded), "specimen must not contain chronicle text");
 assert.ok(!("lastCycleReport" in decoded), "specimen must not contain session-local cycle-report state");
