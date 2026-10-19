@@ -90,6 +90,7 @@ try{
   await send("Runtime.enable");
   await send("Log.enable");
   await send("Emulation.setDeviceMetricsOverride",{width:390,height:844,deviceScaleFactor:1,mobile:true,screenWidth:390,screenHeight:844});
+  await send("Emulation.setEmulatedMedia",{features:[{name:"prefers-reduced-motion",value:"reduce"}]});
 
   const nav=await send("Page.navigate",{url:url.href});
   assert.ok(!nav.errorText,"navigation error: "+(nav.errorText||""));
@@ -98,6 +99,16 @@ try{
   const version=await evaluate("document.getElementById('versionChip').textContent");
   assert.ok(version.includes("v"+expectedVersion),"deployed app version should match checked-out index");
   assert.ok(version.includes("save "+expectedSchema),"deployed save schema should match checked-out index");
+
+  const reducedPreference=await evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches");
+  assert.equal(reducedPreference,true,"Chrome should emulate the user's reduced-motion preference");
+  const motionChip=await evaluate("document.getElementById('motionChip').textContent");
+  assert.equal(motionChip,"Motion · reduced","deployed HUD should acknowledge reduced motion");
+  await sleep(150);
+  const reducedCanvasA=await evaluate("document.getElementById('garden').toDataURL()");
+  await sleep(300);
+  const reducedCanvasB=await evaluate("document.getElementById('garden').toDataURL()");
+  assert.equal(reducedCanvasB,reducedCanvasA,"reduced-motion canvas should remain visually static over time without interaction");
 
   const title=await evaluate("document.title");
   assert.match(title,/The Signal Garden/);
@@ -135,7 +146,29 @@ try{
   const lifeAfter=Number(await evaluate("document.getElementById('lifeStat').textContent"));
   assert.ok(lifeAfter>lifeBefore,"Nurture should increase selected-island life");
 
+  const nurturePressedInitially=await evaluate(`document.querySelector('[data-action="nurture"]').getAttribute('aria-pressed')`);
+  assert.equal(nurturePressedInitially,"true","default nurture mode should expose pressed state");
   await evaluate(`document.querySelector('[data-action="connect"]').click()`);
+  const connectPressed=await evaluate(`document.querySelector('[data-action="connect"]').getAttribute('aria-pressed')`);
+  assert.equal(connectPressed,"true","Connect mode should expose pressed state after selection");
+  const nurturePressedAfterConnect=await evaluate(`document.querySelector('[data-action="nurture"]').getAttribute('aria-pressed')`);
+  assert.equal(nurturePressedAfterConnect,"false");
+  const connectModeStatus=await evaluate("document.getElementById('modeStatus').textContent");
+  assert.match(connectModeStatus,/Signal mode: connect/);
+
+  const focusBeforePending=await evaluate("document.getElementById('focusChip').textContent");
+  await evaluate(`document.querySelector('[data-island-id="0"]').click()`);
+  await evaluate("document.getElementById('applySelectedBtn').click()");
+  const pendingConnectStatus=await evaluate("document.getElementById('modeStatus').textContent");
+  assert.match(pendingConnectStatus,/Connect source:/,"pending connection should announce its source");
+  assert.match(pendingConnectStatus,/Escape to cancel/);
+  await key("Escape","Escape",27);
+  const cancelledConnectStatus=await evaluate("document.getElementById('modeStatus').textContent");
+  assert.match(cancelledConnectStatus,/Signal mode: connect/,"Escape should return Connect to an unarmed state");
+  assert.ok(!cancelledConnectStatus.includes("Connect source:"),"Escape should clear the pending connection source");
+  const focusAfterCancel=await evaluate("document.getElementById('focusChip').textContent");
+  assert.equal(focusAfterCancel,focusBeforePending,"cancelling a pending connection should not spend focus");
+
   await evaluate(`document.querySelector('[data-island-id="0"]').click()`);
   await evaluate("document.getElementById('applySelectedBtn').click()");
   await evaluate(`document.querySelector('[data-island-id="1"]').click()`);
@@ -155,6 +188,10 @@ try{
   await evaluate(`document.querySelector('[data-glyph="memory"]').click()`);
   const glyph=await evaluate("document.getElementById('glyphStat').textContent");
   assert.equal(glyph,"Echo");
+  const echoGlyphPressed=await evaluate(`document.querySelector('[data-glyph="memory"]').getAttribute('aria-pressed')`);
+  assert.equal(echoGlyphPressed,"true","selected glyph should expose pressed state");
+  const rootGlyphPressed=await evaluate(`document.querySelector('[data-glyph="life"]').getAttribute('aria-pressed')`);
+  assert.equal(rootGlyphPressed,"false");
 
   await evaluate("if(document.activeElement) document.activeElement.blur()");
   const memoryBefore=Number(await evaluate(`document.querySelector('[data-island-id="1"]').click(); document.getElementById('memoryStat').textContent`));
@@ -205,7 +242,7 @@ try{
   assert.equal(exceptions.length,0,"uncaught browser exceptions: "+JSON.stringify(exceptions));
 
   console.log("Signal Garden shared-mirror browser smoke passed.");
-  console.log(JSON.stringify({expectedVersion,expectedSchema,version,title,firstTabClass,controlsLabel,canvasRole,selectedAnnouncement,lifeBefore,lifeAfter,links,routeMemory,glyph,memoryBefore,memoryAfter,specimenLength,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,url:selectedUrl}));
+  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,title,firstTabClass,controlsLabel,canvasRole,selectedAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,url:selectedUrl}));
 }finally{
   if(ws)try{ws.close()}catch{}
   proc.kill("SIGTERM");
