@@ -26,6 +26,7 @@
   <link rel="stylesheet" href="v18.css" />
   <link rel="stylesheet" href="v19.css" />
   <link rel="stylesheet" href="v20.css" />
+  <link rel="stylesheet" href="v21.css" />
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -149,13 +150,15 @@
         <p>v1.9 adds <strong>Branch Compass</strong>: for any fully retained sibling trio, the current Museum is compared field-by-field against parent, child A, and child B, including the possibility that the present now matches none of them.</p>
         <p>v2.0 opens <strong>The Edition Gallery</strong>: a new Archive-side spatial room where retained editions stand on lecterns, aged-off lineage codes remain as fossil plaques, and explicit parent→child relations become visible threads.</p>
         <p>Lineage is not inferred for ordinary prints. Each relation stores only parent code, child code, shared editorial lens, and timestamp—never either edition’s summary.</p>
+              <p>v2.1 adds <strong>Threadwalk</strong>: choose any two visible Edition Gallery nodes and trace the shortest explicit lineage path between them. Only recorded parent→child relations can become highlighted threads; summary similarity and gallery proximity never create a connection.</p>
+        <p>Threadwalk endpoint selection is page-session-only and writes no browser storage.</p>
       </details>
     </aside>
   </main>
 
   <dialog id="introDialog" class="dialog">
     <div class="dialog-mark" aria-hidden="true">✦</div>
-    <p class="eyebrow">ADMISSION NOTICE 2.0</p>
+    <p class="eyebrow">ADMISSION NOTICE 2.1</p>
     <h2>Welcome to a museum of things that almost happened.</h2>
     <p>You can walk. You can touch the exhibits. Most of them have more than one perfectly reasonable idea about what they are.</p>
     <p>Some choices can now alter rooms you are not standing in. If two distant exhibits agree by accident, look for an <strong>uncataloged echo</strong>.</p>
@@ -196,5 +199,6 @@
   <script src="v18.js"></script>
   <script src="v19.js"></script>
   <script src="v20.js"></script>
+  <script src="v21.js"></script>
 </body>
 </html>
