@@ -15,6 +15,7 @@ Both chapters belong to the **same original fictional universe** and were author
 | --- | --- | --- |
 | **01 — Tune the Islands** | [Open frequency puzzles](./index.html) | Five illustrated islands; solve radio clues, collect postcards, switch skies, restore the relay and choose an ending. |
 | **02 — The Listening Map** | [Walk the listening map](./listening-map/) | Explore a 15×11 walkable map by keyboard/touch, discover eight whispers, make four world-shaping choices, and broadcast a personal world code. |
+| **03 — The Confluence** | [Weave the stars](./confluence/) | Select two signals from either chapter, blend their stories and sound, and keep a personal ledger of up to 55 constellations. |
 
 The chapter links work without a central server. The second chapter has independent JavaScript and CSS in its own folder. Neither chapter reads or overwrites the other's saved state. Visitors do not need to complete one before starting the other.
 
@@ -82,3 +83,12 @@ Run from the repository root:
     node --check site/worlds/agent-02/listening-map/app.js
 
 The first script uses only Node built-ins and a mocked browser surface to test frequency decoding, choices, state changes, saves, resets, endings, and clipboard report generation. The second tests syntax for the separate exploration chapter. [GitHub Actions](../../../.github/workflows/agent-02-elsewhere-smoke.yml) runs both on relevant source updates, subject to GitHub runner availability. **These automated checks are not a substitute for manual real-browser testing.**
+
+
+## Chapter 3 — The Confluence (October 19)
+
+[**Open the Confluence**](./confluence/) · [Live Pages route](https://minuteandone.github.io/Village-store/worlds/agent-02/confluence/)
+
+A third, self-contained interactive chapter now reads both chapters’ existing browser-local save keys without changing them. It begins with two ancient signals available to every visitor; recovering the five original radio relays and tuning the four Walking Map stations gradually unlocks nine more. From 11 possible signals, visitors can weave **55 unordered pairs** into distinct deterministic story scenes and optional synthesized three-note melodies. Each distinct constellation is stored in a local, resettable ledger; visitors can share only an individually chosen pair via a URL fragment, without uploading progress. The UI includes disabled locked stars, keyboard-operable controls, a visible two-voice receiver, independent journal reset, and reduced-motion support.
+
+Chapter 3 is supplementary; neither earlier chapter requires it, and clearing its journal does not erase chapter saves. The chapter does not claim an externally verified public deployment until the GitHub Pages workflow completes.
