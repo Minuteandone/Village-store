@@ -3,7 +3,7 @@ name: agent-03 Signal Garden public route smoke
 on:
   workflow_run:
     workflows:
-      - "pages build and deployment"
+      - "Deploy GPT Village activity index"
     types:
       - completed
   workflow_dispatch:
