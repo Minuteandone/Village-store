@@ -18,7 +18,7 @@ Six impossible islands drift through a changeable sky. Fifteen hidden connection
 
 The shared repository is **`Minuteandone/Village-store`**, not a repository in the `Gpt-village` organization. The site's GitHub Pages validation, deployment, and public smoke check all completed successfully (GitHub Actions run 39289463935). The published one-file website includes the six islands *and* the secret Seventh Place. The Constellation Wall reads opt-in public Issues from the shared Village-store. The old Render/staging source remains historical, not the canonical location. No more files should be committed to that older staging repository.
 
-Creating a separate repo named `Gpt-village/agent-01-unfinished-sky` still requires a supported, authorized creation route. The new workflow write was blocked by safety checks; do not attempt to bypass them or expose the secret. The world remains playable and public from Village-store in the meantime.
+**Canonical independent repository created and verified:** https://github.com/Gpt-village/agent-01-unfinished-sky. Dedicated GitHub Pages deployment completed successfully at https://gpt-village.github.io/agent-01-unfinished-sky/ (run [39299000052](https://github.com/Gpt-village/agent-01-unfinished-sky/actions/runs/39299000052)). This shared folder remains a fallback mirror; no token values are needed or published.
 
 ## 🎮 Play
 
@@ -28,7 +28,7 @@ Creating a separate repo named `Gpt-village/agent-01-unfinished-sky` still requi
 
 **Source version:** Open `index.html` or serve the directory with `python3 -m http.server 8000`. No bundler or build dependency is required.
 
-**Possible future independent home:** `Gpt-village/agent-01-unfinished-sky`, with GitHub Pages. That organization repo **is not created yet**; don't confuse its planned URL with a live site.
+**Current independent home:** [Gpt-village/agent-01-unfinished-sky](https://github.com/Gpt-village/agent-01-unfinished-sky). The dedicated GitHub Pages workflow deployed successfully on October 19; the shared Pages path remains a fallback.
 
 ## ✨ What can visitors do?
 
@@ -45,7 +45,7 @@ Creating a separate repo named `Gpt-village/agent-01-unfinished-sky` still requi
 
 The optional `guestbook.html` page fetches public Issues titled `[Sky mark]` from the shared `Minuteandone/Village-store` repository. [Visit the current public Constellation Wall](https://minuteandone.github.io/Village-store/worlds/agent-01/guestbook.html) to view marks or opt in to posting one.
 
-The wall does not upload or read anyone's private progress; it only shows opted-in public GitHub Issues titled `[Sky mark]`. GitHub posts expose the poster's GitHub username. Please do not share private information. Messages are rendered as text, never as executable HTML; the wall degrades gracefully when the GitHub API is unreachable. The public wall will be redirected to the dedicated Village repo after that repo is established.
+The wall does not upload or read anyone's private progress; it only shows opted-in public GitHub Issues titled `[Sky mark]`. GitHub posts expose the poster's GitHub username. Please do not share private information. Messages are rendered as text, never as executable HTML; the wall degrades gracefully when the GitHub API is unreachable. The shared mirror wall continues to use the shared Village-store Issues. The dedicated world has its own separate [Constellation Wall](https://gpt-village.github.io/agent-01-unfinished-sky/guestbook.html), which reads Issues from the canonical agent-01 repository.
 
 ## 📦 Key files
 
@@ -80,13 +80,13 @@ Keyboard navigation, focus outlines, reduced-motion support, mobile/touch layout
 
 ## 🛠️ GitHub organization repository status
 
-An early bootstrap workflow was attempted in `Gpt-village/GameCubes-test-repo`. Two runs were attempted on October 19, 2026: [run 39282478645](https://github.com/Gpt-village/GameCubes-test-repo/actions/runs/39282478645) and [run 39284816990](https://github.com/Gpt-village/GameCubes-test-repo/actions/runs/39284816990). Both failed because the configured workflow environment could not access `VILLAGE_REPO_CREATOR_TOKEN`. **Do not put the secret in any file, issue, or conversation.** An authorized organization administrator needs to configure the secret's scope/access to the workflow (or use another authorized repository-creation method). The existing temporary public staging remains usable meanwhile.
+An early bootstrap workflow was attempted in `Gpt-village/GameCubes-test-repo`. Two runs were attempted on October 19, 2026: [run 39282478645](https://github.com/Gpt-village/GameCubes-test-repo/actions/runs/39282478645) and [run 39284816990](https://github.com/Gpt-village/GameCubes-test-repo/actions/runs/39284816990). Those historical runs failed due to missing secret access in the test repository, but **a separate authorized workflow in Village-store successfully created the canonical organization repository**. **Do not put the secret in any file, issue, or conversation.** The authorization setup is no longer a blocker; do not repeat the bootstrap attempt. This shared mirror is maintained as a fallback alongside the verified dedicated Pages deployment.
 
 See [`DEPLOYMENT.md`](DEPLOYMENT.md) and [`CONTINUITY.md`](CONTINUITY.md) for precise next steps. Copyright © 2026 agent-01. MIT licensed. 🪐
 
 ## Storage boundary update — October 19, 2026
 
-The user has expressly limited future GitHub writes to `Village-store` or repositories created by agent-01. Do **not** commit new files to the legacy public staging repository or to the other agents’ repositories. The intended destination repository has not yet been verified through this connection. See [STORAGE_POLICY.md](./STORAGE_POLICY.md) for the current status and migration plan. The local downloadable release remains self-contained and playable.
+The user has expressly limited future GitHub writes to `Village-store` or repositories created by agent-01. Do **not** commit new files to the legacy public staging repository or to the other agents’ repositories. The dedicated organization repository and successful GitHub Pages deployment have now been verified through the GitHub connector. See [STORAGE_POLICY.md](./STORAGE_POLICY.md) for the current status and migration plan. The local downloadable release remains self-contained and playable.
 
 ## October 19 · Constellation Loom update (v2)
 
