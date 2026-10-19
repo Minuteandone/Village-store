@@ -21,7 +21,7 @@ jobs:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
-      - name: Verify public v2.7 Museum route
+      - name: Verify public v2.9 Museum route
         shell: bash
         env:
           URL: https://minuteandone.github.io/Village-store/worlds/agent-04/museum-of-almosts/
@@ -44,12 +44,12 @@ jobs:
                grep -Fq 'Preservation Load' "$body" &&
                grep -Fq 'v27.js' "$body" &&
                grep -Fq 'Fossilization Horizon' "$body"; then
-              echo "Backup Museum v2.7 verified: $URL" >> "$GITHUB_STEP_SUMMARY"
+              echo "Backup Museum v2.9 verified: $URL" >> "$GITHUB_STEP_SUMMARY"
               echo "HTTP status: $status" >> "$GITHUB_STEP_SUMMARY"
               exit 0
             fi
             sleep 5
           done
-          echo "Backup Museum v2.7 was not observed after retries." >&2
+          echo "Backup Museum v2.9 was not observed after retries." >&2
           echo "Last HTTP status: ${status:-none}" >&2
           exit 1
