@@ -4,30 +4,34 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const chrome = process.argv[2];
-assert.ok(chrome, "Chrome executable path is required");
+const chrome=process.argv[2];
+const baseUrl=process.argv[3]||"https://minuteandone.github.io/Village-store/signal-garden/";
+assert.ok(chrome,"Chrome executable path is required");
 
-const port = 9222;
-const profile = fs.mkdtempSync(path.join(os.tmpdir(), "signal-garden-chrome-"));
-const proc = spawn(chrome, [
-  "--headless=new",
-  "--no-sandbox",
-  "--disable-dev-shm-usage",
-  "--disable-gpu",
-  "--hide-scrollbars",
-  "--remote-debugging-address=127.0.0.1",
-  "--remote-debugging-port="+port,
-  "--user-data-dir="+profile,
-  "--window-size=390,844",
-  "about:blank"
-], { stdio: ["ignore","pipe","pipe"] });
+const local=fs.readFileSync("site/signal-garden/index.html","utf8");
+const versionMatch=local.match(/APP_VERSION="([^"]+)"/);
+const schemaMatch=local.match(/SAVE_SCHEMA=(\d+)/);
+assert.ok(versionMatch&&schemaMatch,"local index should expose APP_VERSION and SAVE_SCHEMA");
+const expectedVersion=versionMatch[1],expectedSchema=schemaMatch[1];
+
+const url=new URL(baseUrl);
+url.searchParams.set("seed","browser-smoke-ci");
+
+const port=9222;
+const profile=fs.mkdtempSync(path.join(os.tmpdir(),"signal-garden-chrome-"));
+const proc=spawn(chrome,[
+  "--headless=new","--no-sandbox","--disable-dev-shm-usage","--disable-gpu",
+  "--hide-scrollbars","--remote-debugging-address=127.0.0.1",
+  "--remote-debugging-port="+port,"--user-data-dir="+profile,
+  "--window-size=390,844","about:blank"
+],{stdio:["ignore","pipe","pipe"]});
 
 let chromeErr="";
-proc.stderr.on("data",d=>{chromeErr+=String(d).slice(-4000)});
+proc.stderr.on("data",d=>{chromeErr=(chromeErr+String(d)).slice(-8000)});
 
 async function sleep(ms){return new Promise(r=>setTimeout(r,ms))}
 async function getTarget(){
-  for(let i=0;i<80;i++){
+  for(let i=0;i<100;i++){
     try{
       const r=await fetch("http://127.0.0.1:"+port+"/json/list");
       if(r.ok){
@@ -45,8 +49,7 @@ let ws,seq=0;
 const pending=new Map(),exceptions=[];
 function send(method,params={}){
   return new Promise((resolve,reject)=>{
-    const id=++seq;
-    pending.set(id,{resolve,reject});
+    const id=++seq;pending.set(id,{resolve,reject});
     ws.send(JSON.stringify({id,method,params}));
   });
 }
@@ -55,7 +58,7 @@ async function evaluate(expression){
   if(r.exceptionDetails)throw new Error("Browser evaluation failed: "+JSON.stringify(r.exceptionDetails));
   return r.result?.value;
 }
-async function waitFor(expr,label,attempts=80){
+async function waitFor(expr,label,attempts=120){
   for(let i=0;i<attempts;i++){
     try{if(await evaluate(expr))return}catch{}
     await sleep(125);
@@ -64,7 +67,7 @@ async function waitFor(expr,label,attempts=80){
 }
 async function key(key,code,vk,text=""){
   await send("Input.dispatchKeyEvent",{type:"keyDown",key,code,windowsVirtualKeyCode:vk,nativeVirtualKeyCode:vk,text});
-  await send("Input.dispatchKeyEvent",{type:"keyUp",key,code,windowsVirtualKeyCode:vk,nativeVirtualKeyCode:vk});
+  await send("Input.dispatchKeyEvent",{type:"keyUp",key,code,windowsVirtualKeyCode:vk});
 }
 
 try{
@@ -88,13 +91,13 @@ try{
   await send("Log.enable");
   await send("Emulation.setDeviceMetricsOverride",{width:390,height:844,deviceScaleFactor:1,mobile:true,screenWidth:390,screenHeight:844});
 
-  const url="https://minuteandone.github.io/Village-store/signal-garden/?seed=browser-smoke-ci";
-  const nav=await send("Page.navigate",{url});
+  const nav=await send("Page.navigate",{url:url.href});
   assert.ok(!nav.errorText,"navigation error: "+(nav.errorText||""));
-  await waitFor("document.readyState==='complete' && !!document.getElementById('versionChip')","Signal Garden load");
+  await waitFor("document.readyState==='complete' && !!document.getElementById('versionChip') && !!document.querySelector('[data-island-id="0"]')","Signal Garden load");
 
   const version=await evaluate("document.getElementById('versionChip').textContent");
-  assert.match(version,/v0\.14\s*·\s*save 2/);
+  assert.ok(version.includes("v"+expectedVersion),"deployed app version should match checked-out index");
+  assert.ok(version.includes("save "+expectedSchema),"deployed save schema should match checked-out index");
 
   const title=await evaluate("document.title");
   assert.match(title,/The Signal Garden/);
@@ -139,20 +142,19 @@ try{
 
   const persistedLife=Number(await evaluate(`document.querySelector('[data-island-id="0"]').click(); document.getElementById('lifeStat').textContent`));
   await send("Page.reload",{ignoreCache:true});
-  await waitFor("document.readyState==='complete' && !!document.getElementById('versionChip')","Signal Garden reload");
+  await waitFor("document.readyState==='complete' && !!document.getElementById('versionChip') && !!document.querySelector('[data-island-id="0"]')","Signal Garden reload");
   await evaluate(`document.querySelector('[data-island-id="0"]').click()`);
   const reloadedLife=Number(await evaluate("document.getElementById('lifeStat').textContent"));
   assert.equal(reloadedLife,persistedLife,"local garden state should survive reload for the same seed");
 
   const selectedUrl=await evaluate("location.href");
   assert.match(selectedUrl,/seed=browser-smoke-ci/);
-
   await sleep(150);
   assert.equal(exceptions.length,0,"uncaught browser exceptions: "+JSON.stringify(exceptions));
 
-  console.log("Signal Garden public browser smoke passed.");
-  console.log(JSON.stringify({version,title,lifeBefore,lifeAfter,links,routeMemory,glyph,memoryBefore,memoryAfter,reloadedLife,url:selectedUrl}));
-} finally {
+  console.log("Signal Garden shared-mirror browser smoke passed.");
+  console.log(JSON.stringify({expectedVersion,expectedSchema,version,title,lifeBefore,lifeAfter,links,routeMemory,glyph,memoryBefore,memoryAfter,reloadedLife,url:selectedUrl}));
+}finally{
   if(ws)try{ws.close()}catch{}
   proc.kill("SIGTERM");
   await sleep(100);
