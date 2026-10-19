@@ -39,6 +39,8 @@ source = source.replace(
     edgeSignalCounts:edgeSignalCounts,
     bondForEdgeKey:bondForEdgeKey,
     routeBonds:routeBonds,
+    junctionEcologies:junctionEcologies,
+    applyJunctionEcologies:applyJunctionEcologies,
     getState:function(){return state},
     setState:function(next){state=next;motes=[]}
   };`
@@ -75,10 +77,10 @@ const canvas = element({
 const ids = new Map();
 ids.set("garden", canvas);
 [
-  "seasonChip","focusChip","resChip","transitChip","historyChip","bondChip","researchChip","climateChip","germinateBtn",
+  "seasonChip","focusChip","resChip","transitChip","historyChip","bondChip","junctionChip","researchChip","climateChip","germinateBtn",
   "islandNav","applySelectedBtn","selectedName","selectedLore","lifeStat",
   "memoryStat","strangeStat","linksStat","arrivalsStat","trafficStat","glyphStat","lineageStat","successionStat","lifeMeter",
-  "research","bonds","species","discoveries","chronicle","log","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
+  "research","bonds","junctions","species","discoveries","chronicle","log","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
 ].forEach(id => ids.set(id, element()));
 
 const actionButtons = ["nurture","observe","connect","distort"].map(action =>
@@ -208,6 +210,52 @@ assert.equal(api.bondForEdgeKey("0-1"),null,"tied two-signal route history shoul
 
 setGraph([island(0,[1]),island(1,[0]),island(2),island(3)],{"0-1":20});
 assert.equal(api.bondForEdgeKey("0-1"),null,"legacy scalar route memory must not fabricate typed bond history");
+
+setGraph(
+  [island(0,[1,2]),island(1,[0]),island(2,[0]),island(3)],
+  {"0-1":6,"0-2":6},
+  {"0-1":{life:4,memory:1,strange:1},"0-2":{life:1,memory:4,strange:1}}
+);
+assert.equal(api.junctionEcologies()[0].kind,"scribe-orchard","Rootway + Echo Span should form Scribe Orchard");
+
+setGraph(
+  [island(0,[1,2]),island(1,[0]),island(2,[0]),island(3)],
+  {"0-1":6,"0-2":6},
+  {"0-1":{life:4,memory:1,strange:1},"0-2":{life:1,memory:1,strange:4}}
+);
+assert.equal(api.junctionEcologies()[0].kind,"prism-nursery","Rootway + Fold Thread should form Prism Nursery");
+
+setGraph(
+  [island(0,[1,2]),island(1,[0]),island(2,[0]),island(3)],
+  {"0-1":6,"0-2":6},
+  {"0-1":{life:1,memory:4,strange:1},"0-2":{life:1,memory:1,strange:4}}
+);
+assert.equal(api.junctionEcologies()[0].kind,"dream-estuary","Echo Span + Fold Thread should form Dream Estuary");
+
+setGraph(
+  [island(0,[1,2]),island(1,[0]),island(2,[0]),island(3)],
+  {"0-1":9,"0-2":6},
+  {"0-1":{life:3,memory:3,strange:3},"0-2":{life:4,memory:1,strange:1}}
+);
+assert.equal(api.junctionEcologies()[0].kind,"confluence-knot","Braided Bond plus another mature route should form Confluence Knot");
+
+setGraph(
+  [island(0,[1,2,3],50,50,50),island(1,[0]),island(2,[0]),island(3,[0])],
+  {"0-1":6,"0-2":6,"0-3":6},
+  {
+    "0-1":{life:4,memory:1,strange:1},
+    "0-2":{life:1,memory:4,strange:1},
+    "0-3":{life:1,memory:1,strange:4}
+  }
+);
+const triune=api.junctionEcologies()[0];
+assert.equal(triune.kind,"triune-loom","all three specialized bond families should form Triune Loom");
+assert.equal(api.researchPrompts().find(x=>x.id==="junction").done,true,"Triune Loom should complete its Field Question");
+const triuneBefore={life:api.getState().islands[0].life,memory:api.getState().islands[0].memory,strange:api.getState().islands[0].strange};
+api.applyJunctionEcologies();
+assert.equal(api.getState().islands[0].life,triuneBefore.life+1);
+assert.equal(api.getState().islands[0].memory,triuneBefore.memory+1);
+assert.equal(api.getState().islands[0].strange,triuneBefore.strange+1);
 
 setGraph([
   island(0, [], 80, 20, 10),
@@ -422,7 +470,21 @@ const cycleReport=api.getLastCycleReport();
 assert.ok(cycleReport,"advancing a cycle should produce a Last Cycle Report");
 assert.equal(cycleReport.cycle,3);
 assert.ok(Array.isArray(cycleReport.transfers)&&cycleReport.transfers.length===2,"report should include exact migration transfers");
+assert.ok(Array.isArray(cycleReport.junctions),"report should include a junction-ecology list");
 assert.ok(Array.isArray(cycleReport.roleChanges),"report should include a role-change list");
+
+setGraph(
+  [island(0,[1,2,3],50,50,50),island(1,[0]),island(2,[0]),island(3,[0])],
+  {"0-1":10,"0-2":10,"0-3":10},
+  {
+    "0-1":{life:8,memory:1,strange:1},
+    "0-2":{life:1,memory:8,strange:1},
+    "0-3":{life:1,memory:1,strange:8}
+  }
+);
+api.nextCycle();
+const junctionReport=api.getLastCycleReport();
+assert.ok(junctionReport.junctions.some(x=>x.kind==="triune-loom"),"Last Cycle Report should name a pulsing Triune Loom");
 
 setGraph([
   island(0, [1], 85, 10, 5),
