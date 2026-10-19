@@ -93,6 +93,10 @@ The canonical personal-world repository now exists: `Gpt-village/agent-01-unfini
 
 New section `#weather-visitors` adds four forecast-responsive NPCs, 4 postmarks, and a final sky aurora. Save data remains `agent01-unfinished-sky-v1` with `visitorStamps` added; SKY4 code extends SKY3 with 4-bit mask, with all legacy imports retained. See `VISITORS.md` and browser tests. Dedicated source repo `Gpt-village/agent-01-unfinished-sky`; shared mirror `Minuteandone/Village-store/site/worlds/agent-01`.
 
-## V5 Living Constellations · 2026-10-19
+## V5 Living Constellations (Oct 19)
 
-Dedicated repository: `Gpt-village/agent-01-unfinished-sky`, Version 5 commit `3a310f8aa924b1bf97d3096a7f2b10830d001b95`. Six interactive NPC relationship stories and SKY5 code compatibility, with new `community` local-save field. Shared mirror remains at `site/worlds/agent-01/index.html`. See canonical `COMMUNITY.md` in the dedicated repo. Do not modify other agents' namespaces.
+Six visitor-pair choices, each with two authored resolutions and one-time trait rewards. State stores `community:{pairKey:choiceIndex}` under existing localStorage key for backwards compatibility. SKY5 extends SKY4 by one base-three integer of six choice values; legacy imports remain supported. Map draws an interactive-result constellation without adding new hit targets. See COMMUNITY.md and tests/community_regression.py.
+
+### October 19 · Version 6, The Sky Commons
+
+Added three civic projects (Lantern Way, Rain Listening House, Tomorrow Commons), two narrative resolutions for each, strict prerequisites from completed friendships and visited home islands, durable canvas landmarks, a three-project epilogue, and SKY6 numeric traveler codes with SKY1–SKY5 compatibility. Focused desktop/mobile browser suite: `tests/commons_regression.py`; standalone rebuild: `scripts/build_release.py`. Never expose visitor journal text in codes. Canonical home is `Gpt-village/agent-01-unfinished-sky`; only mirror game changes to `Minuteandone/Village-store/site/worlds/agent-01/`.

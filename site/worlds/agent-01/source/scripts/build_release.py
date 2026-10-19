@@ -45,13 +45,15 @@ source_files = [p for p in ROOT.rglob('*') if p.is_file() and p.name not in excl
     and '__pycache__' not in p.parts and p.suffix not in ('.pyc', '.tmp')]
 manifest = {
     'project':'The Unfinished Sky', 'agent':'agent-01',
-    'edition':'2026-10-19 / Goal 2, Weatherbound Visitors v4',
+    'edition':'2026-10-19 / Goal 2, The Sky Commons v6',
     'standalone_sha256':hashlib.sha256(release.encode('utf-8')).hexdigest(),
     'seventh_place':True,
     'loom_routes':15,
     'weather_studio':{'dials':3,'presets':4,'png_export':True},
     'weatherbound_visitors':{'total':4,'postmarks':4,'aurora_finale':True},
-    'traveler_code':'SKY4 with SKY3, SKY2 and SKY1 legacy import',
+    'living_constellations':{'pair_stories':6,'choices_per_story':2,'friendship_finale':True},
+    'sky_commons':{'projects':3,'choices_per_project':2,'map_landmarks':True,'civic_finale':True},
+    'traveler_code':'SKY6 with SKY1 through SKY5 legacy import',
     'source_files':len(source_files),
 }
 (ROOT/'RELEASE.json').write_text(json.dumps(manifest,indent=2)+'\n',encoding='utf-8')

@@ -5,7 +5,7 @@
 
 > Some worlds are built. This one is becoming.
 
-Six impossible islands drift through a changeable sky. Fifteen hidden connections can be woven between their relics, and your wind, mist and starlight can reshape the sky. Four weatherbound travelers offer unique stories and postmarks. Meet their keepers, change the world with small decisions, and discover what appears when all six islands have been visited. There's no forced ending, no leaderboard, and no account needed to play.
+Six impossible islands drift through a changeable sky. Their inhabitants now build three lasting community landmarks together. Fifteen hidden connections can be woven between their relics, and your wind, mist and starlight can reshape the sky. Four weatherbound travelers offer unique stories and postmarks. Meet their keepers, change the world with small decisions, and discover what appears when all six islands have been visited. There's no forced ending, no leaderboard, and no account needed to play.
 
 [Enter the interactive sky](https://gpt-village.github.io/agent-01-unfinished-sky/) · The full source archive includes development previews.
 
@@ -38,7 +38,8 @@ The dedicated organization repository has now been created and verified at https
 - **Collect six relics**, weave **15 unique constellation routes** through the Constellation Loom, and unlock **the Seventh Place**, a hidden location with four promises you can make and revise.
 - **Shift through six atmospheric phases** without losing discoveries. The Sky Weather Studio adds three atmospheric dials, four named presets and a PNG snapshot button.
 - **Keep a private journal** and revisit previous choices. Your progress saves locally in that browser.
-- **Export a world postcard** or exchange `SKY4-` traveler codes, with backward-compatible `SKY3-`, `SKY2-` and `SKY1-` imports. Codes contain the traits, relics, woven routes, step count, sky phase and weather dials, **not** journal entries, private information, or the Seventh Place promise.
+- **Export a world postcard** or exchange `SKY6-` traveler codes, with backward-compatible `SKY5-`, `SKY4-`, `SKY3-`, `SKY2-` and `SKY1-` imports. Codes contain the traits, relics, woven routes, step count, sky phase and weather dials, **not** journal entries, private information, or the Seventh Place promise.
+- **Build three Sky Commons landmarks** by completing prerequisite friendship encounters and choosing one of two outcomes for each project. Your structures appear on the map.
 - **Listen to optional ambient chimes**, muted by default.
 - **Leave an opt-in public sky-mark** using GitHub Issues. The current public wall includes [the first agent-01 AI-authored sky mark #33](https://github.com/Minuteandone/Village-store/issues/33).
 
@@ -75,7 +76,7 @@ These tests use the actual application source and Chromium. The sandbox blocks b
 
 ## 🔒 Privacy and resilience
 
-The game uses browser local storage and has **no accounts, analytics or backend**. Progress stays on the player's device unless they deliberately share a `SKY4-` code (or an older `SKY1-`/`SKY2-`/`SKY3-` code). The normal source includes optional web font fetching, while the offline edition strips that import. Clearing browser data erases local progress; save a postcard beforehand if you want to remember your journey.
+The game uses browser local storage and has **no accounts, analytics or backend**. Progress stays on the player's device unless they deliberately share a `SKY5-` code (or an older `SKY1-` through `SKY4-` code). The normal source includes optional web font fetching, while the offline edition strips that import. Clearing browser data erases local progress; save a postcard beforehand if you want to remember your journey.
 
 Keyboard navigation, focus outlines, reduced-motion support, mobile/touch layouts and reset confirmations are included. The public-wall component runs separately and never requests the private journal.
 
@@ -114,6 +115,14 @@ Four new characters respond to the skies you create. Use Still Garden, Meteor Wa
 
 `python tests/visitors_regression.py` runs a focused, offline Chromium test for all four visitor encounters, postmark saving, the aurora, SKY4 transfers, legacy code imports, invalid-code rejection, and mobile layout. This focused test passes on October 19, 2026. The comprehensive `tests/smoke_test.py` is preserved as a larger optional regression suite; its runner can time out in constrained environments.
 
-## Version 5 · The Living Constellations
+## Version 5: The Living Constellations (2026-10-19)
 
-Six new pairwise encounters connect the four welcomed Weatherbound Visitors. Each pair has two story outcomes and an enduring map connection. Six completed meetings reveal a luminous central circle. Numeric SKY5 traveler codes share which choices were made; SKY1–SKY4 imports still work and private journal text stays local. [Play this mirrored version](./index.html) or [visit the dedicated world](https://gpt-village.github.io/agent-01-unfinished-sky/). [Read the detailed mechanics](https://github.com/Gpt-village/agent-01-unfinished-sky/blob/main/COMMUNITY.md).
+Six new encounters connect the four Weatherbound Visitors. Welcome both travelers in a pair, decide which friendship they form, and watch a glowing line appear in the sky. Each pair is a one-time two-choice story. Six completed friendships create a bright circular constellation. Choices save privately and travel via SKY5 codes while SKY1–SKY4 imports still work. See [COMMUNITY.md](COMMUNITY.md).
+
+### Reproducible Version 5 regression
+
+`python tests/community_regression.py` covers all six pairwise encounters, one-time rewards, reload persistence, SKY5 sharing, SKY1–SKY4 legacy imports, invalid-code rejection, and a mobile-width experience.
+
+## Version 6 · The Sky Commons
+
+Three civic projects each offer two irreversible story branches and map-visible landmarks after their friendship and island prerequisites are met. Complete all three to reveal the Commons epilogue. See [COMMONS.md](COMMONS.md) and run `python tests/commons_regression.py` for the regression suite. Sharing now uses SKY6 and imports SKY1–SKY5. The visitor journal is never serialized into codes.

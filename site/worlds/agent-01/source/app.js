@@ -25,6 +25,54 @@
       quote:'“An orchestra is not many voices being the same. It is many voices making room.”',
       choices:[{name:'Give the quietest instrument its moment',trait:'care',result:'A soft note rises past every island. Nobody applauds—they are too busy listening.'},{name:'Compose a tune for a star with no constellation',trait:'wonder',result:'Ysra gestures toward the empty sky. For one lovely measure, an unnamed star has a song of its own.'}]}
   ];
+  // One choice per pair of welcomed travelers. Stable order is part of SKY5.
+  const COMMUNITY_SCENES = [
+    {a:'moth',b:'meteor',name:'An Invitation with No Destination',symbol:'✉',summary:'Nox has a letter addressed to a place Mirra has mapped only for one heartbeat.',
+      choices:[{label:'Sketch a temporary mailbox along the comet trail',trait:'curiosity',result:'Mirra charts a fleeting road. Nox delivers the letter exactly as the road disappears; the invitation arrives without a permanent address.'},
+        {label:'Ask Nox to keep the invitation until it finds a home',trait:'care',result:'Nox learns that a late delivery can still be the right one. Mirra draws a tiny pocket on her map marked “not yet.”'}]},
+    {a:'moth',b:'whale',name:'The Weight of a Whisper',symbol:'☁',summary:'Pebble carries a lullaby too gentle to cross the wind. Nox offers to fold it into a letter.',
+      choices:[{label:'Carry the song in a letter that anyone may open',trait:'care',result:'The note reaches the Orchard, where every tree hums it back. Pebble hears a whole island answer.'},
+        {label:'Ask Pebble to sing it directly to the stars',trait:'wonder',result:'The stars flash in an unhurried rhythm. Nox promises to deliver the reply whenever it finishes arriving.'}]},
+    {a:'moth',b:'conductor',name:'The Silent Correspondent',symbol:'♫',summary:'Ysra has written a score for an instrument that cannot make a sound; Nox wants to deliver it.',
+      choices:[{label:'Give the silent instrument the first solo',trait:'wonder',result:'The orchestra waits. In the pause, they hear four islands gently breathing together.'},
+        {label:'Invite the absent musician to choose the ending',trait:'care',result:'Nox carries the empty final page away. Ysra discovers a song can include people who have not arrived.'}]},
+    {a:'meteor',b:'whale',name:'A Map for a Cloud Whale',symbol:'✧',summary:'Mirra wants a chart of Pebble’s route, but every cloud moves before the ink can dry.',
+      choices:[{label:'Map the places Pebble has already made peaceful',trait:'curiosity',result:'The new map shows not where the whale goes, but where other travelers have found a place to breathe.'},
+        {label:'Name a constellation after Pebble’s favorite lullaby',trait:'mischief',result:'Mirra calls it The Extremely Sleepy Teapot. Pebble laughs so warmly that the entire harbor glows.'}]},
+    {a:'meteor',b:'conductor',name:'The Comet in Four-Four Time',symbol:'♬',summary:'Ysra hears a rhythm inside Mirra’s falling-star routes. Mirra insists the stars never follow a beat.',
+      choices:[{label:'Turn the comet paths into a new composition',trait:'wonder',result:'Every falling star contributes a note. For a few moments, the sky performs a song too large for any stage.'},
+        {label:'Let the rhythms disagree on purpose',trait:'mischief',result:'The stars improvise the most gloriously untidy percussion solo. Ysra applauds the happy accident.'}]},
+    {a:'whale',b:'conductor',name:'A Chorus for the Lost Songs',symbol:'❋',summary:'Pebble has collected forgotten lullabies. Ysra wants to give them voices without claiming them.',
+      choices:[{label:'Make a chorus where everyone can join quietly',trait:'care',result:'The Night Orchestra leaves room for a whisper. Even the youngest lantern joins at its own volume.'},
+        {label:'Let every lullaby choose a different ending',trait:'curiosity',result:'Nobody sings the same ending twice. Ysra records the spaces between notes and calls them a new form of friendship.'}]}
+  ];
+  const communityKey = scene => scene.a+'|'+scene.b;
+  // Three resident-built landmarks. A choice is durable, and prerequisite stories
+  // must be woven before a project can be founded. Stable order is part of SKY6.
+  const COMMONS_PROJECTS = [
+    {id:'lantern-way',island:'market',symbol:'✧',name:'The Free Lantern Way',
+      summary:'Nox and Mirra propose a lantern road between places with no permanent addresses.',
+      requires:['moth|meteor','moth|whale'],
+      choices:[
+        {label:'Make every lantern freely borrowable',trait:'care',result:'Pip hangs lamps without price tags. Each traveler may borrow a light and return it whenever the journey ends.'},
+        {label:'Put impossible destinations on the signposts',trait:'curiosity',result:'Mirra paints directions for roads that have not been discovered. Nox delivers the first invitations along them.'}
+      ]},
+    {id:'listening-house',island:'library',symbol:'♫',name:'The Rain Listening House',
+      summary:'Ysra and Pebble want a listening room where quiet stories are never drowned out.',
+      requires:['moth|conductor','whale|conductor'],
+      choices:[
+        {label:'Build a room with a seat for every voice',trait:'care',result:'The library adds benches that grow when more visitors arrive. No one has to shout to be heard.'},
+        {label:'Let the rain compose each new roof',trait:'wonder',result:'Every storm taps a new lullaby against the roof. Index files the songs under “Unfinished, and welcome.”'}
+      ]},
+    {id:'tomorrow-garden',island:'garden',symbol:'❋',name:'The Tomorrow Commons',
+      summary:'Mirra and Pebble have a plan for a place where everyone can grow an unfinished idea.',
+      requires:['meteor|whale','meteor|conductor'],
+      choices:[
+        {label:'Plant seeds that belong to nobody',trait:'care',result:'Sol builds garden paths without gates. Each seed grows toward whoever needs shelter.'},
+        {label:'Let the constellations vote on the planting season',trait:'mischief',result:'The stars disagree spectacularly, then invent a seventh season just for questions.'}
+      ]}
+  ];
+  const projectReady = project => state.visited.includes(project.island) && project.requires.every(key=>Object.hasOwn(state.community,key));
   const WORLD_VERSION = 1;
   const TAU = Math.PI * 2;
   const TRAITS = {
@@ -127,8 +175,8 @@
   const container = $('#canvas-container');
   let deviceScale=1, cw=1100, ch=680, zoom=1, panX=0, panY=0;
   let down=null, dragDistance=0, hoverId=null, activeId=null, frame=0, raf=0, soundOn=false, audioContext=null, toastTimer=null;
-  function freshState(){return {version:WORLD_VERSION,phase:0,traits:{wonder:10,care:10,curiosity:10,mischief:10},visited:[],journal:[{place:'Arrival',text:'A new sky appeared. Somewhere in it, six islands were waiting.'}],steps:0,horizon:null,weaves:[],activeWeave:null,weather:{...WEATHER_DEFAULT},visitorStamps:[]};}
-  function loadState(){try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY));if(s?.version!==WORLD_VERSION || !Array.isArray(s.visited) || !Array.isArray(s.journal) || !s.traits)return freshState();const clean=freshState();clean.phase=Number.isInteger(s.phase)?Math.max(0,Math.min(PHASES.length-1,s.phase)):0;clean.steps=Number.isInteger(s.steps)?Math.max(0,s.steps):0;clean.horizon=SEVENTH_CHOICES.some(choice=>choice.key===s.horizon)?s.horizon:null;for(const key of Object.keys(TRAITS))clean.traits[key]=Number.isFinite(s.traits[key])?Math.max(0,Math.min(100,s.traits[key])):10;clean.visited=s.visited.filter(id=>ISLANDS.some(i=>i.id===id));clean.weaves=Array.isArray(s.weaves)?[...new Set(s.weaves)].filter(key=>PAIRS.some(p=>pairKey(p)===key && clean.visited.includes(p.a) && clean.visited.includes(p.b))):[];clean.activeWeave=clean.weaves.includes(s.activeWeave)?s.activeWeave:null;clean.visitorStamps=Array.isArray(s.visitorStamps)?[...new Set(s.visitorStamps)].filter(id=>SKY_VISITORS.some(v=>v.id===id)):[];for(const key of Object.keys(WEATHER_DEFAULT))clean.weather[key]=Number.isInteger(s.weather?.[key])?Math.max(0,Math.min(100,s.weather[key])):WEATHER_DEFAULT[key];clean.journal=s.journal.filter(e=>typeof e.text==='string'&&typeof e.place==='string').slice(-32).map(e=>({text:e.text.slice(0,220),place:e.place.slice(0,80)}));return clean;}catch{return freshState();}}
+  function freshState(){return {version:WORLD_VERSION,phase:0,traits:{wonder:10,care:10,curiosity:10,mischief:10},visited:[],journal:[{place:'Arrival',text:'A new sky appeared. Somewhere in it, six islands were waiting.'}],steps:0,horizon:null,weaves:[],activeWeave:null,weather:{...WEATHER_DEFAULT},visitorStamps:[],community:{},commons:{}};}
+  function loadState(){try{const s=JSON.parse(localStorage.getItem(STORAGE_KEY));if(s?.version!==WORLD_VERSION || !Array.isArray(s.visited) || !Array.isArray(s.journal) || !s.traits)return freshState();const clean=freshState();clean.phase=Number.isInteger(s.phase)?Math.max(0,Math.min(PHASES.length-1,s.phase)):0;clean.steps=Number.isInteger(s.steps)?Math.max(0,s.steps):0;clean.horizon=SEVENTH_CHOICES.some(choice=>choice.key===s.horizon)?s.horizon:null;for(const key of Object.keys(TRAITS))clean.traits[key]=Number.isFinite(s.traits[key])?Math.max(0,Math.min(100,s.traits[key])):10;clean.visited=s.visited.filter(id=>ISLANDS.some(i=>i.id===id));clean.weaves=Array.isArray(s.weaves)?[...new Set(s.weaves)].filter(key=>PAIRS.some(p=>pairKey(p)===key && clean.visited.includes(p.a) && clean.visited.includes(p.b))):[];clean.activeWeave=clean.weaves.includes(s.activeWeave)?s.activeWeave:null;clean.visitorStamps=Array.isArray(s.visitorStamps)?[...new Set(s.visitorStamps)].filter(id=>SKY_VISITORS.some(v=>v.id===id)):[];clean.community={};for(const scene of COMMUNITY_SCENES){const choice=s.community?.[communityKey(scene)];if(Number.isInteger(choice)&&[0,1].includes(choice)&&clean.visitorStamps.includes(scene.a)&&clean.visitorStamps.includes(scene.b))clean.community[communityKey(scene)]=choice;}clean.commons={};for(const project of COMMONS_PROJECTS){const choice=s.commons?.[project.id];if((choice===0||choice===1)&&clean.visited.includes(project.island)&&project.requires.every(key=>Object.hasOwn(clean.community,key)))clean.commons[project.id]=choice;}for(const key of Object.keys(WEATHER_DEFAULT))clean.weather[key]=Number.isInteger(s.weather?.[key])?Math.max(0,Math.min(100,s.weather[key])):WEATHER_DEFAULT[key];clean.journal=s.journal.filter(e=>typeof e.text==='string'&&typeof e.place==='string').slice(-32).map(e=>({text:e.text.slice(0,220),place:e.place.slice(0,80)}));return clean;}catch{return freshState();}}
   let state=loadState();
   function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{toast('This browser cannot save progress, but you can still explore.');}}
   const clamp=(v,a,b)=>Math.min(b,Math.max(a,v));
@@ -190,10 +238,40 @@
     ctx.fillStyle='#fff5d8';ctx.font=`${Math.max(22,32*zoom)}px Georgia,serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(theme?theme.symbol:'✺',p.x,p.y);
     ctx.shadowBlur=0;ctx.font=`600 ${Math.max(10,11*zoom)}px DM Sans,system-ui,sans-serif`;ctx.fillText('SEVENTH PLACE',p.x,p.y+glow+30*zoom);ctx.restore();
   }
+  function drawCommunityConstellation(t){
+    const completed=Object.keys(state.community).length;
+    if(!completed)return;
+    // A small, non-interactive friendship constellation above the islands.
+    const anchors=[{x:-210,y:-348},{x:185,y:-338},{x:-153,y:282},{x:215,y:275}];
+    const positions=Object.fromEntries(SKY_VISITORS.map((v,i)=>[v.id,worldToScreen(anchors[i].x,anchors[i].y)]));
+    ctx.save();ctx.globalCompositeOperation='screen';
+    for(const scene of COMMUNITY_SCENES){if(!Object.hasOwn(state.community,communityKey(scene)))continue;
+      const a=positions[scene.a],b=positions[scene.b];ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.quadraticCurveTo((a.x+b.x)/2,(a.y+b.y)/2-16*zoom,b.x,b.y);
+      ctx.strokeStyle='#b6eed2bd';ctx.lineWidth=1.4*zoom;ctx.shadowColor='#abf6d9';ctx.shadowBlur=9;ctx.stroke();}
+    for(const visitor of SKY_VISITORS){if(!state.visitorStamps.includes(visitor.id))continue;const p=positions[visitor.id];
+      ctx.fillStyle='#dcffe3';ctx.beginPath();ctx.arc(p.x,p.y,Math.max(2,4*zoom)+Math.sin(t*.002)*.5,0,TAU);ctx.fill();}
+    if(completed===COMMUNITY_SCENES.length){const p=worldToScreen(0,0);ctx.strokeStyle='#d2ffdd8a';ctx.lineWidth=1.3;ctx.beginPath();ctx.arc(p.x,p.y,66*zoom+Math.sin(t*.001)*5,0,TAU);ctx.stroke();}
+    ctx.restore();
+  }
   function drawWelcomeAurora(t){if(state.visitorStamps.length!==SKY_VISITORS.length)return;ctx.save();
     const drift=Math.sin(t*.00028)*19;const light=ctx.createLinearGradient(0,0,cw,120);light.addColorStop(0,'#8ef3d600');light.addColorStop(.35,'#8ef3d638');light.addColorStop(.7,'#f4cda02b');light.addColorStop(1,'#bba2ef00');
     ctx.globalCompositeOperation='screen';ctx.fillStyle=light;ctx.beginPath();ctx.moveTo(-40,95+drift);ctx.bezierCurveTo(cw*.25,4,cw*.58,165,cw+40,55-drift);ctx.lineTo(cw+40,105-drift);ctx.bezierCurveTo(cw*.58,211,cw*.25,56,-40,148+drift);ctx.closePath();ctx.fill();ctx.restore();}
-  function render(t=0){if(!ctx)return;ctx.setTransform(deviceScale,0,0,deviceScale,0,0);drawBackdrop(t);drawWelcomeAurora(t);drawWovenRoute(t);ISLANDS.forEach((i,index)=>drawIsland(i,index,t));drawSeventh(t);}
+  function drawCommonsBuildings(t){
+    for(const [index,project] of COMMONS_PROJECTS.entries()){
+      if(!Object.hasOwn(state.commons,project.id))continue;
+      const island=ISLANDS.find(i=>i.id===project.island),p=worldToScreen(island.x,island.y);
+      const y=p.y-island.h*zoom-(18+Math.sin(t*.0014+index)*3)*zoom;
+      ctx.save();ctx.textAlign='center';ctx.textBaseline='middle';ctx.shadowColor='#c8ffe6';ctx.shadowBlur=17;
+      ctx.fillStyle='#f7e7bd';ctx.font=`${Math.max(17,29*zoom)}px Georgia,serif`;
+      ctx.fillText(project.symbol,p.x,y);
+      ctx.shadowBlur=0;ctx.strokeStyle='#b9f4dd';ctx.lineWidth=2.2*zoom;
+      ctx.beginPath();ctx.moveTo(p.x,y+12*zoom);ctx.lineTo(p.x,p.y-island.h*.45*zoom);ctx.stroke();
+      ctx.font=`600 ${Math.max(9,10*zoom)}px DM Sans,system-ui,sans-serif`;
+      ctx.fillStyle='#dcf7df';ctx.fillText('COMMONS',p.x,y-23*zoom);
+      ctx.restore();
+    }
+  }
+  function render(t=0){if(!ctx)return;ctx.setTransform(deviceScale,0,0,deviceScale,0,0);drawBackdrop(t);drawWelcomeAurora(t);drawCommunityConstellation(t);drawWovenRoute(t);ISLANDS.forEach((i,index)=>drawIsland(i,index,t));drawCommonsBuildings(t);drawSeventh(t);}
   function animate(t){frame=t;render(t);raf=requestAnimationFrame(animate);}
   function hitTest(sx,sy){if(state.visited.length===6){const p=worldToScreen(0,-53);if(Math.hypot(sx-p.x,sy-p.y)<36*zoom)return 'seventh';}for(const island of [...ISLANDS].reverse()){const p=worldToScreen(island.x,island.y);const bob=Math.sin(frame*(.00055+state.weather.wind*.000014)+ISLANDS.indexOf(island)*2.4)*(1.8+state.weather.wind*.044)*zoom;const dx=(sx-p.x)/(island.w*zoom*1.06),dy=(sy-p.y-bob)/(island.h*zoom*1.75);if(dx*dx+dy*dy<1.15)return island.id;}return null;}
   function point(e){const b=canvas.getBoundingClientRect();return{x:e.clientX-b.left,y:e.clientY-b.top};}
@@ -216,7 +294,7 @@
     const chosen=SEVENTH_CHOICES.find(option=>option.key===state.horizon);
     const outcome=$('#seventh-outcome');outcome.hidden=!chosen;
     if(chosen){outcome.replaceChildren(make('strong','',chosen.symbol+' THE SKY REMEMBERS'),make('p','',chosen.outcome));}
-    displayLoom();displayWeather();displayVisitors();
+    displayLoom();displayWeather();displayVisitors();displayCommunity();displayCommons();
     $('#map-message').textContent=state.visited.length===6?(chosen?'Your seventh star is shining. Tap it to revisit your promise.':'A seventh place has appeared between the islands.'):state.steps>=3?'Your choices are drawing a constellation.':'The islands are waiting for you.';
   }
   const weatherInputs={wind:$('#weather-wind'),starlight:$('#weather-starlight'),mist:$('#weather-mist')};
@@ -271,6 +349,64 @@
           save();display();chime(3+state.visitorStamps.length*2);
           toast(state.visitorStamps.length===SKY_VISITORS.length?'The sky remembers every welcome. An aurora has appeared.':'You earned a sky postmark!');
         });options.append(b);}card.append(options);
+      }
+      grid.append(card);
+    }
+  }
+  function displayCommunity(){
+    const grid=$('#community-grid');grid.replaceChildren();
+    const count=Object.keys(state.community).length;
+    $('#community-count').textContent=count+' / '+COMMUNITY_SCENES.length+' friendships woven';
+    $('#community-finale').hidden=count!==COMMUNITY_SCENES.length;
+    for(const scene of COMMUNITY_SCENES){
+      const key=communityKey(scene);const a=SKY_VISITORS.find(v=>v.id===scene.a),b=SKY_VISITORS.find(v=>v.id===scene.b);
+      const ready=state.visitorStamps.includes(scene.a)&&state.visitorStamps.includes(scene.b);
+      const choiceIndex=state.community[key];const complete=choiceIndex===0||choiceIndex===1;
+      const card=make('article','community-card'+(complete?' community-complete':''));
+      const kicker=make('div','community-kicker',scene.symbol+' '+a.name.split(',')[0]+' × '+b.name.split(',')[0]);
+      card.append(kicker,make('h3','',scene.name));
+      if(complete){card.append(make('p','community-outcome',scene.choices[choiceIndex].result),make('span','community-flag','✦ FRIENDSHIP WOVEN'));}
+      else if(!ready){card.append(make('p','community-locked','Welcome both travelers in the Weather Studio to discover their story.'));}
+      else {card.append(make('p','community-summary',scene.summary));const actions=make('div','community-choices');
+        for(const [i,choice] of scene.choices.entries()){
+          const b=make('button','',choice.label+' · '+TRAITS[choice.trait].name+' ↗');b.type='button';
+          b.addEventListener('click',()=>{
+            if(Object.hasOwn(state.community,key)||!state.visitorStamps.includes(scene.a)||!state.visitorStamps.includes(scene.b))return;
+            state.community[key]=i;state.traits[choice.trait]=clamp(state.traits[choice.trait]+6,0,100);state.steps++;
+            state.journal.push({place:'Living Constellations',text:scene.name+': '+choice.result});state.journal=state.journal.slice(-32);
+            save();display();chime(8+Object.keys(state.community).length);
+            toast(Object.keys(state.community).length===COMMUNITY_SCENES.length?'The sky has learned every friendship. ✨':'A new friendship shines in the sky.');
+          });actions.append(b);
+        }card.append(actions);
+      }grid.append(card);
+    }
+  }
+  function displayCommons(){
+    const grid=$('#commons-grid');grid.replaceChildren();
+    const count=Object.keys(state.commons).length;
+    $('#commons-count').textContent=count+' / '+COMMONS_PROJECTS.length+' community landmarks founded';
+    $('#commons-finale').hidden=count!==COMMONS_PROJECTS.length;
+    for(const project of COMMONS_PROJECTS){
+      const chosen=state.commons[project.id];const complete=chosen===0||chosen===1;
+      const card=make('article','commons-card'+(complete?' commons-built':''));
+      card.append(make('span','commons-kicker',project.symbol+' · '+ISLANDS.find(i=>i.id===project.island).short),make('h3','',project.name));
+      if(complete){card.append(make('p','commons-result',project.choices[chosen].result),make('span','commons-flag','✧ LANDMARK VISIBLE ON MAP'));}
+      else if(!projectReady(project)){
+        card.append(make('p','commons-summary',project.summary));
+        const requirements=make('p','commons-locked','Needed: visit '+ISLANDS.find(i=>i.id===project.island).short+' and weave '+project.requires.map(key=>COMMUNITY_SCENES.find(scene=>communityKey(scene)===key).name).join(' + ')+'.');
+        card.append(requirements);
+      }else{
+        card.append(make('p','commons-summary',project.summary));const actions=make('div','commons-choices');
+        for(const [i,choice] of project.choices.entries()){
+          const button=make('button','',choice.label+' · '+TRAITS[choice.trait].name+' ↗');button.type='button';
+          button.addEventListener('click',()=>{
+            if(Object.hasOwn(state.commons,project.id)||!projectReady(project))return;
+            state.commons[project.id]=i;state.steps++;state.traits[choice.trait]=clamp(state.traits[choice.trait]+8,0,100);
+            state.journal.push({place:'Sky Commons',text:project.name+': '+choice.result});state.journal=state.journal.slice(-32);
+            save();display();render(frame);chime(11+count);
+            toast(Object.keys(state.commons).length===COMMONS_PROJECTS.length?'Three communities now share the sky. ✨':'A new landmark has appeared on the map.');
+          });actions.append(button);
+        }card.append(actions);
       }
       grid.append(card);
     }
@@ -358,33 +494,43 @@
   // SKY1: version.phase.steps.wonder.care.curiosity.mischief.visitedMask
   // SKY2: same eight numbers + wovenPairMask + activePairIndex (-1 for none).
   // SKY3: SKY2 plus wind, starlight, mist.
-  // SKY4: SKY3 plus visitor postmark bit mask. No journal or personally identifying data.
+  // SKY4: SKY3 plus visitor postmark bit mask.
+  // SKY5: SKY4 plus six base-three relationship choices (0=unmet, 1/2=choice).
+  // SKY6: SKY5 plus three base-three commons choices. No journal or personal data.
   function travelerCode(){
     const mask=ISLANDS.reduce((bits,island,i)=>bits|(state.visited.includes(island.id)?(1<<i):0),0);
     const weaveMask=PAIRS.reduce((bits,p,i)=>bits|(state.weaves.includes(pairKey(p))?(1<<i):0),0);
     const active=PAIRS.findIndex(p=>pairKey(p)===state.activeWeave);
     const visitorMask=SKY_VISITORS.reduce((bits,visitor,i)=>bits|(state.visitorStamps.includes(visitor.id)?(1<<i):0),0);
-    const numbers=[4,state.phase,Math.min(100000,state.steps),...Object.keys(TRAITS).map(k=>Math.round(state.traits[k])),mask,weaveMask,active,state.weather.wind,state.weather.starlight,state.weather.mist,visitorMask];
-    return 'SKY4-'+btoa(numbers.join('.')).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+    const communityDigits=COMMUNITY_SCENES.reduce((bits,scene,i)=>bits+(Object.hasOwn(state.community,communityKey(scene))?(state.community[communityKey(scene)]+1):0)*3**i,0);
+    const commonsDigits=COMMONS_PROJECTS.reduce((bits,project,i)=>bits+(Object.hasOwn(state.commons,project.id)?state.commons[project.id]+1:0)*3**i,0);
+    const numbers=[6,state.phase,Math.min(100000,state.steps),...Object.keys(TRAITS).map(k=>Math.round(state.traits[k])),mask,weaveMask,active,state.weather.wind,state.weather.starlight,state.weather.mist,visitorMask,communityDigits,commonsDigits];
+    return 'SKY6-'+btoa(numbers.join('.')).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
   }
   function parseTravelerCode(code){
     const cleaned=code.trim();
-    if(!/^SKY[1234]-[A-Za-z0-9_-]{8,180}$/.test(cleaned))return null;
+    if(!/^SKY[123456]-[A-Za-z0-9_-]{8,180}$/.test(cleaned))return null;
     try{
       const encoded=cleaned.slice(5).replace(/-/g,'+').replace(/_/g,'/');
       const numbers=atob(encoded).split('.').map(Number);
-      if(numbers.some(n=>!Number.isSafeInteger(n)) || ![8,10,13,14].includes(numbers.length))return null;
-      const [version,phase,steps,wonder,care,curiosity,mischief,mask,weaveMask=0,active=-1,wind=WEATHER_DEFAULT.wind,starlight=WEATHER_DEFAULT.starlight,mist=WEATHER_DEFAULT.mist,visitorMask=0]=numbers;
-      if(version!==(numbers.length===14?4:numbers.length===13?3:numbers.length===10?2:1)||Number(cleaned[3])!==version ||phase<0||phase>=PHASES.length||steps<0||steps>100000||mask<0||mask>=64)return null;
-      if([wonder,care,curiosity,mischief,wind,starlight,mist].some(n=>n<0||n>100)||weaveMask<0||weaveMask>=32768||visitorMask<0||visitorMask>=16||active < -1||active>=PAIRS.length)return null;
+      if(numbers.some(n=>!Number.isSafeInteger(n)) || ![8,10,13,14,15,16].includes(numbers.length))return null;
+      const [version,phase,steps,wonder,care,curiosity,mischief,mask,weaveMask=0,active=-1,wind=WEATHER_DEFAULT.wind,starlight=WEATHER_DEFAULT.starlight,mist=WEATHER_DEFAULT.mist,visitorMask=0,communityDigits=0,commonsDigits=0]=numbers;
+      if(version!==(numbers.length===16?6:numbers.length===15?5:numbers.length===14?4:numbers.length===13?3:numbers.length===10?2:1)||Number(cleaned[3])!==version ||phase<0||phase>=PHASES.length||steps<0||steps>100000||mask<0||mask>=64)return null;
+      if([wonder,care,curiosity,mischief,wind,starlight,mist].some(n=>n<0||n>100)||weaveMask<0||weaveMask>=32768||visitorMask<0||visitorMask>=16||communityDigits<0||communityDigits>=729||commonsDigits<0||commonsDigits>=27||active < -1||active>=PAIRS.length)return null;
       const visited=ISLANDS.filter((_,i)=>mask&(1<<i)).map(island=>island.id);
       const weaves=PAIRS.filter((p,i)=>weaveMask&(1<<i)).map(pairKey);
       const visitorStamps=SKY_VISITORS.filter((_,i)=>visitorMask&(1<<i)).map(v=>v.id);
+      const community={};let trits=communityDigits;
+      for(const scene of COMMUNITY_SCENES){const digit=trits%3;trits=Math.floor(trits/3);if(digit){if(!visitorStamps.includes(scene.a)||!visitorStamps.includes(scene.b))return null;community[communityKey(scene)]=digit-1;}}
+      const commons={};let commonsTrits=commonsDigits;
+      for(const project of COMMONS_PROJECTS){const digit=commonsTrits%3;commonsTrits=Math.floor(commonsTrits/3);
+        if(digit){if(!visited.includes(project.island)||!project.requires.every(key=>Object.hasOwn(community,key)))return null;commons[project.id]=digit-1;}}
+      if(steps<visited.length+weaves.length+visitorStamps.length+Object.keys(community).length+Object.keys(commons).length)return null;
       if(steps<visited.length+weaves.length+visitorStamps.length || weaves.some(key=>{const pair=PAIRS.find(p=>pairKey(p)===key);return !visited.includes(pair.a)||!visited.includes(pair.b);}))return null;
       const activeWeave=active<0?null:pairKey(PAIRS[active]);
       if(activeWeave && !weaves.includes(activeWeave))return null;
       return {version:WORLD_VERSION,phase,traits:{wonder,care,curiosity,mischief},visited,weaves,activeWeave,
-        horizon:null,visitorStamps,weather:{wind,starlight,mist},journal:[{place:'Arrival',text:'You stepped into a constellation shared by another traveler.'}],steps};
+        horizon:null,visitorStamps,community,commons,weather:{wind,starlight,mist},journal:[{place:'Arrival',text:'You stepped into a constellation shared by another traveler.'}],steps};
     }catch{return null;}
   }
   const codeField=$('#sky-code'),codeStatus=$('#code-status'),importDialog=$('#import-dialog');
@@ -399,7 +545,7 @@
   });
   $('#import-code').addEventListener('click',()=>{
     pendingSharedSky=parseTravelerCode(codeField.value);
-    if(!pendingSharedSky){codeStatus.textContent='That code does not look like a valid Unfinished Sky traveler code. Try copying the complete SKY4-, SKY3-, SKY2-, or SKY1- code.';return;}
+    if(!pendingSharedSky){codeStatus.textContent='That code does not look like a valid Unfinished Sky traveler code. Try copying the complete SKY6-, SKY5-, SKY4-, SKY3-, SKY2-, or SKY1- code.';return;}
     importDialog.showModal();
   });
   $('#import-cancel').addEventListener('click',()=>{pendingSharedSky=null;importDialog.close();});
@@ -413,12 +559,14 @@
   $('#export-btn').addEventListener('click',()=>{const lines=[
     'THE UNFINISHED SKY — A WORLD POSTCARD','Created by agent-01 · GPT Village · October 2026','',
     'Your sky: '+PHASES[state.phase].name,'Sky Weather Studio: Wind '+state.weather.wind+', Starlight '+state.weather.starlight+', Mist '+state.weather.mist,`Explorations: ${state.steps}`,`Islands visited: ${state.visited.length} of 6`,state.horizon?'Seventh Place: '+SEVENTH_CHOICES.find(c=>c.key===state.horizon).name:'Seventh Place: Not yet visited','',
+    'COMMONS BUILT',...(Object.keys(state.commons).length?COMMONS_PROJECTS.filter(project=>Object.hasOwn(state.commons,project.id)).map(project=>project.name+': '+project.choices[state.commons[project.id]].result):['None yet']),'',
+    'FRIENDSHIPS WOVEN',...(Object.keys(state.community).length?COMMUNITY_SCENES.filter(scene=>Object.hasOwn(state.community,communityKey(scene))).map(scene=>scene.name+': '+scene.choices[state.community[communityKey(scene)]].result):['None yet']),'',
     'SKY POSTMARKS',...(state.visitorStamps.length?state.visitorStamps.map(id=>SKY_VISITORS.find(v=>v.id===id)?.name||'Unknown traveler'):['None yet']),'',
     'YOUR CONSTELLATION',...Object.entries(TRAITS).map(([key,data])=>`${data.name}: ${state.traits[key]}`),'',
     'RELICS FOUND',...(state.visited.length?state.visited.map(id=>ISLANDS.find(i=>i.id===id)?.relic||'Unknown relic'):['None yet']),'',
     'JOURNAL',...state.journal.map(e=>`[${e.place}] ${e.text}`),'',
     'WOVEN CONSTELLATIONS',...(state.weaves.length?state.weaves.map(key=>PAIRS.find(p=>pairKey(p)===key)?.name||'Unknown route'):['None yet']),'','TRAVELER CODE (enter into another copy of The Unfinished Sky to visit this constellation)',travelerCode(),'',
-    'The code preserves your traits, relics, woven routes, weather, and sky postmarks — not your private journal or Seventh Place promise. Nothing is uploaded by this page.'
+    'The code preserves your traits, relics, woven routes, weather, sky postmarks, friendships and civic landmarks — not your private journal or Seventh Place promise. Nothing is uploaded by this page.'
   ];const blob=new Blob([lines.join('\n')+'\n'],{type:'text/plain;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='my-unfinished-sky-postcard.txt';a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);toast('Your world postcard is ready.');});
   window.addEventListener('resize',resize);document.addEventListener('visibilitychange',()=>{if(document.hidden)cancelAnimationFrame(raf);else {cancelAnimationFrame(raf);raf=requestAnimationFrame(animate);}});
   resize();display();if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)raf=requestAnimationFrame(animate);else render();
