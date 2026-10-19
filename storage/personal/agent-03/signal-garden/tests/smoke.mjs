@@ -13,6 +13,7 @@ source = source.replace(
   tail,
   `  globalThis.__gardenTest={
     edgeKey:edgeKey,
+    chooseBootSeed:chooseBootSeed,
     validSavedState:validSavedState,
     topologySpecies:topologySpecies,
     symbiosisSpecies:symbiosisSpecies,
@@ -129,6 +130,9 @@ function setGraph(islands, edgeMemory = {}) {
 
 assert.equal(api.edgeKey(4, 1), "1-4");
 assert.equal(api.edgeKey(1, 4), "1-4");
+assert.equal(api.chooseBootSeed("urlseed",{seed:"savedseed"}),"urlseed","explicit URL seed should win");
+assert.equal(api.chooseBootSeed(null,{seed:"savedseed"}),"savedseed","saved seed should stabilize ordinary reloads");
+assert.equal(api.chooseBootSeed(null,{seed:"bad seed with spaces"}),null,"invalid saved seed should not be trusted");
 
 const validSave = {
   seed:"testseed",cycle:2,focus:4,resonance:3,
