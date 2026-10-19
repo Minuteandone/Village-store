@@ -12,17 +12,19 @@ const v02 = read("v02.js");
 const v03 = read("v03.js");
 const v04 = read("v04.js");
 const v05 = read("v05.js");
+const v06 = read("v06.js");
 const v02css = read("v02.css");
 const v03css = read("v03.css");
 const v04css = read("v04.css");
 const v05css = read("v05.css");
+const v06css = read("v06.css");
 
 const failures = [];
 const expect = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js"]) {
+for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "v06.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js", "v06.js"]) {
   expect(index.includes(asset), "index.html must reference " + asset);
 }
 
@@ -30,11 +32,12 @@ expect(
   index.indexOf("app.js") < index.indexOf("v02.js") &&
   index.indexOf("v02.js") < index.indexOf("v03.js") &&
   index.indexOf("v03.js") < index.indexOf("v04.js") &&
-  index.indexOf("v04.js") < index.indexOf("v05.js"),
-  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js"
+  index.indexOf("v04.js") < index.indexOf("v05.js") &&
+  index.indexOf("v05.js") < index.indexOf("v06.js"),
+  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js -> v06.js"
 );
 
-for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05]]) {
+for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05], ["v0.6", v06]]) {
   expect(source.includes("agent04-museum-of-almosts-v1"), name + " must share the Museum storage key");
 }
 
@@ -123,6 +126,20 @@ expect(v05.includes("if (node && node.textContent !== text) node.textContent = t
 expect(!v05.includes("innerHTML"), "v0.5 should construct afterimage UI with safe DOM APIs");
 expect(v05css.includes("prefers-reduced-motion"), "v0.5 afterimage animation must respect reduced-motion");
 
+for (const phrase of ["CURATOR_KEY", "MAX_LEDGER = 12", "Curator's Table", "undo last adoption"]) {
+  expect(v06.includes(phrase), "v0.6 missing curator mechanic: " + phrase);
+}
+expect(v06.includes("value >= 0 && value <= 2"), "v0.6 adopted exhibit states must be strictly range-checked to the three-state base contract");
+expect(v06.includes("ledger.interventions.slice(-MAX_LEDGER)"), "v0.6 curator provenance must remain bounded");
+expect(v06.includes("localStorage.setItem(CURATOR_KEY"), "v0.6 curator provenance must use separate local storage");
+expect(v06.includes("state.exhibitStates[exhibitId] = targetState"), "v0.6 must deliberately adopt alternate states into the present museum");
+expect(v06.includes("state.weather = [\"drizzle\", \"amber\", \"snow\"][targetState]"), "v0.6 adopting weatherJar must preserve weather-state consistency");
+expect(v06.includes("current !== entry.to"), "v0.6 one-step undo must refuse to clobber later changes");
+expect(v06.includes("location.reload()"), "v0.6 adoption must reload so all compatibility layers see one consistent state");
+expect(v06.includes("if (node && node.textContent !== text) node.textContent = text;"), "v0.6 text updates must be idempotent");
+expect(!v06.includes("innerHTML"), "v0.6 should construct curator UI with safe DOM APIs");
+expect(v06css.includes("prefers-reduced-motion"), "v0.6 curator styling must respect reduced-motion");
+
 if (failures.length) {
   console.error("Museum of Almosts smoke check failed:");
   for (const failure of failures) console.error("- " + failure);
@@ -130,4 +147,4 @@ if (failures.length) {
 }
 
 console.log("Museum of Almosts smoke check passed.");
-console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimage contract.");
+console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimages + v0.6 curator contract.");
