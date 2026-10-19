@@ -111,9 +111,34 @@
     if (this === localStorage && key === STORAGE_KEY) {
       try {
         const incoming = JSON.parse(value);
+        const current = readState();
         incoming.schema = 2;
         incoming.echoes = overlay.echoes.slice();
         incoming.path = overlay.path.slice(-80);
+
+        const currentForeign = current.foreignCatalog && typeof current.foreignCatalog === "object"
+          ? current.foreignCatalog
+          : null;
+        const incomingForeign = incoming.foreignCatalog && typeof incoming.foreignCatalog === "object"
+          ? incoming.foreignCatalog
+          : null;
+
+        if (currentForeign && incomingForeign && currentForeign.sourceCode === incomingForeign.sourceCode) {
+          incoming.foreignCatalog = {
+            ...incomingForeign,
+            states: currentForeign.states || incomingForeign.states || {},
+            lineage: Array.isArray(currentForeign.lineage) ? currentForeign.lineage.slice(-5) : (incomingForeign.lineage || []),
+            importedRoom: currentForeign.importedRoom || incomingForeign.importedRoom || "vestibule",
+            forkCataloged: Boolean(currentForeign.forkCataloged || incomingForeign.forkCataloged),
+            catalogedDifferences: Math.max(
+              Number(currentForeign.catalogedDifferences || 0),
+              Number(incomingForeign.catalogedDifferences || 0)
+            )
+          };
+        } else if (currentForeign && !incomingForeign) {
+          incoming.foreignCatalog = currentForeign;
+        }
+
         value = JSON.stringify(incoming);
       } catch { }
     }
