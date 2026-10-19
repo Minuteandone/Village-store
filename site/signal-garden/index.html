@@ -135,6 +135,11 @@
       </div>
 
       <div>
+        <h3>Chronicle</h3>
+        <div class="log" id="chronicle"></div>
+      </div>
+
+      <div>
         <h3>Field log</h3>
         <div class="log" id="log" aria-live="polite"></div>
       </div>
@@ -170,7 +175,7 @@
   }
   function fresh(){
     randState=hash(seed);
-    return {seed:seed,cycle:1,focus:8,resonance:0,mode:"Quiet",selected:null,action:"nurture",discoveries:[],log:[],edgeMemory:{},climateSeen:{},islands:[
+    return {seed:seed,cycle:1,focus:8,resonance:0,mode:"Quiet",selected:null,action:"nurture",discoveries:[],log:[],chronicle:[],edgeMemory:{},climateSeen:{},lastClimate:null,islands:[
       makeIsland(0,.24,.31,58),makeIsland(1,.67,.27,48),makeIsland(2,.50,.62,66),makeIsland(3,.79,.69,42)
     ]};
   }
@@ -181,6 +186,8 @@
   }catch(e){}
   if(!state.edgeMemory||typeof state.edgeMemory!=="object")state.edgeMemory={};
   if(!state.climateSeen||typeof state.climateSeen!=="object")state.climateSeen={};
+  if(!Array.isArray(state.chronicle))state.chronicle=[];
+  if(typeof state.lastClimate!=="string")state.lastClimate=null;
   state.islands.forEach(function(a){if(typeof a.arrivals!=="number")a.arrivals=0});
   var mouse={x:0,y:0};
   var motes=[];
@@ -246,8 +253,13 @@
     next.climateSeen={};
     if(Array.isArray(p.climates))p.climates.slice(0,4).forEach(function(k){if(["verdant","echo","fracture","braided"].indexOf(k)>=0)next.climateSeen[k]=true});
     next.cycle=p.cycle;next.focus=p.focus;next.resonance=p.resonance;next.mode=p.mode;next.selected=null;next.action="nurture";
-    next.discoveries=[];next.log=[{c:next.cycle,msg:"Imported a bounded Signal Garden specimen. Historical field-log text was intentionally not transferred."}];
+    next.lastClimate=null;next.chronicle=[];
+    next.discoveries=[];next.log=[{c:next.cycle,msg:"Imported a bounded Signal Garden specimen. Historical field-log and chronicle text were intentionally not transferred."}];
     state=next;motes=[];save();renderUI();
+  }
+  function addChronicle(kind,msg){
+    state.chronicle.unshift({c:state.cycle,kind:kind,msg:msg});
+    state.chronicle=state.chronicle.slice(0,30);
   }
   function log(msg){
     state.log.unshift({c:state.cycle,msg:msg});
@@ -256,6 +268,7 @@
   function d(id,title,text){
     if(state.discoveries.some(function(x){return x.id===id}))return;
     state.discoveries.unshift({id:id,title:title,text:text,cycle:state.cycle});
+    addChronicle("discovery","Discovered "+title+".");
     state.resonance+=2;log("Discovery: "+title+".");
   }
   function clamp(v){return Math.max(0,Math.min(100,v))}
@@ -292,6 +305,10 @@
   function recordClimate(){
     var c=macroClimate();
     state.climateSeen[c.id]=true;
+    if(state.lastClimate!==c.id){
+      addChronicle("climate",state.lastClimate?"Climate shifted to "+c.name+".":"The first recorded climate was "+c.name+".");
+      state.lastClimate=c.id;
+    }
     var count=Object.keys(state.climateSeen).filter(function(k){return state.climateSeen[k]}).length;
     if(count>=3)d("weather-archive","Weather Archive","The garden has inhabited at least three distinct archipelago-scale climates.");
     return c;
@@ -375,6 +392,7 @@
     if(climate.trait==="strange")a.strange=clamp(a.strange+7);
     state.islands.push(a);
     state.selected=a.id;
+    addChronicle("birth","New land germinated: "+a.name+" during "+state.mode+" under "+macroClimate().name+".");
     log("A new island germinated: "+a.name+". It begins unlinked and remembers the season of its birth.");
     d("new-land","New Land","Resonance condensed into a new island. The map is no longer a fixed starting condition.");
     if(state.islands.length===7)d("seven-islands","Seven-Island Sky","The archipelago has filled every stable germination site in the current field.");
@@ -483,6 +501,8 @@
           first.links.splice(existing,1);
           var back=a.links.indexOf(first.id);
           if(back>=0)a.links.splice(back,1);
+          var remembered=state.edgeMemory[edgeKey(first.id,a.id)]||0;
+          if(remembered>=4)addChronicle("scar","Severed the "+first.name+" ↔ "+a.name+" route after "+remembered+" recorded crossings.");
           state.resonance=Math.max(0,state.resonance-1);
           log("Cut the bridge between "+first.name+" and "+a.name+"; future migrations must find another route.");
         }
@@ -530,6 +550,8 @@
     sp.innerHTML=residents.length?residents.map(function(x){return '<div class="discovery"><b>'+esc(x.name)+'</b><br>'+esc(x.text)+'</div>'}).join(""):'<p class="small">No topology-dependent species currently resident.</p>';
     var ds=document.getElementById("discoveries");
     ds.innerHTML=state.discoveries.length?state.discoveries.map(function(x){return '<div class="discovery"><b>'+esc(x.title)+'</b><br>'+esc(x.text)+' <span class="small">cycle '+x.cycle+'</span></div>'}).join(""):'<p class="small">Nothing catalogued yet. The garden is being suspiciously normal.</p>';
+    var ch=document.getElementById("chronicle");
+    ch.innerHTML=state.chronicle.length?state.chronicle.map(function(x){return '<p><time>C'+x.c+' · '+esc(x.kind)+'</time> '+esc(x.msg)+'</p>'}).join(""):'<p class="small">No major milestones recorded yet.</p>';
     var lg=document.getElementById("log");
     lg.innerHTML=state.log.length?state.log.map(function(x){return '<p><time>C'+x.c+'</time> '+esc(x.msg)+'</p>'}).join(""):'<p class="small">The field log is blank. Send the first signal.</p>';
   }
