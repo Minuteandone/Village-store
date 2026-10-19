@@ -82,7 +82,7 @@
         <span class="chip" id="researchChip">Research 0/14</span>
         <span class="chip" id="climateChip">Climate · Braided Sky</span>
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
-        <span class="chip" id="versionChip">v0.25 · save 7</span>
+        <span class="chip" id="versionChip">v0.26 · save 7</span>
       </div>
     </section>
 
@@ -205,9 +205,11 @@
         <textarea id="specimenDock" aria-label="Signal Garden specimen code" spellcheck="false" autocomplete="off" placeholder="SG1…"></textarea>
         <div class="actions" style="margin-top:8px">
           <button id="specimenBtn">📦 Generate + copy</button>
-          <button id="importBtn">🌱 Import pasted</button>
+          <button id="previewSpecimenBtn">🔎 Preview pasted</button>
+          <button id="importBtn" disabled>🌱 Import previewed</button>
           <button id="clearSpecimenBtn">× Clear dock</button>
         </div>
+        <div class="discovery" id="specimenPreview">No specimen preview yet.</div>
         <div class="small" id="specimenStatus" aria-live="polite">Dock empty. No specimen data leaves this browser unless you copy it.</div>
       </details>
 
@@ -228,7 +230,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.25",SAVE_SCHEMA=7;
+  var APP_VERSION="0.26",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -1295,34 +1297,80 @@
     try{await navigator.clipboard.writeText(url);log("Copied the garden seed URL to the clipboard.");}
     catch(e){prompt("Copy this garden seed URL:",url)}
   });
+  var previewedSpecimenCode=null;
   function specimenStatus(msg){
     document.getElementById("specimenStatus").textContent=msg;
   }
+  function resetSpecimenPreview(msg){
+    previewedSpecimenCode=null;
+    document.getElementById("importBtn").disabled=true;
+    document.getElementById("specimenPreview").textContent=msg||"No specimen preview yet.";
+  }
+  function previewSpecimenDock(){
+    var dock=document.getElementById("specimenDock"),code=String(dock.value||"").trim();
+    if(!code){
+      resetSpecimenPreview("No specimen preview yet.");
+      specimenStatus("Paste an SG1 specimen into the dock before previewing.");
+      return null;
+    }
+    try{
+      var p=decodeSpecimen(code);
+      var incomingHop=Math.min(99,(Number.isInteger(p.provenance)?p.provenance:0)+1);
+      previewedSpecimenCode=code;
+      document.getElementById("importBtn").disabled=false;
+      document.getElementById("specimenPreview").innerHTML=
+        "<b>Valid SG1 specimen</b><br>"+
+        "Seed "+esc(p.seed)+" · cycle "+p.cycle+" · "+esc(p.mode)+"<br>"+
+        p.traits.length+" islands · "+p.edges.length+" live routes · focus "+p.focus+" · resonance "+p.resonance+"<br>"+
+        "Import provenance → transplant hop "+incomingHop;
+      specimenStatus("Preview valid. Import is enabled only for this exact specimen text.");
+      return p;
+    }catch(e){
+      resetSpecimenPreview("Invalid or unsupported specimen.");
+      specimenStatus("Could not preview specimen: "+e.message);
+      return null;
+    }
+  }
+  document.getElementById("specimenDock").addEventListener("input",function(){
+    resetSpecimenPreview("Dock changed. Preview again before importing.");
+    specimenStatus("Dock changed. Preview the current text before importing.");
+  });
+  document.getElementById("previewSpecimenBtn").addEventListener("click",previewSpecimenDock);
   document.getElementById("specimenBtn").addEventListener("click",async function(){
     var code=specimenCode(),dock=document.getElementById("specimenDock");
     dock.value=code;
+    previewSpecimenDock();
     try{
       await navigator.clipboard.writeText(code);
       log("Copied a bounded specimen code. It contains game state, not the field log or other browser data.");
-      specimenStatus("Current specimen generated and copied · "+code.length+" characters.");
+      specimenStatus("Current specimen generated, previewed, and copied · "+code.length+" characters.");
     }catch(e){
       log("Generated a bounded specimen code in the dock; clipboard access was unavailable.");
-      specimenStatus("Current specimen generated in the dock. Select and copy it manually · "+code.length+" characters.");
+      specimenStatus("Current specimen generated and previewed in the dock. Select and copy it manually · "+code.length+" characters.");
     }
   });
   document.getElementById("importBtn").addEventListener("click",function(){
-    var dock=document.getElementById("specimenDock"),code=String(dock.value||"").trim();
-    if(!code){specimenStatus("Paste an SG1 specimen into the dock before importing.");return}
+    var code=String(document.getElementById("specimenDock").value||"").trim();
+    if(!previewedSpecimenCode||code!==previewedSpecimenCode){
+      resetSpecimenPreview("Preview required before import.");
+      specimenStatus("Preview this exact specimen text before importing.");
+      return;
+    }
     try{
       importSpecimenCode(code);
+      previewedSpecimenCode=null;
+      document.getElementById("importBtn").disabled=true;
+      document.getElementById("specimenPreview").textContent="Imported. Preview again before any further import.";
       log("Specimen imported successfully.");
       specimenStatus("Imported specimen successfully · transplant hop "+state.transplantCount+".");
     }catch(e){
+      resetSpecimenPreview("Import failed. Preview again after correcting the code.");
       specimenStatus("Could not import specimen: "+e.message);
     }
   });
   document.getElementById("clearSpecimenBtn").addEventListener("click",function(){
     document.getElementById("specimenDock").value="";
+    resetSpecimenPreview("No specimen preview yet.");
     specimenStatus("Dock cleared. The current garden was not changed.");
   });
   document.getElementById("resetBtn").addEventListener("click",function(){
