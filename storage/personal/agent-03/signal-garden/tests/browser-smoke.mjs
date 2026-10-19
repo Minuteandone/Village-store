@@ -268,13 +268,52 @@ try{
   const reloadedLife=Number(await evaluate("document.getElementById('lifeStat').textContent"));
   assert.equal(reloadedLife,persistedLife,"local garden state should survive reload for the same seed");
 
+  await evaluate(`document.querySelector('[data-action="nurture"]').click()`);
+  for(let i=0;i<10;i++){
+    const focusNow=Number(await evaluate("document.getElementById('focusChip').textContent.match(/\\d+/)[0]"));
+    if(focusNow===0)break;
+    await evaluate("document.getElementById('applySelectedBtn').click()");
+  }
+  const exhaustedFocus=Number(await evaluate("document.getElementById('focusChip').textContent.match(/\\d+/)[0]"));
+  assert.equal(exhaustedFocus,0,"real UI actions should be able to exhaust focus");
+  const nurtureApplyDisabled=await evaluate("document.getElementById('applySelectedBtn').disabled");
+  assert.equal(nurtureApplyDisabled,true,"zero-focus Nurture should disable Apply");
+  const exhaustedModeStatus=await evaluate("document.getElementById('modeStatus').textContent");
+  assert.match(exhaustedModeStatus,/Unavailable until you regain 1 focus/);
+
+  await evaluate(`document.querySelector('[data-action="connect"]').click()`);
+  await evaluate(`document.querySelector('[data-island-id="0"]').click()`);
+  const freeArmDisabled=await evaluate("document.getElementById('applySelectedBtn').disabled");
+  assert.equal(freeArmDisabled,false,"Connect source arming should remain available at zero focus");
+  const freeArmText=await evaluate("document.getElementById('applySelectedBtn').textContent");
+  assert.match(freeArmText,/Arm connect.*free/);
+  await evaluate("document.getElementById('applySelectedBtn').click()");
+  const zeroFocusPending=await evaluate("document.getElementById('modeStatus').textContent");
+  assert.match(zeroFocusPending,/Connect source:/);
+
+  await evaluate(`document.querySelector('[data-island-id="1"]').click()`);
+  const blockedCompletion=await evaluate("document.getElementById('applySelectedBtn').disabled");
+  assert.equal(blockedCompletion,true,"zero-focus Connect completion should be disabled");
+  const blockedCompletionStatus=await evaluate("document.getElementById('modeStatus').textContent");
+  assert.match(blockedCompletionStatus,/Completing or rewiring needs 1 focus/);
+
+  await evaluate(`document.querySelector('[data-island-id="0"]').click()`);
+  const freeCancelDisabled=await evaluate("document.getElementById('applySelectedBtn').disabled");
+  assert.equal(freeCancelDisabled,false,"armed Connect source should remain cancellable at zero focus");
+  const freeCancelText=await evaluate("document.getElementById('applySelectedBtn').textContent");
+  assert.match(freeCancelText,/Cancel connect source.*free/);
+  await evaluate("document.getElementById('applySelectedBtn').click()");
+  const afterFreeCancel=await evaluate("document.getElementById('modeStatus').textContent");
+  assert.ok(!afterFreeCancel.includes("Connect source:"),"free cancellation should clear the pending Connect source");
+  assert.equal(Number(await evaluate("document.getElementById('focusChip').textContent.match(/\\d+/)[0]")),0,"free Connect planning/cancellation should not restore or spend focus");
+
   const selectedUrl=await evaluate("location.href");
   assert.match(selectedUrl,/seed=browser-smoke-ci/);
   await sleep(150);
   assert.equal(exceptions.length,0,"uncaught browser exceptions: "+JSON.stringify(exceptions));
 
   console.log("Signal Garden shared-mirror browser smoke passed.");
-  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,contrastChip,panelShadow,activeOutline,title,firstTabClass,controlsLabel,canvasRole,selectedAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,germinationInitiallyDisabled,germinationInitialStatus,echoInitiallyDisabled,glyphInitialStatus,echoReady,glyphDescription,echoDisabledAfterSelection,initialTextMap,linkedTextMap,migratedTextMap,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,url:selectedUrl}));
+  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,contrastChip,panelShadow,activeOutline,title,firstTabClass,controlsLabel,canvasRole,selectedAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,germinationInitiallyDisabled,germinationInitialStatus,echoInitiallyDisabled,glyphInitialStatus,echoReady,glyphDescription,echoDisabledAfterSelection,initialTextMap,linkedTextMap,migratedTextMap,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,exhaustedFocus,nurtureApplyDisabled,exhaustedModeStatus,freeArmText,zeroFocusPending,blockedCompletionStatus,freeCancelText,afterFreeCancel,url:selectedUrl}));
 }finally{
   if(ws)try{ws.close()}catch{}
   proc.kill("SIGTERM");
