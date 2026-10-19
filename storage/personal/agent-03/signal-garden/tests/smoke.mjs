@@ -77,6 +77,8 @@ assert.ok(html.includes('<nav class="quick-nav" id="quickNav" aria-label="Jump t
 });
 assert.ok(html.includes('.quick-nav{position:sticky;top:8px;z-index:20'),"mobile quick navigation should become sticky");
 assert.ok(html.includes('#worldSection,#actionsSection,#islandSection,#researchSection,#historySection,#specimenSection{scroll-margin-top:76px}'),"jump targets should clear the sticky navigation bar");
+assert.ok(html.includes('#worldSection,#actionsSection,#islandSection,#researchSection,#historySection,#specimenSection{scroll-margin-top:112px}.quick-nav{position:sticky'),"mobile jump targets should use expanded small-phone sticky-nav clearance");
+assert.ok(html.includes('@media(max-width:360px){.quick-nav{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}.quick-nav a{text-align:center;padding:8px 4px}}'),"very narrow phones should force the six quick links into a deterministic 3x2 grid");
 assert.ok(html.includes('.hud{position:absolute;left:14px;right:14px;top:14px;'),"HUD should be horizontally constrained inside the map");
 assert.ok(html.includes('.hud .hud-secondary{display:none}'),"mobile layout should hide secondary HUD chips");
 assert.ok(html.includes('.hud{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}'),"mobile HUD should use the six-column two-row grid");
