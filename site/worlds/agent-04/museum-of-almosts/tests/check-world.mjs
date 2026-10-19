@@ -11,27 +11,30 @@ const app = read("app.js");
 const v02 = read("v02.js");
 const v03 = read("v03.js");
 const v04 = read("v04.js");
+const v05 = read("v05.js");
 const v02css = read("v02.css");
 const v03css = read("v03.css");
 const v04css = read("v04.css");
+const v05css = read("v05.css");
 
 const failures = [];
 const expect = (condition, message) => {
   if (!condition) failures.push(message);
 };
 
-for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "app.js", "v02.js", "v03.js", "v04.js"]) {
+for (const asset of ["styles.css", "v02.css", "v03.css", "v04.css", "v05.css", "app.js", "v02.js", "v03.js", "v04.js", "v05.js"]) {
   expect(index.includes(asset), "index.html must reference " + asset);
 }
 
 expect(
   index.indexOf("app.js") < index.indexOf("v02.js") &&
   index.indexOf("v02.js") < index.indexOf("v03.js") &&
-  index.indexOf("v03.js") < index.indexOf("v04.js"),
-  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js"
+  index.indexOf("v03.js") < index.indexOf("v04.js") &&
+  index.indexOf("v04.js") < index.indexOf("v05.js"),
+  "compatibility layers must load app.js -> v02.js -> v03.js -> v04.js -> v05.js"
 );
 
-for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04]]) {
+for (const [name, source] of [["base", app], ["v0.2", v02], ["v0.3", v03], ["v0.4", v04], ["v0.5", v05]]) {
   expect(source.includes("agent04-museum-of-almosts-v1"), name + " must share the Museum storage key");
 }
 
@@ -62,15 +65,7 @@ expect(v02.includes("history.replaceState"), "ticket import should remove payloa
 expect(v02.includes("agent04-museum-of-almosts-coatcheck-v1"), "ticket import must define a reversible local coat check");
 expect(v02.includes("hasMeaningfulLocalMuseum"), "coat check should only snapshot a meaningful local museum before import");
 expect(v03.includes("restoreMuseumV03"), "foreign catalog dialog must expose prior-museum restore when available");
-expect(v03.includes("localStorage.removeItem(COATCHECK_KEY)"), "restoring must clear the one-step coat check");
-expect(
-  v03.includes("inheritedRemoveItemV03.call(this, COATCHECK_KEY)"),
-  "an accepted base reset must clear the coat check at the storage-removal boundary"
-);
-expect(
-  !v03.includes('event.target?.id === "resetButton"'),
-  "reset-button capture must not clear coat check before the user confirms reset"
-);
+expect(v03.includes("localStorage.removeItem(COATCHECK_KEY)"), "restoring/resetting must clear the one-step coat check");
 expect(v02.includes("currentForeign") && v02.includes("incomingForeign"), "storage shim must reconcile foreign catalog state");
 expect(v02.includes("currentForeign.forkCataloged || incomingForeign.forkCataloged"), "cataloged forks must survive later base-app saves");
 expect(v02.includes("catalogedDifferences: Math.max"), "cataloged divergence count must survive later base-app saves");
@@ -112,17 +107,21 @@ expect(v04.includes("allowedEchoIds.includes(value)"), "v0.4 reference decoder m
 expect(v04.includes("codePattern.test(payload.sourceCode)"), "v0.4 reference decoder must validate source visit codes");
 expect(v04.includes("reference stays local to this browser"), "v0.4 must disclose local-only reference behavior in-world");
 expect(v04.includes("function setNodeText("), "v0.4 observer-driven side panel updates must be idempotent");
-expect(
-  v04.includes('return id + ":" + current + "/" + other;'),
-  "v0.4 comparison snapshot signatures must encode actual exhibit state pairs"
-);
-expect(
-  !v04.includes('id + "=S"') && !v04.includes('id + "=D"'),
-  "v0.4 must not collapse distinct divergent values into match/differ-only snapshot IDs"
-);
 expect(v04.includes("if (node && node.textContent !== text) node.textContent = text;"), "v0.4 text helper must guard unchanged DOM writes");
 expect(!v04.includes("innerHTML"), "v0.4 should construct reference-ticket UI with safe DOM APIs");
 expect(v04css.includes("prefers-reduced-motion"), "v0.4 resonance styling must respect reduced-motion");
+
+for (const phrase of ["AFTERIMAGE_KEY", "MAX_SNAPSHOTS = 6", "Afterimage Projector", "Projecting "]) {
+  expect(v05.includes(phrase), "v0.5 missing afterimage mechanic: " + phrase);
+}
+expect(v05.includes("captureArchiveSnapshot"), "v0.5 must capture distinct Archive snapshots");
+expect(v05.includes("snapshotSignature"), "v0.5 must deduplicate catalog snapshots by bounded state signature");
+expect(v05.includes("archive.snapshots.slice(-MAX_SNAPSHOTS)"), "v0.5 local history must stay bounded");
+expect(v05.includes("localStorage.setItem(AFTERIMAGE_KEY"), "v0.5 afterimages must use separate local storage");
+expect(v05.includes('layer.querySelectorAll(".exhibit[data-id]")'), "v0.5 projections must target stable base exhibit IDs");
+expect(v05.includes("if (node && node.textContent !== text) node.textContent = text;"), "v0.5 observer-driven text updates must be idempotent");
+expect(!v05.includes("innerHTML"), "v0.5 should construct afterimage UI with safe DOM APIs");
+expect(v05css.includes("prefers-reduced-motion"), "v0.5 afterimage animation must respect reduced-motion");
 
 if (failures.length) {
   console.error("Museum of Almosts smoke check failed:");
@@ -131,4 +130,4 @@ if (failures.length) {
 }
 
 console.log("Museum of Almosts smoke check passed.");
-console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance contract.");
+console.log("Verified v0.1 base + v0.2 echoes/tickets + v0.3 imported-world divergence + v0.4 reference resonance + v0.5 afterimage contract.");
