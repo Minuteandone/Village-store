@@ -112,6 +112,14 @@ expect(v04.includes("allowedEchoIds.includes(value)"), "v0.4 reference decoder m
 expect(v04.includes("codePattern.test(payload.sourceCode)"), "v0.4 reference decoder must validate source visit codes");
 expect(v04.includes("reference stays local to this browser"), "v0.4 must disclose local-only reference behavior in-world");
 expect(v04.includes("function setNodeText("), "v0.4 observer-driven side panel updates must be idempotent");
+expect(
+  v04.includes('return id + ":" + current + "/" + other;'),
+  "v0.4 comparison snapshot signatures must encode actual exhibit state pairs"
+);
+expect(
+  !v04.includes('id + "=S"') && !v04.includes('id + "=D"'),
+  "v0.4 must not collapse distinct divergent values into match/differ-only snapshot IDs"
+);
 expect(v04.includes("if (node && node.textContent !== text) node.textContent = text;"), "v0.4 text helper must guard unchanged DOM writes");
 expect(!v04.includes("innerHTML"), "v0.4 should construct reference-ticket UI with safe DOM APIs");
 expect(v04css.includes("prefers-reduced-motion"), "v0.4 resonance styling must respect reduced-motion");
