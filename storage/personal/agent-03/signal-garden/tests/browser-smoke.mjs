@@ -353,13 +353,29 @@ try{
   assert.ok(!afterFreeCancel.includes("Connect source:"),"free cancellation should clear the pending Connect source");
   assert.equal(Number(await evaluate("document.getElementById('focusChip').textContent.match(/\\d+/)[0]")),0,"free Connect planning/cancellation should not restore or spend focus");
 
+  await evaluate("document.getElementById('garden').scrollIntoView({block:'start'})");
+  await waitFor("document.getElementById('garden').getBoundingClientRect().top < innerHeight && document.getElementById('garden').getBoundingClientRect().bottom > 0","canvas for pointer hit test");
+  const canvasPoint=await evaluate(`(()=>{const r=document.getElementById('garden').getBoundingClientRect();return {x:r.left+r.width*.24,y:r.top+r.height*.32}})()`);
+  await send("Input.dispatchMouseEvent",{type:"mousePressed",x:canvasPoint.x,y:canvasPoint.y,button:"left",clickCount:1});
+  await send("Input.dispatchMouseEvent",{type:"mouseReleased",x:canvasPoint.x,y:canvasPoint.y,button:"left",clickCount:1});
+  await waitFor("document.getElementById('modeStatus').textContent.includes('Connect source:')","canvas click to arm Connect source");
+  const canvasArmedStatus=await evaluate("document.getElementById('modeStatus').textContent");
+  assert.match(canvasArmedStatus,/Connect source:/,"actual canvas click should resolve and arm the first island");
+  assert.equal(Number(await evaluate("document.getElementById('focusChip').textContent.match(/\\d+/)[0]")),0,"free canvas Connect arming should not spend focus");
+
+  await send("Input.dispatchMouseEvent",{type:"mousePressed",x:canvasPoint.x,y:canvasPoint.y,button:"left",clickCount:1});
+  await send("Input.dispatchMouseEvent",{type:"mouseReleased",x:canvasPoint.x,y:canvasPoint.y,button:"left",clickCount:1});
+  await waitFor("!document.getElementById('modeStatus').textContent.includes('Connect source:')","canvas click to cancel Connect source");
+  const canvasCancelledStatus=await evaluate("document.getElementById('modeStatus').textContent");
+  assert.ok(!canvasCancelledStatus.includes("Connect source:"),"second actual canvas click should cancel the armed source");
+
   const selectedUrl=await evaluate("location.href");
   assert.match(selectedUrl,/seed=browser-smoke-ci/);
   await sleep(150);
   assert.equal(exceptions.length,0,"uncaught browser exceptions: "+JSON.stringify(exceptions));
 
   console.log("Signal Garden shared-mirror browser smoke passed.");
-  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,contrastChip,panelShadow,activeOutline,title,firstTabClass,controlsLabel,canvasRole,initialGuide,guideLive,fieldLogLive,actionStatusRole,researchSummary,researchCompass,observedResearchSummary,selectedAnnouncement,offscreenCanvasStable:offscreenCanvasA===offscreenCanvasB,offscreenSelectionDeferred:offscreenCanvasAfterSelection===offscreenCanvasB,resumeRenderedLatest:resumedCanvas!==offscreenCanvasAfterSelection,actionAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,germinationInitiallyDisabled,germinationInitialStatus,echoInitiallyDisabled,glyphInitialStatus,echoReady,glyphDescription,echoDisabledAfterSelection,initialTextMap,linkedTextMap,migratedTextMap,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,exhaustedFocus,nurtureApplyDisabled,exhaustedModeStatus,exhaustedGuide,freeArmText,zeroFocusPending,blockedCompletionStatus,freeCancelText,afterFreeCancel,url:selectedUrl}));
+  console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,contrastChip,panelShadow,activeOutline,title,firstTabClass,controlsLabel,canvasRole,initialGuide,guideLive,fieldLogLive,actionStatusRole,researchSummary,researchCompass,observedResearchSummary,selectedAnnouncement,offscreenCanvasStable:offscreenCanvasA===offscreenCanvasB,offscreenSelectionDeferred:offscreenCanvasAfterSelection===offscreenCanvasB,resumeRenderedLatest:resumedCanvas!==offscreenCanvasAfterSelection,actionAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,germinationInitiallyDisabled,germinationInitialStatus,echoInitiallyDisabled,glyphInitialStatus,echoReady,glyphDescription,echoDisabledAfterSelection,initialTextMap,linkedTextMap,migratedTextMap,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,exhaustedFocus,nurtureApplyDisabled,exhaustedModeStatus,exhaustedGuide,freeArmText,zeroFocusPending,blockedCompletionStatus,freeCancelText,afterFreeCancel,canvasArmedStatus,canvasCancelledStatus,url:selectedUrl}));
 }finally{
   if(ws)try{ws.close()}catch{}
   proc.kill("SIGTERM");
