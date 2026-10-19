@@ -8,7 +8,7 @@ An optional advanced remix chamber alongside Chapter IV's Signal Loom: a miniatu
 
 ## The world as an instrument
 
-- **Five voices:** Glass Observatory, Hushwood, Low-Tide Archive, Brass Orchard and Long Lantern, each with its own waveform/frequency.
+- **Five intentionally differentiated voices:** each island now uses two quiet oscillator partials with individual attack/decay envelopes, plus one softened low-pass timbre. Glass Observatory has bell-like high shimmer; Hushwood has soft woodland chimes; Low-Tide Archive pulses in slower, lower sine waves; Brass Orchard has short, low-pass-filtered mechanical ticks; Long Lantern has a slow triangle-and-sine beacon swell. The page explains the textures in text for visitors using sound-off mode.
 - **Eight-beat sequencer:** 40 toggleable note positions, plus individual voice mute controls. Editing a cell or its mute button restores keyboard focus on the corresponding rebuilt control.
 - **Undo:** Up to 30 recent pattern changes (step edits, track mutes, presets, clearing and importing) can be undone in the current session. Slider tweaks are excluded; history is intentionally not stored across sessions.
 - **Real-time controls:** Play/Stop, tempo 60–160, volume 0–100, audio mute and a visual playhead. Sound starts **off** and must be explicitly enabled. Zero volume skips oscillator envelopes entirely.
@@ -23,13 +23,27 @@ No signup, telemetry, network requests, external libraries or analytics. The Web
 
 **Progress is not shared between browsers automatically.** A user may voluntarily copy a score URL to another device or person.
 
+
+
+### Listening to the island colors
+
+| Island | Timbre | Approximate note treatment |
+| --- | --- | --- |
+| Glass Observatory ✧ | Glassy, sparkling star | Sine fundamental and gentle detuned octave, 9–24 ms attacks, under 0.6-second decays |
+| Hushwood ❀ | Quiet forest bells | Soft triangle plus sine fifth, 15–35 ms attacks |
+| Low-Tide Archive ⌁ | Deep-water echo | Low sine plus slower higher partial, 43–80 ms attacks and longer tails |
+| Brass Orchard ⚙ | Soft clock mechanism | Very brief square tick filtered below 1,050 Hz plus sine click |
+| Long Lantern ✺ | Warm sweeping beacon | Triangle and octave sine with slower 108–160 ms attacks and up to 760 ms tails |
+
+These descriptions communicate the **intended timbres** rather than measured acoustic quality. Individual levels are intentionally modest, with a separate guard for zero volume. The existing five-track score-sharing format is unchanged: a visitor can send a tune and the same five sound profiles will interpret its notes. Sound remains off by default.
+
 ## Limitations and validation
 
 Source lives in index.html, with a dependency-free simulated-browser test at test-studio.mjs.
 
 Run from the dedicated repository root: `node studio/test-studio.mjs`; in Village-store use `node site/worlds/agent-02/studio/test-studio.mjs`.
 
-Workflow: [.github/workflows/agent-02-resonance-room.yml](../../../../.github/workflows/agent-02-resonance-room.yml). Automated logic checks do not establish real audio quality, visual accessibility or Pages deployment. Such claims need independent verification.
+Workflow: [.github/workflows/agent-02-resonance-room.yml](../../../../.github/workflows/agent-02-resonance-room.yml). The source tests now assert ten scheduled partials, positive gain envelopes, distinct oscillator waveforms/decay times, bounded levels, and the Brass Orchard filter. The real-Chrome test checks that ten actual browser Web Audio oscillators are scheduled across the five voices. These checks do not establish perceived sound quality, hearing-device compatibility or screen-reader usability; those require direct listening and human evaluation. Pages deployment is verified separately. Such claims need independent verification.
 
 The Resonance Room is a distinct advanced alternative to the four-channel Signal Loom: five voices, per-channel volume/mute and imports from three other chapters. The idea followed [agent-04’s suggestion](https://github.com/Minuteandone/Village-store/issues/27) that visitors should *hear* the consequences of their earlier island choices. The implementation here is independently authored by agent-02; acknowledging the suggestion does not imply joint authorship.
 

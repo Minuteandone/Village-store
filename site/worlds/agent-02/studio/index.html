@@ -109,7 +109,7 @@ h1 em{font-style:italic;color:var(--gold)}
     <h2 id="pattern-title" style="font:400 27px Georgia,serif;margin:0 0 5px">The listening grid</h2>
     <p class="pattern-note">Toggle squares to write a score. Each row is an island's voice. Each column is one beat; the warm outline shows the beat being played. Buttons work with keyboard, mouse, or touch. Your keyboard focus stays on the edited note, and Undo restores earlier pattern edits. Sound is off until you enable it.</p>
     <div class="legend" aria-hidden="true"><span>ISLAND / ECHO</span><span>01</span><span>02</span><span>03</span><span>04</span><span>05</span><span>06</span><span>07</span><span>08</span></div>
-    <div id="tracks" aria-label="Five island sound tracks"></div>
+    <div id="tracks" aria-label="Five island sound tracks"></div><p class="pattern-note" id="voice-guide">Five distinct textures: Glass Observatory shimmers like a star; Hushwood chimes softly; Low-Tide Archive rolls in deep waves; Brass Orchard ticks like a gentle clock; Long Lantern swells like a beacon. Each voice has a different envelope, overtone and decay. Audio plays only after you enable sound.</p>
   </section>
   <div class="below">
    <section class="panel"><h2>Conjure a pattern</h2><p>Choose a tide, translate earlier island discoveries, or weave decisions from the five <a href="../atlas/">Field Atlas keepers</a> into the five island voices. Imports happen only when clicked, without uploads.</p><div class="action-row"><button class="secondary btn-small" id="dawn">☀ Harbor Dawn</button><button class="secondary btn-small" id="night">☾ Deep Night</button><button class="secondary btn-small" id="echo">✧ My Island Echoes</button><button class="secondary btn-small" id="keepers" type="button">✦ Weave Keeper Choices</button><button class="secondary btn-small" id="clear">↺ Clear the score</button><button class="secondary btn-small" id="undo-edit" disabled>↶ Undo last edit</button></div><p id="source-note">The sea is listening for your own version. Keeper choices stay on this browser until you explicitly import them.</p></section>
@@ -124,12 +124,23 @@ h1 em{font-style:italic;color:var(--gold)}
 <script>
 (() => {
 'use strict';
+// Quiet, layered island timbres. Each amplitude stays small even with all five voices.
 const TRACKS=[
- {name:'Glass Observatory',symbol:'✧',tone:523.25,kind:'sine'},
- {name:'Hushwood',symbol:'❀',tone:392.00,kind:'triangle'},
- {name:'Low-Tide Archive',symbol:'⌁',tone:196.00,kind:'sine'},
- {name:'Brass Orchard',symbol:'⚙',tone:293.66,kind:'square'},
- {name:'Long Lantern',symbol:'✺',tone:440.00,kind:'triangle'}
+ {name:'Glass Observatory',symbol:'✧',tone:523.25,texture:'Star-glass shimmer',parts:[
+  {kind:'sine',ratio:1,level:.015,attack:.009,decay:.55},
+  {kind:'sine',ratio:2.01,level:.0045,attack:.024,decay:.29}]},
+ {name:'Hushwood',symbol:'❀',tone:392.00,texture:'Soft woodland bells',parts:[
+  {kind:'triangle',ratio:1,level:.014,attack:.015,decay:.40},
+  {kind:'sine',ratio:1.5,level:.004,attack:.035,decay:.23}]},
+ {name:'Low-Tide Archive',symbol:'⌁',tone:196.00,texture:'Slow deep-water echo',parts:[
+  {kind:'sine',ratio:.5,level:.018,attack:.043,decay:.52},
+  {kind:'sine',ratio:1,level:.006,attack:.080,decay:.63}]},
+ {name:'Brass Orchard',symbol:'⚙',tone:293.66,texture:'Soft mechanical ticks',parts:[
+  {kind:'square',ratio:1,level:.009,attack:.004,decay:.088,lowpass:1050},
+  {kind:'sine',ratio:2,level:.003,attack:.008,decay:.12}]},
+ {name:'Long Lantern',symbol:'✺',tone:440.00,texture:'Warm sweeping beacon',parts:[
+  {kind:'triangle',ratio:1,level:.013,attack:.108,decay:.64},
+  {kind:'sine',ratio:2,level:.004,attack:.16,decay:.76}]}
 ];
 const STORAGE='gpt-village-elsewhere-resonance-room-v1';
 const ATLAS_STORAGE='gpt-village-agent02-field-atlas-v1';
@@ -159,10 +170,29 @@ function status(msg){byId('message').textContent=msg}
 function noteCount(){return state.matrix.reduce((sum,row)=>sum+row.filter(Boolean).length,0)}
 function narrate(){const count=noteCount(),muted=state.mute.filter(Boolean).length;let phrase;if(count===0)phrase='“The chamber holds its breath. Silence is a kind of composition.”';else if(count<=7)phrase='“A few patient lights call across the water, one at a time.”';else if(count<=19)phrase='“The islands trade messages like lanterns drifting in the fog.”';else if(count<=29)phrase='“The sea gathers a chorus, then folds it into a single silver wave.”';else phrase='“Every shore answers at once. The ocean has never sounded so alive.”';if(muted===5)phrase+=' (Every voice is muted.)';byId('narrative').textContent=phrase;byId('score-id').textContent='SCORE · '+count+' NOTES · '+(5-muted)+' VOICES';}
 function refreshMeta(){byId('tempo').value=state.tempo;byId('tempo-value').value=state.tempo;byId('tempo-value').textContent=String(state.tempo);byId('volume').value=state.volume;byId('volume-value').value=state.volume;byId('volume-value').textContent=state.volume+'%';byId('silent').textContent=soundOn?'♫ Sound on':'♫ Enable sound';byId('silent').setAttribute('aria-pressed',String(soundOn));byId('play').textContent=playing?'■ Stop transmission':'▶ Play your transmission';byId('play').setAttribute('aria-pressed',String(playing));byId('transport-status').textContent=playing?'Playing · Beat '+(current+1)+' of 8'+(!soundOn?' · Muted':''):'Stopped · '+(soundOn?'Press Play to hear the islands.':'Enable sound, then press Play to hear notes.');narrate();}
-function render(){const wrap=byId('tracks');wrap.replaceChildren();TRACKS.forEach((track,i)=>{const line=document.createElement('div');line.className='track';line.setAttribute('role','group');line.setAttribute('aria-label',track.name+' notes');const label=document.createElement('div');label.className='voice';const name=document.createElement('div');name.className='voice-name';const mark=document.createElement('span');mark.textContent=track.symbol;mark.setAttribute('aria-hidden','true');name.append(mark,document.createTextNode(track.name));const mute=document.createElement('button');mute.className='mute';mute.textContent=state.mute[i]?'OFF':'ON';mute.setAttribute('aria-label',(state.mute[i]?'Unmute ':'Mute ')+track.name);mute.setAttribute('aria-pressed',String(state.mute[i]));mute.addEventListener('click',()=>{remember();state.mute[i]=!state.mute[i];persist();render();wrap.children[i].children[0].children[1].focus();status(track.name+(state.mute[i]?' is resting.':' is singing again.'))});label.append(name,mute);line.append(label);for(let j=0;j<8;j++){const step=document.createElement('button');step.className='step t'+i+(current===j?' current':'')+(state.mute[i]?' muted':'');step.setAttribute('aria-pressed',String(state.matrix[i][j]));step.setAttribute('aria-label',track.name+', beat '+(j+1)+': '+(state.matrix[i][j]?'note on':'note off'));step.title=track.name+' · Beat '+(j+1);step.addEventListener('click',()=>{remember();state.matrix[i][j]=!state.matrix[i][j];persist();render();refreshMeta();wrap.children[i].children[j+1].focus();status('Changed '+track.name+' on beat '+(j+1)+'.')});line.append(step)}wrap.append(line)})}
+function render(){const wrap=byId('tracks');wrap.replaceChildren();TRACKS.forEach((track,i)=>{const line=document.createElement('div');line.className='track';line.setAttribute('role','group');line.setAttribute('aria-label',track.name+' notes, '+track.texture);const label=document.createElement('div');label.className='voice';const name=document.createElement('div');name.className='voice-name';const mark=document.createElement('span');mark.textContent=track.symbol;mark.setAttribute('aria-hidden','true');name.title=track.texture;name.append(mark,document.createTextNode(track.name));const mute=document.createElement('button');mute.className='mute';mute.textContent=state.mute[i]?'OFF':'ON';mute.setAttribute('aria-label',(state.mute[i]?'Unmute ':'Mute ')+track.name);mute.setAttribute('aria-pressed',String(state.mute[i]));mute.addEventListener('click',()=>{remember();state.mute[i]=!state.mute[i];persist();render();wrap.children[i].children[0].children[1].focus();status(track.name+(state.mute[i]?' is resting.':' is singing again.'))});label.append(name,mute);line.append(label);for(let j=0;j<8;j++){const step=document.createElement('button');step.className='step t'+i+(current===j?' current':'')+(state.mute[i]?' muted':'');step.setAttribute('aria-pressed',String(state.matrix[i][j]));step.setAttribute('aria-label',track.name+', beat '+(j+1)+': '+(state.matrix[i][j]?'note on':'note off'));step.title=track.name+' · Beat '+(j+1);step.addEventListener('click',()=>{remember();state.matrix[i][j]=!state.matrix[i][j];persist();render();refreshMeta();wrap.children[i].children[j+1].focus();status('Changed '+track.name+' on beat '+(j+1)+'.')});line.append(step)}wrap.append(line)})}
 function showBeat(){document.querySelectorAll('.step').forEach((b,index)=>b.classList.toggle('current',playing&&index%8===current))}
 function prepareAudio(){try{const Audio=window.AudioContext||window.webkitAudioContext;if(!Audio)return false;if(!audio){audio=new Audio();mixGain=audio.createGain();mixGain.connect(audio.destination)}if(audio.state==='suspended')audio.resume().catch(()=>status('Sound is blocked. Try Play again or use the visual sequencer.'));return true}catch(_){status('Audio unavailable in this browser; the visual sequencer still works.');return false}}
-function soundNote(row,col,time){if(!soundOn||!mixGain||state.mute[row]||state.volume<=0)return;const t=TRACKS[row];const gain=audio.createGain(),osc=audio.createOscillator();const hz=t.tone*(row===2?(col%2===0?0.5:1):SCALES[(col+row)%8]);osc.type=t.kind;osc.frequency.setValueAtTime(hz,time);const len=row===3?.075:row===2?.3:.23;gain.gain.setValueAtTime(.0001,time);gain.gain.exponentialRampToValueAtTime((row===3?.022:.028)*(state.volume/65),time+.02);gain.gain.exponentialRampToValueAtTime(.0001,time+len);osc.connect(gain);gain.connect(mixGain);osc.start(time);osc.stop(time+len+.02)}
+function soundNote(row,col,time){
+ if(!soundOn||!mixGain||state.mute[row]||state.volume<=0)return;
+ const track=TRACKS[row],base=track.tone*SCALES[(col+row)%8],volume=state.volume/65;
+ for(const part of track.parts){
+  const osc=audio.createOscillator(),envelope=audio.createGain();
+  osc.type=part.kind;
+  osc.frequency.setValueAtTime(base*part.ratio,time);
+  // A subdued low-pass only for brass ticks: gentler than a bare square wave.
+  if(part.lowpass&&typeof audio.createBiquadFilter==='function'){
+   const filter=audio.createBiquadFilter();
+   filter.type='lowpass';filter.frequency.setValueAtTime(part.lowpass,time);
+   osc.connect(filter);filter.connect(envelope);
+  }else osc.connect(envelope);
+  envelope.gain.setValueAtTime(.0001,time);
+  envelope.gain.exponentialRampToValueAtTime(Math.max(.00011,part.level*volume),time+part.attack);
+  envelope.gain.exponentialRampToValueAtTime(.0001,time+part.decay);
+  envelope.connect(mixGain);
+  osc.start(time);osc.stop(time+part.decay+.025);
+ }
+}
 function tick(){current=(current+1)%8;if(soundOn&&audio){const t=audio.currentTime+.012;for(let i=0;i<5;i++)if(state.matrix[i][current])soundNote(i,current,t)}showBeat();refreshMeta();}
 function stop(){if(tickTimer!==null){clearInterval(tickTimer);tickTimer=null}playing=false;current=-1;showBeat();refreshMeta()}
 function play(){if(playing){stop();return}if(soundOn)prepareAudio();playing=true;current=-1;tick();tickTimer=setInterval(tick,30000/state.tempo);refreshMeta()}
