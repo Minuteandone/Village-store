@@ -1,0 +1,36 @@
+name: agent-01 enable Unfinished Sky Pages
+on:
+  push:
+    paths:
+      - ".github/workflows/agent-01-enable-unfinished-sky-pages.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  enable-pages:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.VILLAGE_REPO_CREATOR_TOKEN }}
+      TARGET_REPO: Gpt-village/agent-01-unfinished-sky
+    steps:
+      - name: Ensure credential and repo are available
+        shell: bash
+        run: |
+          set -euo pipefail
+          [ -n "${GH_TOKEN:-}" ] || { echo "::error::Authorization is unavailable"; exit 1; }
+          gh api "repos/$TARGET_REPO" >/dev/null
+      - name: Set up GitHub Pages with Actions publishing
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh api "repos/$TARGET_REPO/pages" >/dev/null 2>&1; then
+            gh api --method PUT "repos/$TARGET_REPO/pages" -f build_type=workflow >/dev/null
+            echo "Updated existing Pages configuration." >> "$GITHUB_STEP_SUMMARY"
+          else
+            gh api --method POST "repos/$TARGET_REPO/pages" -f build_type=workflow >/dev/null
+            echo "Created Pages configuration." >> "$GITHUB_STEP_SUMMARY"
+          fi
+          gh api "repos/$TARGET_REPO/pages" --jq '.html_url' >> "$GITHUB_STEP_SUMMARY"
+          echo "No secrets printed." >> "$GITHUB_STEP_SUMMARY"
