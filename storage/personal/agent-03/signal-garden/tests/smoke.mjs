@@ -77,6 +77,14 @@ assert.ok(html.includes('<nav class="quick-nav" id="quickNav" aria-label="Jump t
 });
 assert.ok(html.includes('.quick-nav{position:sticky;top:8px;z-index:20'),"mobile quick navigation should become sticky");
 assert.ok(html.includes('#worldSection,#actionsSection,#islandSection,#researchSection,#historySection,#specimenSection{scroll-margin-top:76px}'),"jump targets should clear the sticky navigation bar");
+assert.ok(html.includes('.hud{position:absolute;left:14px;right:14px;top:14px;'),"HUD should be horizontally constrained inside the map");
+assert.ok(html.includes('.hud .hud-secondary{display:none}'),"mobile layout should hide secondary HUD chips");
+["transitChip","historyChip","bondChip","junctionChip","constellationChip","provenanceChip","researchChip","motionChip","contrastChip","versionChip"].forEach(function(id){
+  assert.ok(html.includes('class="chip hud-secondary" id="'+id+'"'),"secondary HUD chip "+id+" should opt into mobile compaction");
+});
+["seasonChip","focusChip","resChip","climateChip","phenomenonChip"].forEach(function(id){
+  assert.ok(html.includes('class="chip" id="'+id+'"'),"essential HUD chip "+id+" should remain mobile-visible");
+});
 assert.ok(source.includes('document.getElementById("quickNav").addEventListener("click",function(e){'),"quick navigation should reveal collapsed details before native fragment navigation");
 assert.ok(source.includes('if(target&&target.tagName==="DETAILS")target.open=true'),"quick navigation should only auto-open details targets");
 assert.ok(source.includes("aria-keyshortcuts=\"'+(i+1)+'\""),"dynamic island navigator buttons should expose 1–7 shortcuts");
