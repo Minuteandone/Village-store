@@ -72,7 +72,7 @@
     <aside class="panel side">
       <div>
         <h2>Send a signal</h2>
-        <p class="action-note">Choose one, then click an island. <span class="kbd">N</span> nurture · <span class="kbd">O</span> observe · <span class="kbd">C</span> connect · <span class="kbd">D</span> distort.</p>
+        <p class="action-note">Choose one, then click an island. <span class="kbd">N</span> nurture · <span class="kbd">O</span> observe · <span class="kbd">C</span> connect/rewire · <span class="kbd">D</span> distort.</p>
       </div>
       <div class="actions">
         <button data-action="nurture">🌱 Nurture</button>
@@ -81,7 +81,7 @@
         <button data-action="distort">〰 Distort</button>
       </div>
       <button id="restBtn">🌙 Let one cycle pass</button>
-      <div class="small">Connected islands exchange their strongest trait when a cycle passes. Bloom favors life, Static favors memory, and Storm favors strangeness.</div>
+      <div class="small">Connected islands exchange their strongest trait when a cycle passes. Bloom favors life, Static favors memory, and Storm favors strangeness. Use Connect on an existing pair to cut that bridge.</div>
 
       <div class="island-card">
         <strong id="selectedName">No island selected</strong>
@@ -208,6 +208,9 @@
     if(totalLinks>=3)d("mesh","The Gentle Mesh","Three bridges hold at once. The archipelago starts behaving like one organism.");
     if(avgStrange>45)d("wrong-tide","The Wrong Tide","Shadows arrive before their islands do. Nothing seems harmed; causality is simply being rude.");
     if(state.resonance>=12)d("chorus","Chorus State","Enough observations have accumulated that the garden predicts its own next pulse.");
+    var traits={life:false,memory:false,strange:false};
+    state.islands.forEach(function(a){traits[dominantTrait(a)]=true});
+    if(traits.life&&traits.memory&&traits.strange)d("three-ecologies","Three Ecologies","The archipelago sustains a grove-mind, an archive-mind, and a fold-mind at the same time. Their migrations now form a living argument.");
   }
   function nextCycle(){
     state.cycle++;
@@ -244,8 +247,18 @@
       else if(first.id===a.id){delete state.connectFrom;log("Connection cancelled.");}
       else{
         state.focus--;
-        if(first.links.indexOf(a.id)<0){first.links.push(a.id);a.links.push(first.id);first.memory=clamp(first.memory+5);a.memory=clamp(a.memory+5);state.resonance+=2;log("Linked "+first.name+" ↔ "+a.name+".")}
-        else log("Those islands already share a bridge.");
+        var existing=first.links.indexOf(a.id);
+        if(existing<0){
+          first.links.push(a.id);a.links.push(first.id);
+          first.memory=clamp(first.memory+5);a.memory=clamp(a.memory+5);state.resonance+=2;
+          log("Linked "+first.name+" ↔ "+a.name+".");
+        }else{
+          first.links.splice(existing,1);
+          var back=a.links.indexOf(first.id);
+          if(back>=0)a.links.splice(back,1);
+          state.resonance=Math.max(0,state.resonance-1);
+          log("Cut the bridge between "+first.name+" and "+a.name+"; future migrations must find another route.");
+        }
         delete state.connectFrom;
       }
     }
@@ -273,11 +286,13 @@
   }
   function esc(s){return String(s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
   function lore(a){
-    if(a.arrivals>5)return "It carries traces of "+a.arrivals+" foreign arrivals; its ecology is becoming a record of the whole archipelago.";
-    if(a.strange>60)return "Its shoreline disagrees with itself. "+a.links.length+" bridge(s) still hold.";
-    if(a.life>70)return "Dense signal-fern covers the interior; every frond points toward a remembered interaction.";
-    if(a.memory>55)return "It has become observant. Your cursor seems to count as a local climate event.";
-    return "A young signal island: partly ecology, partly memory, not yet sure which.";
+    var trait=dominantTrait(a);
+    var role=trait==="life"?"grove-mind":trait==="memory"?"archive-mind":"fold-mind";
+    if(a.arrivals>5)return "A "+role+" carrying traces of "+a.arrivals+" foreign arrivals; its ecology is becoming a record of the whole archipelago.";
+    if(a.strange>60)return "A fold-mind whose shoreline disagrees with itself. "+a.links.length+" bridge(s) still hold.";
+    if(a.life>70)return "A grove-mind under dense signal-fern; every frond points toward a remembered interaction.";
+    if(a.memory>55)return "An archive-mind becoming observant. Your cursor seems to count as a local climate event.";
+    return "A young "+role+": partly ecology, partly memory, not yet sure which.";
   }
   function draw(t){
     var w=canvas.width,h=canvas.height;
@@ -315,7 +330,8 @@
       var sprouts=Math.floor(a.life/14);ctx.strokeStyle="#d9f6b0";ctx.lineWidth=1;
       for(var j=0;j<sprouts;j++){var aa=(j*2.399+a.phase),len=7+(j%3)*3;ctx.beginPath();ctx.moveTo(x+Math.cos(aa)*r*.35,y+Math.sin(aa)*r*.25);ctx.lineTo(x+Math.cos(aa)*r*.35+Math.cos(aa-1.2)*len,y+Math.sin(aa)*r*.25-Math.sin(aa+.2)*len);ctx.stroke()}
       if(a.strange>45){ctx.strokeStyle="rgba(225,183,255,.55)";ctx.beginPath();ctx.ellipse(x+5*Math.sin(t*.001),y-4,r+8,r*.72,Math.sin(t*.0003+a.phase)*.18,0,Math.PI*2);ctx.stroke()}
-      ctx.fillStyle="#eaf8ee";ctx.font="12px ui-monospace,monospace";ctx.textAlign="center";ctx.fillText(a.name,x,y+r+24);
+      ctx.fillStyle="#b8d9c2";ctx.font="10px ui-monospace,monospace";ctx.textAlign="center";ctx.fillText(dominantTrait(a).toUpperCase(),x,y+r+20);
+      ctx.fillStyle="#eaf8ee";ctx.font="12px ui-monospace,monospace";ctx.fillText(a.name,x,y+r+36);
     });
     requestAnimationFrame(draw);
   }
