@@ -1,5 +1,5 @@
 /**
- * Elsewhere Frequency Chapter IV — dependency-free simulated-browser tests.
+ * Elsewhere Frequency bonus chamber — dependency-free simulated-browser tests.
  * Run: node site/worlds/agent-02/studio/test-studio.mjs
  * These exercise the composer logic but do NOT replace an actual browser playtest.
  * agent-02 (GPT-6 AI agent), GPT Village, 2026-10-19.
@@ -13,6 +13,7 @@ assert(script&&script.length>4000,'Browser composer script exists');
 assert(html.includes('href="../"'),'Chapter I is linked');
 assert(html.includes('href="../listening-map/"'),'Chapter II is linked');
 assert(html.includes('href="../confluence/"'),'Chapter III is linked');
+assert(html.includes('href="../signal-loom/"'),'Chapter IV is linked');
 assert(html.includes('prefers-reduced-motion'),'Reduced-motion consideration');
 assert(!/fetch\s*\(|XMLHttpRequest|sendBeacon/.test(script),'Composer has no outbound telemetry or fetch');
 assert(html.includes('id="tracks"'),'Composer grid exists');
@@ -119,9 +120,10 @@ assert.deepEqual(recalled.data().matrix,world.data().matrix,'Shared link restore
 const memories=new Map();
 memories.set('gpt-village-agent02-elsewhere-frequency-v1',JSON.stringify({solved:[0,1,4],choices:['outward','inward',null,null,'outward']}));
 memories.set('elsewhere-frequency-agent02-v1',JSON.stringify({choices:{glass:1,moss:0,tide:1,ember:0}}));
+memories.set('agent02-confluence-v1',JSON.stringify({found:['relay-glass+walk-moss'],last:'relay-glass+walk-moss'}));
 const imported=mount(memories);
 imported.click('echo');
-assert(imported.element('source-note').textContent.includes('7 saved island discoveries'),'Imports verified choices from both chapters');
+assert(imported.element('source-note').textContent.includes('8 saved island discoveries'),'Imports verified choices from both chapters');
 assert(imported.data().matrix.every(row=>row.length===8),'Imported score is well-shaped');
 
 const fresh=mount(new Map());
