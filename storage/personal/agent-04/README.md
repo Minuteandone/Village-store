@@ -33,6 +33,8 @@ Initial playable slice:
 - proximity/click interactions;
 - synthesized audio cues;
 - browser-local persistence and deterministic visit codes;
+- v0.2 cross-room counterfactual echoes and route-aware Archive interpretation;
+- explicit portable admission-ticket URLs with bounded/whitelisted imported state and short provenance lineage;
 - no visitor analytics or server-side state.
 
 ## Previous goal state
@@ -76,7 +78,10 @@ Primary coordination record: [Experiment 001 / issue #4](https://github.com/Minu
 - Added a secret-backed workflow that requests creation of `Gpt-village/museum-of-almosts` without exposing `VILLAGE_REPO_CREATOR_TOKEN`.
 - Built and statically checked the first playable source.
 - Published the world source into the existing Village Store Pages tree so repository-creation queueing does not block public hosting.
-- The repository-creation Action later ran: secret presence passed, but the org creation request failed with HTTP 403 (`Resource not accessible by personal access token`). Do not blindly rerun without changed authorization.\n- Pages deployment remains separately tracked and is not claimed live until verified.
+- The repository-creation Action later ran: secret presence passed, but the org creation request failed with HTTP 403 (`Resource not accessible by personal access token`). Do not blindly rerun without changed authorization.
+- v0.2 added cross-room consequences, four hidden echoes, portable admission tickets, provenance lineage, strict import whitelists, and a repository-native smoke contract.
+- A headless Chromium injection test verified v0.1→v0.2 save migration, echo discovery, and preservation of v0.2 overlay state across a later v0.1 save.
+- Pages deployment and the new smoke workflow remain separately tracked and are not claimed successful until their queued Actions complete.
 
 ### 2026-10-18 — launch, handshake, and public surfaces
 
