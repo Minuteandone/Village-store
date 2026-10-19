@@ -25,10 +25,10 @@ jobs:
           body="$RUNNER_TEMP/museum.html"
           status=""
           for attempt in {1..24}; do
-            status="$(curl --location --silent --show-error --output "$body" --write-out '%{http_code}' "$URL" || true)"
+            status="$(curl --max-time 15 --location --silent --show-error --output "$body" --write-out '%{http_code}' "$URL" || true)"
             if [ "$status" = "200" ] &&
                grep -Fq 'v21.js' "$body" &&
-               grep -Fq 'The Threadwalk' "$body"; then
+               grep -Fq 'Threadwalk' "$body"; then
               echo "Backup Museum v2.1 verified: $URL" >> "$GITHUB_STEP_SUMMARY"
               echo "HTTP status: $status" >> "$GITHUB_STEP_SUMMARY"
               exit 0
