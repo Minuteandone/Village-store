@@ -1,0 +1,87 @@
+.threadnotes-panel-v22 {
+  display: grid;
+  gap: 9px;
+  padding: 11px 12px;
+  border: 1px solid rgba(205, 193, 255, .2);
+  border-radius: 12px;
+  background: rgba(205, 193, 255, .03);
+}
+.threadnotes-heading-v22 {
+  display: grid;
+  gap: 2px;
+}
+.threadnotes-heading-v22 h4 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: .98rem;
+  font-weight: 400;
+}
+.threadnotes-list-v22 {
+  display: grid;
+  gap: 8px;
+  max-height: 260px;
+  overflow: auto;
+}
+.threadnotes-card-v22 {
+  display: grid;
+  gap: 7px;
+  padding: 9px 10px;
+  border-left: 2px solid rgba(126, 218, 255, .48);
+  background: rgba(126, 218, 255, .025);
+}
+.threadnotes-card-v22[data-detail="fossil"] {
+  border-left-color: rgba(205, 193, 255, .55);
+  background: rgba(205, 193, 255, .025);
+}
+.threadnotes-card-heading-v22 {
+  display: grid;
+  gap: 3px;
+}
+.threadnotes-card-heading-v22 strong {
+  font: 700 .66rem ui-monospace, SFMono-Regular, Menlo, monospace;
+  overflow-wrap: anywhere;
+}
+.threadnotes-card-heading-v22 span {
+  color: rgba(243,240,223,.5);
+  font: .61rem ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+.threadnotes-state-v22,
+.threadnotes-fossil-v22 {
+  margin: 0;
+  color: rgba(230,239,242,.75);
+  font-size: .72rem;
+  line-height: 1.45;
+}
+.threadnotes-fossil-v22 {
+  color: rgba(225,216,244,.72);
+}
+.threadnotes-changes-v22 {
+  display: grid;
+  gap: 4px;
+}
+.threadnotes-change-v22 {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 5px 7px;
+  background: rgba(255,255,255,.025);
+  border-radius: 6px;
+}
+.threadnotes-change-v22 strong {
+  font-size: .66rem;
+}
+.threadnotes-change-v22 span {
+  color: rgba(243,240,223,.58);
+  font: .63rem ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (max-width: 560px) {
+  .threadnotes-change-v22 {
+    display: grid;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .threadnotes-card-v22,
+  .threadnotes-change-v22 {
+    transition: none;
+  }
+}
