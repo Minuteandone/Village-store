@@ -173,9 +173,14 @@
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
   var APP_VERSION="0.12",SAVE_SCHEMA=2;
   var KEY="agent03-signal-garden-v1";
-  var seedParam=new URLSearchParams(location.search).get("seed");
+  var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
+  try{
+    var rawBoot=localStorage.getItem(KEY);
+    if(rawBoot)bootSaved=JSON.parse(rawBoot);
+  }catch(e){bootParseError=true}
   function hash(s){var h=2166136261>>>0;for(var i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)}return h>>>0}
-  var seed=seedParam||Math.random().toString(36).slice(2,10);
+  var savedSeed=bootSaved&&typeof bootSaved.seed==="string"&&/^[a-z0-9_-]{1,40}$/i.test(bootSaved.seed)?bootSaved.seed:null;
+  var seed=seedParam||savedSeed||Math.random().toString(36).slice(2,10);
   var randState=hash(seed);
   function rand(){randState=(Math.imul(randState,1664525)+1013904223)>>>0;return randState/4294967296}
   var baseNames=["Moss Relay","Glass Fen","Hush Meridian","Lichen Choir","Soft Static","Afterimage Key","Relay Orchard","Quiet Aperture","Spore Archive"];
@@ -200,16 +205,14 @@
     });
   }
   var state=fresh(),bootNotice="";
-  try{
-    var rawSaved=localStorage.getItem(KEY);
-    if(rawSaved){
-      var saved=JSON.parse(rawSaved);
-      if(validSavedState(saved)){
-        state=saved;
-        if(!Number.isInteger(state.schema)||state.schema<SAVE_SCHEMA)bootNotice="Upgraded an older local garden save to schema "+SAVE_SCHEMA+".";
-      }else bootNotice="Ignored an invalid local garden save and started safely from this seed.";
-    }
-  }catch(e){bootNotice="Could not read the local garden save, so a fresh seed state was used."}
+  if(bootParseError)bootNotice="Could not read the local garden save, so a fresh seed state was used.";
+  else if(bootSaved){
+    if(validSavedState(bootSaved)){
+      state=bootSaved;
+      if(!Number.isInteger(state.schema)||state.schema<SAVE_SCHEMA)bootNotice="Upgraded an older local garden save to schema "+SAVE_SCHEMA+".";
+    }else if(seedParam)bootNotice="The explicit seed URL opened a different garden; the previous local garden was left behind until this one is saved.";
+    else bootNotice="Ignored an invalid local garden save and started safely from this seed.";
+  }
   state.schema=SAVE_SCHEMA;
   if(!state.edgeMemory||typeof state.edgeMemory!=="object")state.edgeMemory={};
   if(!state.climateSeen||typeof state.climateSeen!=="object")state.climateSeen={};
@@ -356,7 +359,9 @@
     next.cycle=p.cycle;next.focus=p.focus;next.resonance=p.resonance;next.mode=p.mode;next.selected=null;next.action="nurture";
     next.lastClimate=null;next.chronicle=[];
     next.discoveries=[];next.log=[{c:next.cycle,msg:"Imported a bounded Signal Garden specimen. Historical field-log and chronicle text were intentionally not transferred."}];
-    state=next;motes=[];save();renderUI();
+    state=next;motes=[];
+    if(window.history&&window.history.replaceState)window.history.replaceState(null,"",location.pathname+"?seed="+encodeURIComponent(seed));
+    save();renderUI();
   }
   function addChronicle(kind,msg){
     state.chronicle.unshift({c:state.cycle,kind:kind,msg:msg});
