@@ -35,9 +35,10 @@ function mount(store=new Map(),hash=''){
   const islands=Array.from({length:5},(_,i)=>{const n=element('island-'+i);n.dataset.island=String(i);return n});
   const skies=['dawn','night','mist'].map(x=>{const n=element('weather-'+x);n.dataset.weather=x;return n});
   const lenses=['listen','remember','wonder'].map(x=>{const n=element('lens-'+x);n.dataset.lens=x;return n});
+  const endings=['carry','release','anchor'].map(x=>{const n=element('final-'+x);n.dataset.final=x;return n});
   const doc={
     getElementById:element,
-    querySelectorAll(s){if(s==='[data-island]')return islands;if(s==='[data-weather]')return skies;if(s==='[data-lens]')return lenses;throw Error('Unexpected CSS selector '+s)},
+    querySelectorAll(s){if(s==='[data-island]')return islands;if(s==='[data-weather]')return skies;if(s==='[data-lens]')return lenses;if(s==='[data-final]')return endings;throw Error('Unexpected CSS selector '+s)},
     createElement(tag){return element('created-'+tag+'-'+nodes.size)}
   };
   const localStorage={getItem:k=>store.get(k)??null,setItem:(k,v)=>store.set(k,v)};
@@ -48,8 +49,9 @@ function mount(store=new Map(),hash=''){
   function visit(i){return islands[i].events.click()}
   function weather(i){return skies[i].events.click()}
   function lens(i){return lenses[i].events.click()}
+  function ending(i){return endings[i].events.click()}
   function state(){return JSON.parse(store.get(key))}
-  return {element,click,visit,weather,lens,state,copies,store,islands};
+  return {element,click,visit,weather,lens,ending,state,copies,store,islands,endings};
 }
 
 const world=mount();
@@ -65,11 +67,24 @@ assert(world.element('report').value.includes('Long Lantern'));
 world.visit(0);world.visit(3);world.visit(2);
 assert.equal(world.state().route.length,5);
 assert(world.element('status').textContent.includes('Stamp 5'));
+assert.equal(world.element('sixth-shore').hidden,false,'Sixth Shore unlocks after five unique islands');
+assert(world.element('sixth-letter').textContent.includes('unwritten'),'Unlocked ending begins unchosen');
+world.ending(2);
+assert.equal(world.state().ending,'anchor');
+assert(world.element('sixth-letter').textContent.includes('lantern above the sixth shore'));
+assert(world.element('report').value.includes('SIXTH SHORE · anchor'));
+await world.click('copy-link');
+assert(/#route=[0-4]{5}\.[dnm]\.[lrw]\.a$/.test(world.copies[0]),'Complete route link includes selected ending');
+const carried=mount(new Map(),new URL(world.copies[0]).hash);
+assert.equal(carried.state().ending,'anchor','Final promise survives a share link');
+assert.equal(carried.element('sixth-shore').hidden,false,'Imported completed route opens finale');
 world.click('undo');
+assert.equal(world.element('sixth-shore').hidden,true,'Undoing a stop hides finale');
+assert.equal(world.state().ending,null,'Undoing a stop removes the promise');
 assert.deepEqual(world.state().route,[1,4,0,3]);
 await world.click('copy-link');
-assert.equal(world.copies.length,1);
-const routeUrl=world.copies[0];
+assert.equal(world.copies.length,2);
+const routeUrl=world.copies.at(-1);
 assert(/^https:\/\/example\.test\/atlas\/#route=[0-4]{1,5}\.[dnm]\.[lrw]$/.test(routeUrl));
 const restored=mount(new Map(),new URL(routeUrl).hash);
 assert.deepEqual(restored.state().route,[1,4,0,3]);
@@ -77,6 +92,7 @@ assert.equal(restored.state().weather,'dawn');
 assert.equal(restored.state().lens,'wonder');
 restored.click('reset');
 assert.equal(restored.state().route.length,0);
+assert.equal(restored.state().ending,null,'Reset clears Sixth Shore ending');
 assert.equal(restored.element('passport').children.length,1);
 
 const advanced=new Map();
@@ -97,6 +113,12 @@ assert(experienced.copies[0].includes('Glass Observatory'));
 experienced.click('refresh');
 assert.equal(experienced.state().route.length,1,'Refresh leaves route untouched');
 
+const legacy=mount(new Map(),'#route=01234.n.l');
+assert.equal(legacy.state().route.length,5,'Original route URLs still open');
+assert.equal(legacy.state().ending,null,'Original route URLs carry no ending');
+assert.equal(legacy.element('sixth-shore').hidden,false);
+const rejected=mount(new Map(),'#route=01234.n.l.x');
+assert.equal(rejected.state().route.length,0,'Invalid final ending is not imported');
 const damaged=mount(new Map([[key,'{bad'],['gpt-village-agent02-elsewhere-frequency-v1','{"solved":[-1,1,1,100,"2"]}']]),'#route=004.n.w');
 assert.equal(damaged.state().route.length,0,'Malformed duplicate share route is rejected');
 assert.equal(damaged.element('archives').children[0].children[1].textContent,'1 / 5','Bad progress is bounded');
@@ -104,4 +126,4 @@ const saved=mount(new Map([[key,JSON.stringify({route:[2,2,4,999,0],weather:'pur
 assert.deepEqual(saved.state().route,[2,4,0]);
 assert.equal(saved.state().weather,'night');
 assert.equal(saved.state().focus,0);
-console.log('PASS · Atlas routes, duplicate prevention, max five stops, weather, intention, undo, reset, cross-chapter signal counts, share roundtrip, corrupted data recovery.');
+console.log('PASS · Atlas: route uniqueness, Sixth Shore three endings, local saves, backward-compatible share URLs, undo/reset, chapter counts, invalid route recovery.');
