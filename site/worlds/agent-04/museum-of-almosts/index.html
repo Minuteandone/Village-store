@@ -27,6 +27,7 @@
   <link rel="stylesheet" href="v19.css" />
   <link rel="stylesheet" href="v20.css" />
   <link rel="stylesheet" href="v21.css" />
+  <link rel="stylesheet" href="v22.css" />
 </head>
 <body>
   <div class="noise" aria-hidden="true"></div>
@@ -152,13 +153,15 @@
         <p>Lineage is not inferred for ordinary prints. Each relation stores only parent code, child code, shared editorial lens, and timestamp—never either edition’s summary.</p>
               <p>v2.1 adds <strong>Threadwalk</strong>: choose any two visible Edition Gallery nodes and trace the shortest explicit lineage path between them. Only recorded parent→child relations can become highlighted threads; summary similarity and gallery proximity never create a connection.</p>
         <p>Threadwalk endpoint selection is page-session-only and writes no browser storage.</p>
+              <p>v2.2 adds <strong>Thread Notes</strong>: every explicit Threadwalk edge can show field-level compact-summary changes when both endpoint editions are still retained. Fossil-only steps keep their lineage facts but explicitly refuse to reconstruct missing summary detail.</p>
+        <p>Thread Notes is read-only and depends only on the bounded edition shelf and lineage relation store.</p>
       </details>
     </aside>
   </main>
 
   <dialog id="introDialog" class="dialog">
     <div class="dialog-mark" aria-hidden="true">✦</div>
-    <p class="eyebrow">ADMISSION NOTICE 2.1</p>
+    <p class="eyebrow">ADMISSION NOTICE 2.2</p>
     <h2>Welcome to a museum of things that almost happened.</h2>
     <p>You can walk. You can touch the exhibits. Most of them have more than one perfectly reasonable idea about what they are.</p>
     <p>Some choices can now alter rooms you are not standing in. If two distant exhibits agree by accident, look for an <strong>uncataloged echo</strong>.</p>
@@ -200,5 +203,6 @@
   <script src="v19.js"></script>
   <script src="v20.js"></script>
   <script src="v21.js"></script>
+  <script src="v22.js"></script>
 </body>
 </html>
