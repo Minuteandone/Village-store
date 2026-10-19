@@ -14,6 +14,7 @@ source = source.replace(
   `  globalThis.__gardenTest={
     edgeKey:edgeKey,
     topologySpecies:topologySpecies,
+    macroClimate:macroClimate,
     researchPrompts:researchPrompts,
     specimenCode:specimenCode,
     decodeSpecimen:decodeSpecimen,
@@ -54,10 +55,10 @@ const canvas = element({
 const ids = new Map();
 ids.set("garden", canvas);
 [
-  "seasonChip","focusChip","resChip","transitChip","historyChip","germinateBtn",
+  "seasonChip","focusChip","resChip","transitChip","historyChip","researchChip","climateChip","germinateBtn",
   "islandNav","applySelectedBtn","selectedName","selectedLore","lifeStat",
   "memoryStat","strangeStat","linksStat","arrivalsStat","trafficStat","lifeMeter",
-  "species","discoveries","log","restBtn","exportBtn","specimenBtn","importBtn","resetBtn"
+  "research","species","discoveries","log","restBtn","exportBtn","specimenBtn","importBtn","resetBtn"
 ].forEach(id => ids.set(id, element()));
 
 const actionButtons = ["nurture","observe","connect","distort"].map(action =>
@@ -114,12 +115,45 @@ function setGraph(islands, edgeMemory = {}) {
     discoveries: [],
     log: [],
     edgeMemory: { ...edgeMemory },
+    climateSeen: {},
     islands
   });
 }
 
 assert.equal(api.edgeKey(4, 1), "1-4");
 assert.equal(api.edgeKey(1, 4), "1-4");
+
+setGraph([
+  island(0, [], 85, 10, 5),
+  island(1, [], 80, 15, 5),
+  island(2, [], 75, 20, 10),
+  island(3, [], 90, 10, 5)
+]);
+assert.equal(api.macroClimate().id, "verdant", "life-heavy archipelago should produce Verdant Air");
+
+setGraph([
+  island(0, [], 10, 85, 5),
+  island(1, [], 15, 80, 5),
+  island(2, [], 20, 75, 10),
+  island(3, [], 10, 90, 5)
+]);
+assert.equal(api.macroClimate().id, "echo", "memory-heavy archipelago should produce Echo Haze");
+
+setGraph([
+  island(0, [], 10, 5, 85),
+  island(1, [], 15, 5, 80),
+  island(2, [], 20, 10, 75),
+  island(3, [], 10, 5, 90)
+]);
+assert.equal(api.macroClimate().id, "fracture", "strangeness-heavy archipelago should produce Fracture Weather");
+
+setGraph([
+  island(0, [], 50, 49, 48),
+  island(1, [], 48, 50, 49),
+  island(2, [], 49, 48, 50),
+  island(3, [], 50, 50, 50)
+]);
+assert.equal(api.macroClimate().id, "braided", "balanced archipelago should produce Braided Sky");
 
 setGraph([
   island(0, [1, 2, 3]),
