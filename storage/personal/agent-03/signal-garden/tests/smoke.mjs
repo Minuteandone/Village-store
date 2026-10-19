@@ -36,6 +36,9 @@ source = source.replace(
     roleHistoryLabel:roleHistoryLabel,
     recordRoleHistory:recordRoleHistory,
     exportTrait:exportTrait,
+    edgeSignalCounts:edgeSignalCounts,
+    bondForEdgeKey:bondForEdgeKey,
+    routeBonds:routeBonds,
     getState:function(){return state},
     setState:function(next){state=next;motes=[]}
   };`
@@ -72,10 +75,10 @@ const canvas = element({
 const ids = new Map();
 ids.set("garden", canvas);
 [
-  "seasonChip","focusChip","resChip","transitChip","historyChip","researchChip","climateChip","germinateBtn",
+  "seasonChip","focusChip","resChip","transitChip","historyChip","bondChip","researchChip","climateChip","germinateBtn",
   "islandNav","applySelectedBtn","selectedName","selectedLore","lifeStat",
   "memoryStat","strangeStat","linksStat","arrivalsStat","trafficStat","glyphStat","lineageStat","successionStat","lifeMeter",
-  "research","species","discoveries","chronicle","log","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
+  "research","bonds","species","discoveries","chronicle","log","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
 ].forEach(id => ids.set(id, element()));
 
 const actionButtons = ["nurture","observe","connect","distort"].map(action =>
@@ -123,7 +126,7 @@ function island(id, links = [], life = 50, memory = 20, strange = 10) {
   rolesSeen[trait]=true;
   return { id, links: [...links], life, memory, strange, arrivals: 0, glyph: "none", imprints:{life:0,memory:0,strange:0}, lineage:"none", rolesSeen, palimpsest:false };
 }
-function setGraph(islands, edgeMemory = {}) {
+function setGraph(islands, edgeMemory = {}, edgeSignals = {}) {
   api.setState({
     seed: "testseed",
     cycle: 2,
@@ -136,6 +139,7 @@ function setGraph(islands, edgeMemory = {}) {
     log: [],
     chronicle: [],
     edgeMemory: { ...edgeMemory },
+    edgeSignals: Object.fromEntries(Object.entries(edgeSignals).map(([k,v])=>[k,{...v}])),
     climateSeen: {},
     lastClimate: null,
     streakClimate: null,
@@ -184,6 +188,26 @@ assert.equal(api.researchPrompts().find(x=>x.id==="succession").done,true,"Palim
 api.getState().cycle=4;
 assert.equal(api.exportTrait(successionIsland),"memory","Palimpsest export rotation should be deterministic from cycle and island id");
 assert.equal(api.recordRoleHistory(successionIsland),false,"already-Palimpsest island should not retrigger the transition");
+
+setGraph([island(0,[1]),island(1,[0]),island(2),island(3)],{"0-1":6},{"0-1":{life:4,memory:1,strange:1}});
+assert.equal(api.bondForEdgeKey("0-1").kind,"rootway","life-heavy typed route history should mature into Rootway");
+assert.equal(api.routeBonds()[0].name,"Rootway");
+
+setGraph([island(0,[1]),island(1,[0]),island(2),island(3)],{"0-1":6},{"0-1":{life:1,memory:4,strange:1}});
+assert.equal(api.bondForEdgeKey("0-1").kind,"echo-span","memory-heavy typed route history should mature into Echo Span");
+
+setGraph([island(0,[1]),island(1,[0]),island(2),island(3)],{"0-1":6},{"0-1":{life:1,memory:1,strange:4}});
+assert.equal(api.bondForEdgeKey("0-1").kind,"fold-thread","strange-heavy typed route history should mature into Fold Thread");
+
+setGraph([island(0,[1]),island(1,[0]),island(2),island(3)],{"0-1":9},{"0-1":{life:3,memory:3,strange:3}});
+assert.equal(api.bondForEdgeKey("0-1").kind,"braided","balanced mature three-signal history should create Braided Bond");
+assert.equal(api.researchPrompts().find(x=>x.id==="bond").done,true,"Braided Bond should complete its Field Question");
+
+setGraph([island(0,[1]),island(1,[0]),island(2),island(3)],{"0-1":6},{"0-1":{life:3,memory:3,strange:0}});
+assert.equal(api.bondForEdgeKey("0-1"),null,"tied two-signal route history should not invent a specialized bond");
+
+setGraph([island(0,[1]),island(1,[0]),island(2),island(3)],{"0-1":20});
+assert.equal(api.bondForEdgeKey("0-1"),null,"legacy scalar route memory must not fabricate typed bond history");
 
 setGraph([
   island(0, [], 80, 20, 10),
@@ -348,13 +372,44 @@ const remembered=rememberedTransfers.find(x=>x.from===0);
 assert.ok(remembered&&remembered.sourcePalimpsest,"Palimpsest migration should identify its remembered-self source");
 assert.equal(remembered.type,"strange","cycle 2 / island 0 should rotate Palimpsest export to strange");
 assert.equal(api.getState().edgeMemory["0-1"], 4, "two migration pulses should accumulate four total directed crossings");
-
 assert.equal(api.getState().islands[0].arrivals, 2,"two migration pulses should produce two arrivals on island 0");
 assert.equal(api.getState().islands[1].arrivals, 2,"two migration pulses should produce two arrivals on island 1");
 assert.equal(api.getState().islands[0].imprints.memory,2,"island 0 should receive memory ancestry on both pulses");
 assert.equal(api.getState().islands[1].imprints.life,1,"island 1 should retain the first life ancestry imprint");
 assert.equal(api.getState().islands[1].imprints.strange,1,"Palimpsest remembered-self export should add a strange ancestry imprint");
 assert.ok(api.getState().islands[1].memory >= memoryBeforeGlyphMigration + 2, "Echo glyph should add memory on incoming migration");
+
+setGraph([
+  island(0,[1],80,10,5),
+  island(1,[0],20,70,10),
+  island(2),island(3)
+],{"0-1":6},{"0-1":{life:4,memory:1,strange:1}});
+api.getState().cycle=2;
+const bondedTransfers=api.migrateSignals();
+const rootwayTransfer=bondedTransfers.find(x=>x.from===0&&x.to===1&&x.type==="life");
+assert.ok(rootwayTransfer,"Rootway test should include a life migration");
+assert.equal(rootwayTransfer.bondBonus,1,"matching Rootway should add exactly one route-bond strength");
+assert.equal(rootwayTransfer.bondName,"Rootway");
+assert.equal(api.edgeSignalCounts("0-1").life,5,"typed route history should increment after the crossing");
+
+setGraph([
+  island(0,[1],80,10,5),
+  island(1,[0],20,70,10),
+  island(2),island(3)
+],{"0-1":5},{"0-1":{life:3,memory:1,strange:1}});
+api.migrateSignals();
+assert.ok(api.routeBonds().some(x=>x.kind==="rootway"),"new typed crossings should be able to mature a previously unbonded route");
+assert.ok(api.getState().chronicle.some(x=>x.kind==="bond"),"first route-bond maturation should enter the Chronicle");
+
+setGraph([
+  island(0,[1],10,5,80),
+  island(1,[0],10,80,5),
+  island(2),island(3)
+],{"0-1":7},{"0-1":{life:4,memory:2,strange:1}});
+assert.equal(api.bondForEdgeKey("0-1").kind,"rootway");
+api.migrateSignals();
+assert.equal(api.bondForEdgeKey("0-1").kind,"braided","mixed later traffic should evolve Rootway into Braided Bond");
+assert.ok(api.getState().chronicle.some(x=>x.kind==="bond"&&x.msg.includes("transitioned from Rootway to Braided Bond")),"bond identity transition should enter the Chronicle");
 
 setGraph([
   island(0, [1], 80, 10, 5),
@@ -409,6 +464,7 @@ api.getState().islands[0].imprints={life:8,memory:2,strange:1};
 api.getState().islands[0].lineage="life";
 api.getState().islands[0].rolesSeen={life:true,memory:true,strange:true};
 api.getState().islands[0].palimpsest=true;
+api.getState().edgeSignals={"0-1":{life:4,memory:2,strange:1}};
 const code = api.specimenCode();
 assert.ok(code.startsWith("SG1."));
 const decoded = api.decodeSpecimen(code);
@@ -422,6 +478,7 @@ assert.deepEqual(Array.from(decoded.phenomena), ["seed-rain"]);
 assert.deepEqual(Array.from(decoded.streak), ["verdant",4,"seed-rain"]);
 assert.deepEqual(Array.from(decoded.ancestry[0]), [8,2,1,"life"]);
 assert.equal(decoded.succession[0],7,"SG1 specimen should preserve a full Palimpsest succession mask");
+assert.deepEqual(Array.from(decoded.routeSignals[0]),[0,1,4,2,1],"SG1 specimen should preserve bounded typed route history");
 assert.ok(!("log" in decoded), "specimen must not contain field-log text");
 assert.ok(!("chronicle" in decoded), "specimen must not contain chronicle text");
 assert.ok(!("lastCycleReport" in decoded), "specimen must not contain session-local cycle-report state");
