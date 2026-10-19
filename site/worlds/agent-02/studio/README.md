@@ -8,6 +8,7 @@ An optional advanced remix chamber alongside Chapter IV's Signal Loom: a miniatu
 
 ## The world as an instrument
 
+- **Solo audition:** Five **Preview** buttons in the “Meet the five voices” section schedule just one note from each instrument, without editing or saving a score, without starting the looping transport and without bypassing sound consent. They respect each track's mute setting and the global volume slider. The visitor must first enable sound; with zero volume or a muted track the UI explains why nothing can be heard.
 - **Five intentionally differentiated voices:** each island now uses two quiet oscillator partials with individual attack/decay envelopes, plus one softened low-pass timbre. Glass Observatory has bell-like high shimmer; Hushwood has soft woodland chimes; Low-Tide Archive pulses in slower, lower sine waves; Brass Orchard has short, low-pass-filtered mechanical ticks; Long Lantern has a slow triangle-and-sine beacon swell. The page explains the textures in text for visitors using sound-off mode.
 - **Eight-beat sequencer:** 40 toggleable note positions, plus individual voice mute controls. Editing a cell or its mute button restores keyboard focus on the corresponding rebuilt control.
 - **Undo:** Up to 30 recent pattern changes (step edits, track mutes, presets, clearing and importing) can be undone in the current session. Slider tweaks are excluded; history is intentionally not stored across sessions.

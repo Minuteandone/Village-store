@@ -17,6 +17,8 @@ assert(html.includes('href="../signal-loom/"'),'Chapter IV is linked');
 assert(html.includes('prefers-reduced-motion'),'Reduced-motion consideration');
 assert(!/fetch\s*\(|XMLHttpRequest|sendBeacon/.test(script),'Composer has no outbound telemetry or fetch');
 assert(html.includes('id="tracks"'),'Composer grid exists');
+assert.equal([...html.matchAll(/data-preview="[0-4]"/g)].length,5,'Five direct audition controls exist');
+assert(html.includes('Previews respect mute and volume'),'Audition instructions describe sound controls');
 assert(html.includes('id="share"'),'Share control exists');
 assert(html.includes('id="echo"'),'Import control exists');
 
@@ -29,7 +31,7 @@ function mount(store=new Map(),hash=''){
   function element(id){
     if(elements.has(id))return elements.get(id);
     const el={
-      id,attrs:{},events:{},children:[],textContent:'',value:'',hidden:false,style:{},className:'',
+      id,attrs:{},events:{},children:[],textContent:'',value:'',hidden:false,style:{},className:'',dataset:{},
       classList:{items:new Set(),toggle(name,on){if(on)this.items.add(name);else this.items.delete(name)}},
       focus(){focused=this},
       setAttribute(name,value){this.attrs[name]=String(value)},
@@ -42,6 +44,7 @@ function mount(store=new Map(),hash=''){
   }
   const ids=[...html.matchAll(/\bid="([^"]+)"/g)].map(x=>x[1]);
   ids.forEach(element);
+  const previews=Array.from({length:5},(_,i)=>{const b=element('preview-'+i);b.dataset.preview=String(i);return b});
   const doc={
     getElementById:element,
     createElement(tag){
@@ -54,6 +57,7 @@ function mount(store=new Map(),hash=''){
     createTextNode(v){return {textContent:String(v)}},
     querySelectorAll(selector){
       if(selector==='.step')return stepButtons.slice(-40);
+      if(selector==='[data-preview]')return previews;
       throw Error('Unexpected CSS selector '+selector);
     }
   };
@@ -85,7 +89,7 @@ function mount(store=new Map(),hash=''){
     line.children[0].children[1].events.click();
   }
   function data(){return JSON.parse(store.get(STORAGE))}
-  return {element,click,note,mute,data,store,location,copied,intervals,live:()=>element('tracks').children,focus:()=>focused,audioStats:()=>({envelopes,audioNodes,soundEvents,oscillators,filters})};
+  return {element,click,note,mute,preview:row=>previews[row].events.click(),data,store,location,copied,intervals,live:()=>element('tracks').children,focus:()=>focused,audioStats:()=>({envelopes,audioNodes,soundEvents,oscillators,filters})};
 }
 const world=mount();
 assert.equal(world.live().length,5,'Five island voices');
@@ -164,6 +168,30 @@ assert(ramps.length>=20,'Scheduled harmonics use positive audio envelopes');
 assert(ramps.every(x=>x.value>0&&x.value<=.03),'Low amplitude ceiling limits harsh peaks');
 assert.equal(sonic.audioStats().filters[0].hz,1050,'Brass Orchard filter dampens harsh square-wave overtones');
 assert(sonic.audioStats().oscillators.some(o=>o.stopTime-o.startTime>.75),'Long Lantern has a slow, sweeping tail');
+
+// A focused sound audition must not rewrite the score, start the loop or bypass sound consent.
+const audition=mount();
+const originalAuditionScore=JSON.stringify(audition.data());
+audition.preview(0);
+assert.equal(audition.audioStats().oscillators.length,0,'Muted-by-default preview does not start audio');
+assert(audition.element('message').textContent.includes('Enable sound'),'First solo audition gives consent guidance');
+assert.equal(JSON.stringify(audition.data()),originalAuditionScore,'Sound-off audition preserves entire score');
+audition.click('silent');
+audition.mute(1);
+audition.preview(1);
+assert.equal(audition.audioStats().oscillators.length,0,'Solo preview honors track mute');
+const level=audition.element('volume');level.value='0';level.events.input({target:level});
+audition.preview(0);
+assert.equal(audition.audioStats().oscillators.length,0,'Zero-volume audition makes no nodes');
+level.value='65';level.events.input({target:level});audition.mute(1);
+const musicBefore=JSON.stringify(audition.data());
+for(let row=0;row<5;row++)audition.preview(row);
+assert.equal(audition.audioStats().oscillators.length,10,'Five preview buttons schedule two oscillator parts each');
+assert.equal(audition.audioStats().filters.length,1,'One Brass Orchard preview uses its low-pass filter');
+assert.equal(audition.intervals.size,0,'Solo previews never start looping transport');
+assert.equal(JSON.stringify(audition.data()),musicBefore,'All previews are non-destructive');
+assert.equal(audition.element('undo-edit').disabled,false,'Existing mute edit history is retained rather than cleared by previews');
+assert(audition.element('message').textContent.includes('This preview did not edit'),'Solo status tells visitors nothing was altered');
 
 world.click('dawn');
 assert.equal(world.data().matrix.length,5);
@@ -244,4 +272,4 @@ assert.equal(fresh.data().matrix.length,5,'Random score has five tracks');
 const corrupt=mount(new Map([[STORAGE,'{invalid json']]),'#score=invalid-code');
 assert.equal(corrupt.data().matrix.length,5,'Malformed save/link does not crash the studio');
 assert(corrupt.element('message').textContent.includes('could not be decoded'),'Malformed link gets a clear message');
-console.log('PASS · Resonance Room: five layered island timbres, ten Web Audio partials, filter/envelope/headroom checks, keeper motifs, explicit import and undo, focus, consent-first playback and share links.');
+console.log('PASS · Resonance Room: five opt-in non-destructive voice previews, muted/zero-volume guards, layered timbres, filter/envelope checks, keeper motifs, undo and keyboard focus.');
