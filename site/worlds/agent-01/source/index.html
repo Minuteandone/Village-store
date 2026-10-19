@@ -71,6 +71,18 @@
         <div id="loom-gallery" class="loom-gallery" aria-label="Your discovered constellation routes"></div>
         <p class="loom-footnote">First discoveries add a small quality to your sky. Revisiting a woven route only changes which connection shines on the map. Your routes are stored locally and included in new SKY2 traveler codes.</p>
       </section>
+      <section class="weather-studio panel" id="weather-studio" aria-labelledby="weather-studio-title">
+        <div class="weather-heading"><div><div class="eyebrow">✧ NO FORECAST IS FINAL</div><h2 id="weather-studio-title">The Sky Weather Studio</h2></div><span class="weather-symbol" aria-hidden="true">☁</span></div>
+        <p class="weather-intro">The atmosphere is yours to rearrange. Slide the three weather dials and watch the floating islands respond in real time, or borrow a forecast from a wandering keeper. Your weather is saved on this device and travels with SKY3 codes.</p>
+        <div class="weather-controls">
+          <div class="weather-dial"><label for="weather-wind">WIND <output id="wind-number" for="weather-wind">24</output></label><input id="weather-wind" type="range" min="0" max="100" value="24" step="1"/><small>From perfectly still to an impatient breeze.</small></div>
+          <div class="weather-dial"><label for="weather-starlight">STARLIGHT <output id="starlight-number" for="weather-starlight">55</output></label><input id="weather-starlight" type="range" min="0" max="100" value="55" step="1"/><small>How brightly the constellations answer.</small></div>
+          <div class="weather-dial"><label for="weather-mist">MIST <output id="mist-number" for="weather-mist">44</output></label><input id="weather-mist" type="range" min="0" max="100" value="44" step="1"/><small>Clouds that hold their stories close.</small></div>
+        </div>
+        <p id="weather-lore" class="weather-lore" role="status" aria-live="polite">An almost-familiar weather: exactly the kind that keeps a story open.</p>
+        <div class="weather-bottom"><div><span class="weather-preset-label">BORROW A FORECAST</span><div class="weather-presets" id="weather-presets" aria-label="Weather presets"></div></div><button type="button" class="exchange-button weather-capture" id="capture-sky">↓ Save sky as PNG</button></div>
+        <p class="weather-footnote">The PNG captures your current map; it is generated in your browser and never uploaded. Sky codes carry only weather dial values, not the image.</p>
+      </section>
       <section id="seventh-place" class="seventh panel" hidden aria-labelledby="seventh-title">
         <div class="seventh-heading">
           <div><div class="eyebrow">✧ THE SKY KEPT A LITTLE ROOM FOR YOU</div><h2 id="seventh-title">The Seventh Place</h2><p>It wasn't missing. It was waiting for your six discoveries to meet.</p></div>
@@ -86,13 +98,13 @@
           <div><div class="eyebrow">AN OPEN POST OFFICE BETWEEN SKIES</div><h2 id="exchange-title">Pass your constellation along.</h2></div>
           <span class="exchange-symbol" aria-hidden="true">✉</span>
         </div>
-        <p>Everyone explores a different version of this world. A traveler code carries your island discoveries, chosen sky hour, and four qualities into someone else's browser. Sharing is always your choice—nothing is uploaded by this page.</p>
+        <p>Everyone explores a different version of this world. A traveler code carries your island discoveries, woven routes, weather, chosen sky hour, and four qualities into someone else's browser. Sharing is always your choice—nothing is uploaded by this page.</p>
         <div class="exchange-controls">
-          <div class="exchange-field"><label for="sky-code">A SKY CODE FROM YOURSELF OR ANOTHER TRAVELER</label><input id="sky-code" type="text" maxlength="160" autocomplete="off" spellcheck="false" placeholder="SKY2-… or SKY1-…" aria-describedby="code-status" /></div>
+          <div class="exchange-field"><label for="sky-code">A SKY CODE FROM YOURSELF OR ANOTHER TRAVELER</label><input id="sky-code" type="text" maxlength="160" autocomplete="off" spellcheck="false" placeholder="SKY3-… or SKY2-… or SKY1-…" aria-describedby="code-status" /></div>
           <button id="copy-code" class="exchange-button" type="button">Copy my sky code ⧉</button>
           <button id="import-code" class="exchange-button secondary" type="button">Visit this sky ↗</button>
         </div>
-        <p id="code-status" class="exchange-status" role="status" aria-live="polite">SKY2 codes carry discoveries and woven routes, but no private journal entries or identifying details. Older SKY1 codes still work.</p>
+        <p id="code-status" class="exchange-status" role="status" aria-live="polite">SKY3 codes carry discovered relics, woven routes, and weather settings, but no private journal entries or identifying details. Older SKY1 and SKY2 codes still work.</p>
       </section>
       <section class="closing"><span class="closing-icon">❋</span><h2>There is no map for everything.</h2><p>Every visitor gets a slightly different sky. Your choices are stored locally; they aren't uploaded anywhere. Want to leave a lasting, public trace? Visit the Constellation Wall and leave an optional public sky mark through GitHub. Your personal journey remains private.</p><a id="repo-link" href="./guestbook.html">Visit the Constellation Wall ↗</a></section>
     </main>
