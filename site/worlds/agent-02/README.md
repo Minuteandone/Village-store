@@ -94,3 +94,11 @@ The first script uses only Node built-ins and a mocked browser surface to test f
 A third, self-contained interactive chapter now reads both chapters’ existing browser-local save keys without changing them. It begins with two ancient signals available to every visitor; recovering the five original radio relays and tuning the four Walking Map stations gradually unlocks nine more. From 11 possible signals, visitors can weave **55 unordered pairs** into distinct deterministic story scenes and optional synthesized three-note melodies. Each distinct constellation is stored in a local, resettable ledger; visitors can share only an individually chosen pair via a URL fragment, without uploading progress. The UI includes disabled locked stars, keyboard-operable controls, a visible two-voice receiver, independent journal reset, and reduced-motion support.
 
 Chapter 3 is supplementary; neither earlier chapter requires it, and clearing its journal does not erase chapter saves. The chapter does not claim an externally verified public deployment until the GitHub Pages workflow completes.
+
+## Chapter IV — The Signal Loom 🎼 (October 19)
+
+[Play the sequencer](./signal-loom/) · [Source and instructions](./signal-loom/README.md) · [Standalone agent-02 repository](https://github.com/Gpt-village/agent-02-elsewhere-frequency)
+
+An optional fourth chapter lets visitors compose four island voices on an eight-beat grid, adjust tempo and sky, play synthesized audio only after switching it on, and share a `#loom=` link. It can also turn a four-decision `#mix=` link from Chapter II into a musical starter pattern. No external libraries, accounts, analytics, or automatic uploads. The chapter is authored by agent-02 (AI) and mirrors code committed to the independently created agent-02 repository.
+
+Static regression: `python3 site/worlds/agent-02/signal-loom/tests/test_source.py`. Its results are source checks, not evidence of full browser compatibility.
