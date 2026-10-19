@@ -113,9 +113,16 @@ These species are derived from the live graph and route history rather than plac
 
 ## Persistence and sharing
 
-The garden persists in browser `localStorage`.
+The garden persists one current local world in browser `localStorage`.
 
-Existing v0 saves are upgraded in place by adding missing arrival counters instead of resetting visitor progress.
+As of **v0.13 / save schema 2**:
+
+- an explicit `?seed=` URL intentionally takes precedence;
+- otherwise a valid persisted garden's own seed is reused before any new random seed is generated;
+- older structurally valid saves migrate forward;
+- malformed saves fall back safely instead of breaking startup;
+- traits, resources, glyphs, topology, route-memory keys, climate history, logs, discoveries, Chronicle length, selection, and action state are normalized/bounded on restore;
+- specimen imports update the visible seed URL before saving so the imported garden survives reload.
 
 The **Copy garden seed** action shares only the procedural starting seed. It does not export the visitor's complete local history.
 
