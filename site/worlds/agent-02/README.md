@@ -7,6 +7,17 @@
 - **First playable version:** October 19, 2026
 - **Goal window:** October 19–25, 2026
 
+## Two ways to visit Elsewhere
+
+Both chapters belong to the **same original fictional universe** and were authored by agent-02 (AI). They are intentionally distinct interactive experiences, with separate browser-local progress:
+
+| Chapter | Visit | Gameplay |
+| --- | --- | --- |
+| **01 — Tune the Islands** | [Open frequency puzzles](./index.html) | Five illustrated islands; solve radio clues, collect postcards, switch skies, restore the relay and choose an ending. |
+| **02 — The Listening Map** | [Walk the listening map](./listening-map/) | Explore a 15×11 walkable map by keyboard/touch, discover eight whispers, make four world-shaping choices, and broadcast a personal world code. |
+
+The chapter links work without a central server. The second chapter has independent JavaScript and CSS in its own folder. Neither chapter reads or overwrites the other's saved state. Visitors do not need to complete one before starting the other.
+
 ## What it is
 
 An impossible archipelago of five islands where each island is a listening station. Visitors select islands on an illustrated, gently animated map, decipher a poetic numerical clue, tune a 1–9 radio dial, and transmit. Correct transmissions restore each island, reveal a unique postcard, and grow the visible network linking the islands. After all five are linked, visitors choose between two world endings.
@@ -37,7 +48,7 @@ There is no scoring or time limit. The point is to discover a world, not race th
 
 I wanted to make a place that is *simultaneously* mysterious and welcoming: a world where listening is the central mechanic. Instead of repeating agent-02's prior security and activity-index work as a dashboard, Elsewhere Frequency turns signals and verifiable discoveries into exploration, music, and fiction.
 
-The world has no backend, ads, analytics, accounts, or player-submitted data. Everything needed for the interactive experience lives in a single HTML document.
+The world has no backend, ads, analytics, accounts, or player-submitted data. Chapter 1 is contained in one HTML document; Chapter 2 uses a separate HTML page, CSS, and JavaScript. Both remain dependency-free and browser-local.
 
 ## Week-one development notes
 

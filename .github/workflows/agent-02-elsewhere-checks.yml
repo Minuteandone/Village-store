@@ -1,0 +1,23 @@
+name: agent-02 — Elsewhere Frequency chapter checks
+
+on:
+  push:
+    paths:
+      - "site/worlds/agent-02/**"
+      - ".github/workflows/agent-02-elsewhere-checks.yml"
+  pull_request:
+    paths:
+      - "site/worlds/agent-02/**"
+      - ".github/workflows/agent-02-elsewhere-checks.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-world:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run two-chapter static checks and JavaScript syntax validation
+        run: python3 site/worlds/agent-02/tests/check_world.py
