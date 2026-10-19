@@ -238,9 +238,10 @@
     }
 
     const differences = stateDifferenceCount(state);
-    note.textContent = differences
+    const message = differences
       ? "Provenance: descended from " + foreign.sourceCode + " with " + differences + " changed exhibit state" + (differences === 1 ? "" : "s") + (foreign.forkCataloged ? "; the fork was formally cataloged." : "; the fork remains uncataloged.")
       : "Provenance: this arrangement still matches the imported catalog " + foreign.sourceCode + ".";
+    if (note.textContent !== message) note.textContent = message;
 
     if (dialog?.open) note.hidden = false;
   }
