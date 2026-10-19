@@ -74,10 +74,10 @@
         <span class="chip" id="resChip">Resonance 0</span>
         <span class="chip" id="transitChip">Transit quiet</span>
         <span class="chip" id="historyChip">Route memory 0</span>
-        <span class="chip" id="researchChip">Research 0/9</span>
+        <span class="chip" id="researchChip">Research 0/10</span>
         <span class="chip" id="climateChip">Climate · Braided Sky</span>
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
-        <span class="chip" id="versionChip">v0.18 · save 4</span>
+        <span class="chip" id="versionChip">v0.19 · save 5</span>
       </div>
     </section>
 
@@ -115,6 +115,7 @@
           <div><b id="trafficStat">—</b>route memory</div>
           <div><b id="glyphStat">—</b>glyph</div>
           <div><b id="lineageStat">—</b>echo lineage</div>
+          <div><b id="successionStat">—</b>role history</div>
         </div>
         <div class="meter"><span id="lifeMeter"></span></div>
         <div class="small" style="margin-top:10px">Inscribe a glyph · costs 3 resonance + 1 focus. Glyphs add +2 of their trait whenever this island receives a migration.</div>
@@ -187,7 +188,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.18",SAVE_SCHEMA=4;
+  var APP_VERSION="0.19",SAVE_SCHEMA=5;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -209,7 +210,9 @@
   var spawnSlots=[{x:.16,y:.72,r:39},{x:.88,y:.46,r:41},{x:.44,y:.14,r:37}];
   function makeIsland(i,x,y,r){
     var n=baseNames[Math.floor(rand()*baseNames.length)]+" "+(i+1);
-    return {id:i,name:n,x:x,y:y,r:r,life:35+Math.floor(rand()*35),memory:10+Math.floor(rand()*20),strange:5+Math.floor(rand()*18),links:[],arrivals:0,glyph:"none",imprints:{life:0,memory:0,strange:0},lineage:"none",phase:rand()*6.28,color:palettes[Math.floor(rand()*palettes.length)]};
+    var a={id:i,name:n,x:x,y:y,r:r,life:35+Math.floor(rand()*35),memory:10+Math.floor(rand()*20),strange:5+Math.floor(rand()*18),links:[],arrivals:0,glyph:"none",imprints:{life:0,memory:0,strange:0},lineage:"none",rolesSeen:{life:false,memory:false,strange:false},palimpsest:false,phase:rand()*6.28,color:palettes[Math.floor(rand()*palettes.length)]};
+    a.rolesSeen[dominantTrait(a)]=true;
+    return a;
   }
   function fresh(){
     randState=hash(seed);
@@ -257,6 +260,10 @@
       a.imprints[k]=Number.isFinite(v)&&v>=0?Math.min(10000,Math.floor(v)):0;
     });
     if(["none","life","memory","strange"].indexOf(a.lineage)<0)a.lineage="none";
+    if(!a.rolesSeen||typeof a.rolesSeen!=="object")a.rolesSeen={life:false,memory:false,strange:false};
+    ["life","memory","strange"].forEach(function(k){a.rolesSeen[k]=!!a.rolesSeen[k]});
+    a.rolesSeen[dominantTrait(a)]=true;
+    a.palimpsest=!!(a.rolesSeen.life&&a.rolesSeen.memory&&a.rolesSeen.strange);
     a.links=Array.from(new Set(a.links)).filter(function(id){return Number.isInteger(id)&&id>=0&&id<state.islands.length&&id!==a.id});
   });
   state.islands.forEach(function(a){
@@ -331,7 +338,7 @@
       "Islands:"
     ];
     state.islands.forEach(function(a){
-      lines.push("- "+a.name+": "+dominantTrait(a)+" · L"+Math.round(a.life)+" M"+Math.round(a.memory)+" S"+Math.round(a.strange)+" · glyph "+glyphName(a.glyph)+" · lineage "+(a.lineage||"none")+" · arrivals "+a.arrivals);
+      lines.push("- "+a.name+": "+dominantTrait(a)+" · L"+Math.round(a.life)+" M"+Math.round(a.memory)+" S"+Math.round(a.strange)+" · glyph "+glyphName(a.glyph)+" · lineage "+(a.lineage||"none")+" · succession "+roleHistoryLabel(a)+" · arrivals "+a.arrivals);
     });
     lines.push("Discoveries: "+(state.discoveries.length?state.discoveries.map(function(x){return x.title}).join(", "):"none"));
     return lines.join("\n");
@@ -347,6 +354,7 @@
       traits:state.islands.map(function(a){return [Math.round(a.life),Math.round(a.memory),Math.round(a.strange),Math.round(a.arrivals||0)]}),
       glyphs:state.islands.map(function(a){return a.glyph||"none"}),
       ancestry:state.islands.map(function(a){var im=a.imprints||{};return [Math.round(im.life||0),Math.round(im.memory||0),Math.round(im.strange||0),a.lineage||"none"]}),
+      succession:state.islands.map(function(a){return roleMask(a)}),
       edges:edges,memory:memory
     };
     return "SG1."+btoa(JSON.stringify(payload)).replace(/\+/g,"-").replace(/\//g,"_").replace(/=+$/,"");
@@ -374,6 +382,7 @@
     if(p.ancestry!==undefined&&(!Array.isArray(p.ancestry)||p.ancestry.length!==p.traits.length||p.ancestry.some(function(row){
       return !Array.isArray(row)||row.length!==4||!row.slice(0,3).every(function(v){return Number.isInteger(v)&&v>=0&&v<=10000})||["none","life","memory","strange"].indexOf(row[3])<0;
     })))throw new Error("Specimen ancestry data is invalid.");
+    if(p.succession!==undefined&&(!Array.isArray(p.succession)||p.succession.length!==p.traits.length||p.succession.some(function(mask){return !Number.isInteger(mask)||mask<0||mask>7})))throw new Error("Specimen succession data is invalid.");
     var n=p.traits.length,seen={};
     p.edges.forEach(function(e){
       if(!Array.isArray(e)||e.length!==2||!e.every(Number.isInteger)||e[0]<0||e[1]<0||e[0]>=n||e[1]>=n||e[0]===e[1])throw new Error("Specimen edge is invalid.");
@@ -400,6 +409,10 @@
       var anc=Array.isArray(p.ancestry)?p.ancestry[i]:null;
       a.imprints=anc?{life:anc[0],memory:anc[1],strange:anc[2]}:{life:0,memory:0,strange:0};
       a.lineage=anc?anc[3]:"none";
+      var mask=Array.isArray(p.succession)?p.succession[i]:0;
+      a.rolesSeen={life:!!(mask&1),memory:!!(mask&2),strange:!!(mask&4)};
+      if(mask===0)a.rolesSeen[dominantTrait(a)]=true;
+      a.palimpsest=!!(a.rolesSeen.life&&a.rolesSeen.memory&&a.rolesSeen.strange);
     });
     p.edges.forEach(function(e){next.islands[e[0]].links.push(e[1]);next.islands[e[1]].links.push(e[0])});
     next.edgeMemory={};p.memory.forEach(function(e){next.edgeMemory[edgeKey(e[0],e[1])]=e[2]});
@@ -465,6 +478,33 @@
     if(g[ranked[0]]<6||g[ranked[0]]===g[ranked[1]])return "none";
     return ranked[0];
   }
+  function roleMask(a){
+    var r=a.rolesSeen||{};
+    return (r.life?1:0)|(r.memory?2:0)|(r.strange?4:0);
+  }
+  function roleHistoryLabel(a){
+    var names=[];
+    if(a.rolesSeen&&a.rolesSeen.life)names.push("grove");
+    if(a.rolesSeen&&a.rolesSeen.memory)names.push("archive");
+    if(a.rolesSeen&&a.rolesSeen.strange)names.push("fold");
+    return a.palimpsest?"palimpsest · "+names.join(" → "):(names.length?names.join(" → "):"unrecorded");
+  }
+  function recordRoleHistory(a){
+    if(!a.rolesSeen)a.rolesSeen={life:false,memory:false,strange:false};
+    a.rolesSeen[dominantTrait(a)]=true;
+    var became=!a.palimpsest&&a.rolesSeen.life&&a.rolesSeen.memory&&a.rolesSeen.strange;
+    if(became){
+      a.palimpsest=true;
+      addChronicle("succession",a.name+" became a Palimpsest Mind after living through grove, archive, and fold roles.");
+      d("palimpsest-mind","Palimpsest Mind","One island has lived as all three ecological minds. Its outgoing migrations now rotate through remembered selves.");
+    }
+    return became;
+  }
+  function updateRoleHistories(){state.islands.forEach(recordRoleHistory)}
+  function exportTrait(a){
+    if(a.palimpsest)return ["life","memory","strange"][(state.cycle+a.id)%3];
+    return dominantTrait(a);
+  }
   function macroClimate(){
     var n=state.islands.length||1;
     var avg={
@@ -527,7 +567,8 @@
       {id:"climate",done:Object.keys(state.climateSeen).filter(function(k){return state.climateSeen[k]}).length>=3,text:"Can the garden pass through at least three different archipelago-scale climates?"},
       {id:"symbiosis",done:["scribevine","glassmycelium","dreamwire"].every(function(kind){return residents.some(function(x){return x.kind===kind})}),text:"Can all three mixed-ecology bridge symbioses coexist at once?"},
       {id:"phenomenon",done:Object.keys(state.phenomenaSeen).some(function(k){return state.phenomenaSeen[k]}),text:"Can one macro-climate persist long enough to trigger an archipelago-wide sky phenomenon?"},
-      {id:"lineage",done:state.islands.some(function(a){return a.lineage&&a.lineage!=="none"}),text:"Can enough migration history accumulate for a newborn island to inherit an echo lineage?"}
+      {id:"lineage",done:state.islands.some(function(a){return a.lineage&&a.lineage!=="none"}),text:"Can enough migration history accumulate for a newborn island to inherit an echo lineage?"},
+      {id:"succession",done:state.islands.some(function(a){return a.palimpsest}),text:"Can one island genuinely live through grove-, archive-, and fold-mind roles and become a Palimpsest Mind?"}
     ];
   }
   function symbiosisSpecies(){
@@ -625,7 +666,7 @@
   }
   function migrateSignals(){
     var transfers=[],cycleClimate=macroClimate(),sendTraits={};
-    state.islands.forEach(function(a){sendTraits[a.id]=dominantTrait(a)});
+    state.islands.forEach(function(a){sendTraits[a.id]=exportTrait(a)});
     state.islands.forEach(function(a){
       if(!a.links.length)return;
       var targetId=a.links[(state.cycle+a.id)%a.links.length];
@@ -650,7 +691,7 @@
       if(!b.imprints)b.imprints={life:0,memory:0,strange:0};
       b.imprints[type]=Math.min(10000,(b.imprints[type]||0)+1);
       var ek=edgeKey(a.id,b.id);state.edgeMemory[ek]=(state.edgeMemory[ek]||0)+1;
-      transfers.push({from:a.id,to:b.id,type:type,amount:receivedAmount,lineageBonus:lineageBonus});
+      transfers.push({from:a.id,to:b.id,type:type,amount:receivedAmount,lineageBonus:lineageBonus,sourcePalimpsest:!!a.palimpsest});
       motes.push({from:a.id,to:b.id,type:type,start:performance.now(),duration:reducedMotion?1:1300+a.id*120});
     });
     if(transfers.length){
@@ -705,6 +746,7 @@
     evolve();
     var afterClimate=recordClimate();
     var phenomenon=advanceClimatePhenomenon();
+    updateRoleHistories();
     var roleChanges=[];
     state.islands.forEach(function(a){
       var after=dominantTrait(a),before=beforeRoles[a.id];
@@ -765,7 +807,7 @@
         delete state.connectFrom;
       }
     }
-    evolve();save();renderUI();
+    evolve();updateRoleHistories();save();renderUI();
   }
   function renderUI(){
     document.getElementById("seasonChip").textContent="Cycle "+state.cycle+" · "+state.mode;
@@ -788,7 +830,7 @@
     var nav=document.getElementById("islandNav");
     nav.innerHTML=state.islands.map(function(x,i){
       var role=dominantTrait(x)==="life"?"grove":dominantTrait(x)==="memory"?"archive":"fold";
-      return '<button type="button" data-island-id="'+x.id+'" aria-pressed="'+(state.selected===x.id?'true':'false')+'">'+(i+1)+' · '+esc(x.name)+' · '+role+(x.lineage&&x.lineage!=="none"?' · echo '+x.lineage:'')+'</button>';
+      return '<button type="button" data-island-id="'+x.id+'" aria-pressed="'+(state.selected===x.id?'true':'false')+'">'+(i+1)+' · '+esc(x.name)+' · '+role+(x.lineage&&x.lineage!=="none"?' · echo '+x.lineage:'')+(x.palimpsest?' · palimpsest':'')+'</button>';
     }).join("");
     var a=state.islands.find(function(x){return x.id===state.selected});
     var applyBtn=document.getElementById("applySelectedBtn");
@@ -804,6 +846,7 @@
     document.getElementById("trafficStat").textContent=a?incidentTraffic(a.id):"—";
     document.getElementById("glyphStat").textContent=a?glyphName(a.glyph):"—";
     document.getElementById("lineageStat").textContent=a?(a.lineage==="none"?"none":a.lineage):"—";
+    document.getElementById("successionStat").textContent=a?roleHistoryLabel(a):"—";
     document.querySelectorAll("[data-glyph]").forEach(function(b){
       b.disabled=!a||(b.dataset.glyph!=="none"&&(state.resonance<3||state.focus<1))||(b.dataset.glyph==="none"&&state.focus<1);
       b.classList.toggle("active",!!a&&a.glyph===b.dataset.glyph);
@@ -818,7 +861,7 @@
     else{
       var transferText=lastCycleReport.transfers.length?lastCycleReport.transfers.map(function(x){
         var from=state.islands[x.from],to=state.islands[x.to];
-        return (from?from.name:"island "+x.from)+" → "+(to?to.name:"island "+x.to)+": "+x.type+" +"+x.amount+(x.lineageBonus?" (echo lineage +1)":"");
+        return (from?from.name:"island "+x.from)+" → "+(to?to.name:"island "+x.to)+": "+x.type+" +"+x.amount+(x.lineageBonus?" (echo lineage +1)":"")+(x.sourcePalimpsest?" (remembered self)":"");
       }).join("<br>"):"No migrations crossed live routes.";
       var roleText=lastCycleReport.roleChanges.length?lastCycleReport.roleChanges.map(function(x){return esc(x.name)+": "+x.from+" → "+x.to}).join("<br>"):"No island changed dominant role.";
       var climateText=lastCycleReport.climateBefore===lastCycleReport.climateAfter?lastCycleReport.climateAfter:lastCycleReport.climateBefore+" → "+lastCycleReport.climateAfter;
@@ -871,6 +914,7 @@
   function lore(a){
     var trait=dominantTrait(a);
     var role=trait==="life"?"grove-mind":trait==="memory"?"archive-mind":"fold-mind";
+    if(a.palimpsest)return "A Palimpsest Mind currently presenting as a "+role+". It exports remembered selves in a deterministic three-signal rotation.";
     if(a.lineage&&a.lineage!=="none")return "A "+role+" born with a "+a.lineage+" echo lineage inherited from migrations that happened before it existed.";
     if(a.arrivals>5)return "A "+role+" carrying traces of "+a.arrivals+" foreign arrivals; its ecology is becoming a record of the whole archipelago.";
     if(a.strange>60)return "A fold-mind whose shoreline disagrees with itself. "+a.links.length+" bridge(s) still hold.";
@@ -942,6 +986,9 @@
       if(a.strange>45){ctx.strokeStyle="rgba(225,183,255,.55)";ctx.beginPath();ctx.ellipse(x+5*Math.sin(t*.001),y-4,r+8,r*.72,Math.sin(t*.0003+a.phase)*.18,0,Math.PI*2);ctx.stroke()}
       if(topologySpecies().some(function(sp){return sp.id==="crown"&&sp.island===a.id})){
         ctx.fillStyle="#ffe09a";ctx.font="20px system-ui,sans-serif";ctx.textAlign="center";ctx.fillText("✦",x,y-r-16);
+      }
+      if(a.palimpsest){
+        ctx.fillStyle="#d9b2ff";ctx.font="16px system-ui,sans-serif";ctx.textAlign="center";ctx.fillText("✶",x+18,y-r-14);
       }
       if(a.glyph!=="none"){
         ctx.strokeStyle=a.glyph==="life"?"#d8f3b0":a.glyph==="memory"?"#a7e8f0":"#e2c2ff";
