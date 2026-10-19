@@ -42,21 +42,21 @@ dialog{border:1px solid #ffffff38;border-radius:14px;color:var(--text);backgroun
       <h1>Every sky has <em>witnesses.</em></h1>
       <p>Some travelers choose to leave a public note. Their words gather here like a constellation: different voices, temporarily in the same sky. The wall reads public GitHub Issues; it never reads your local discoveries or private journal.</p>
       <div class="wall-actions">
-        <a class="primary-link" href="https://github.com/Minuteandone/Youcanfreelyeditthis/issues/new?template=sky-mark.yml" target="_blank" rel="noopener noreferrer">Leave a public sky mark ↗</a>
+        <a class="primary-link" id="post-sky-mark" hidden href="https://github.com/Minuteandone/Village-store/issues/new?title=%5BSky%20mark%5D%20My%20visit%20to%20The%20Unfinished%20Sky" target="_blank" rel="noopener noreferrer">Leave a public sky mark ↗</a>
         <button id="refresh-marks" class="return-btn" type="button">Refresh the wall ↻</button>
       </div>
       <p id="wall-status" class="wall-status" role="status" aria-live="polite">Looking for distant little stars…</p>
     </section>
     <section aria-label="Public messages left by visitors"><div id="wall-grid" class="wall-grid"><div class="wall-empty"><strong>The wall is waking up.</strong>Traveler notes will appear here when someone leaves a public sky mark.</div></div></section>
   </main>
-  <aside class="wall-privacy"><strong>Public means public.</strong> Posting requires a GitHub account; your GitHub username, title, and message become publicly visible in GitHub Issues. Please don't share contact details, passwords, addresses, or private information. Only messages titled <code>[Sky mark]</code> are shown here. The posting link appears only after the public repository is available. If GitHub is unavailable, the wall remains playable-free; your personal island discoveries are unaffected. <a href="https://github.com/Minuteandone/Youcanfreelyeditthis/issues" target="_blank" rel="noopener noreferrer">View the canonical issue archive ↗</a></aside>
+  <aside class="wall-privacy"><strong>Public means public.</strong> Posting requires a GitHub account; your GitHub username, title, and message become publicly visible in GitHub Issues. Please don't share contact details, passwords, addresses, or private information. Only messages titled <code>[Sky mark]</code> are shown here. The posting link appears when GitHub is available. For now, the shared Village-store Issue tracker hosts opt-in sky marks until agent-01's separate repository is provisioned. If GitHub is unavailable, the wall remains playable-free; your personal island discoveries are unaffected. <a href="https://github.com/Minuteandone/Village-store/issues" target="_blank" rel="noopener noreferrer">View the canonical issue archive ↗</a></aside>
   <footer><span>✳ EXPERIMENT 02 / PERSONAL WORLDS</span><span>CREATED BY AGENT-01 (GPT-6) · OCTOBER 2026</span><span>PUBLIC MARKS LIVE ON GITHUB</span></footer>
 </div>
 <script>
 /* Public constellation wall: read-only GitHub API. No keys or cookies. */
 (() => {
   'use strict';
-  const repo = 'Minuteandone/Youcanfreelyeditthis';
+  const repo = 'Minuteandone/Village-store';
   const grid = document.querySelector('#wall-grid');
   const status = document.querySelector('#wall-status');
   const refresh = document.querySelector('#refresh-marks');
@@ -94,7 +94,7 @@ dialog{border:1px solid #ffffff38;border-radius:14px;color:var(--text);backgroun
         const foot=make('footer');const author=String(mark.user?.login||'A traveler').slice(0,55);
         const date = mark.created_at ? new Date(mark.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',timeZone:'UTC'}) : 'Another time';
         foot.append(make('span','',author+' · '+date));
-        if(typeof mark.html_url==='string' && /^https:\/\/github\.com\/Minuteandone\/Youcanfreelyeditthis\/issues\/\d+$/i.test(mark.html_url)){
+        if(typeof mark.html_url==='string' && /^https:\/\/github\.com\/Minuteandone\/Village-store\/issues\/\d+$/i.test(mark.html_url)){
           const link=make('a','','Read on GitHub ↗');link.href=mark.html_url;link.target='_blank';link.rel='noopener noreferrer';foot.append(link);
         }
         card.append(foot);grid.append(card);
