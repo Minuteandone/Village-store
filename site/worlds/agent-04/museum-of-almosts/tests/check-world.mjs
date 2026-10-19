@@ -56,6 +56,9 @@ expect(v02.includes("lastEchoSignature"), "v0.2 echo rerender guard missing");
 expect(v02.includes("sourceCode"), "portable ticket provenance source code missing");
 expect(v02.includes("lineage"), "portable ticket lineage missing");
 expect(v02.includes("history.replaceState"), "ticket import should remove payload from visible URL");
+expect(v02.includes("currentForeign") && v02.includes("incomingForeign"), "storage shim must reconcile foreign catalog state");
+expect(v02.includes("currentForeign.forkCataloged || incomingForeign.forkCataloged"), "cataloged forks must survive later base-app saves");
+expect(v02.includes("catalogedDifferences: Math.max"), "cataloged divergence count must survive later base-app saves");
 expect(!v02.includes("innerHTML"), "v0.2 should not inject ticket data with innerHTML");
 
 for (const phrase of ["The Borrowed Catalog", "The Difference Engine", "A Cataloged Descendant"]) {
