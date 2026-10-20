@@ -157,6 +157,9 @@ source = source.replace(
     roleHistoryLabel:roleHistoryLabel,
     recordRoleHistory:recordRoleHistory,
     exportTrait:exportTrait,
+    exportTraitAtCycle:exportTraitAtCycle,
+    modeForCycle:modeForCycle,
+    cycleForecast:cycleForecast,
     edgeSignalCounts:edgeSignalCounts,
     bondForEdgeKey:bondForEdgeKey,
     routeBonds:routeBonds,
@@ -216,7 +219,7 @@ ids.set("garden", canvas);
   "seasonChip","focusChip","resChip","transitChip","historyChip","bondChip","junctionChip","constellationChip","provenanceChip","researchChip","climateChip","motionChip","contrastChip","germinateBtn","germinateStatus","undoBtn","undoStatus",
   "islandNav","applySelectedBtn","selectedName","selectedLore","lifeStat",
   "memoryStat","strangeStat","linksStat","arrivalsStat","trafficStat","glyphStat","lineageStat","successionStat","lifeMeter",
-  "research","researchSummary","researchCompass","observedResearchDetails","observedResearchSummary","researchObserved","bonds","provenance","constellation","junctions","species","discoveries","chronicle","log","actionStatus","guidePanel","textMap","modeStatus","actionCostNote","glyphCostNote","glyphStatus","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
+  "research","researchSummary","researchCompass","observedResearchDetails","observedResearchSummary","researchObserved","bonds","provenance","constellation","junctions","species","discoveries","chronicle","log","actionStatus","guidePanel","cycleForecast","textMap","modeStatus","actionCostNote","glyphCostNote","glyphStatus","restBtn","soundBtn","summaryBtn","exportBtn","specimenBtn","importBtn","resetBtn"
 ].forEach(id => ids.set(id, element()));
 
 const actionButtons = ["nurture","observe","connect","distort"].map(action =>
@@ -320,8 +323,23 @@ function setGraph(islands, edgeMemory = {}, edgeSignals = {}) {
 assert.equal(api.edgeKey(4, 1), "1-4");
 assert.equal(api.edgeKey(1, 4), "1-4");
 
+assert.equal(api.modeForCycle(2),"Quiet");
+assert.equal(api.modeForCycle(4),"Bloom");
+assert.equal(api.modeForCycle(6),"Static");
+assert.equal(api.modeForCycle(8),"Storm");
+assert.equal(api.modeForCycle(9),"Quiet");
+
 setGraph([island(0),island(1),island(2),island(3)]);
+const freshForecastBefore=JSON.stringify(api.getState());
+const freshForecast=api.cycleForecast();
+assert.equal(JSON.stringify(api.getState()),freshForecastBefore,"cycle forecast must not mutate world state");
+assert.equal(freshForecast.cycle,3,"test graph at cycle 2 should forecast cycle 3");
+assert.equal(freshForecast.mode,"Quiet");
+assert.equal(freshForecast.focusAfter,8);
+assert.equal(freshForecast.transfers.length,0,"unlinked garden should forecast no migrations");
 api.renderUI();
+assert.match(ids.get("cycleForecast").innerHTML,/Cycle 3 · Quiet/,"rendered forecast should expose the next cycle and mode");
+assert.match(ids.get("cycleForecast").innerHTML,/No live routes would carry a migration/);
 assert.match(ids.get("islandNav").innerHTML,/aria-keyshortcuts="1"/,"first island navigator button should advertise shortcut 1");
 assert.match(ids.get("islandNav").innerHTML,/aria-keyshortcuts="4"/,"fourth starting island should advertise shortcut 4");
 assert.equal(ids.get("germinateBtn").disabled,true,"fresh garden should expose germination as disabled");
@@ -350,6 +368,25 @@ assert.equal(api.getState().connectFrom,0);
 assert.equal(api.hasUndo(),false,"free Connect source planning should not consume the Undo slot");
 api.apply(api.getState().islands[0]);
 assert.equal(api.hasUndo(),false,"free Connect cancellation should not consume the Undo slot");
+
+setGraph([
+  island(0,[1,2],50,20,10),
+  island(1,[0],20,50,10),
+  island(2,[0],20,20,50),
+  island(3)
+]);
+api.getState().islands[0].rolesSeen={life:true,memory:true,strange:true};
+api.getState().islands[0].palimpsest=true;
+api.getState().cycle=2;
+assert.equal(api.exportTrait(api.getState().islands[0]),"strange","current Palimpsest export should use current cycle");
+const palForecastBefore=JSON.stringify(api.getState());
+const palForecast=api.cycleForecast();
+assert.equal(JSON.stringify(api.getState()),palForecastBefore,"linked Palimpsest forecast must remain pure");
+const palPlan=palForecast.transfers.find(x=>x.from===0);
+assert.ok(palPlan,"linked Palimpsest should have a planned export");
+assert.equal(palPlan.to,2,"forecast target should use the next-cycle route index");
+assert.equal(palPlan.type,"life","forecast Palimpsest export should use the next cycle rather than the current cycle");
+assert.equal(api.exportTraitAtCycle(api.getState().islands[0],3),"life");
 
 setGraph([island(0),island(1),island(2),island(3)]);
 const undoCycle=api.getState().cycle;
