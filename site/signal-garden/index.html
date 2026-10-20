@@ -107,7 +107,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip hud-secondary" id="motionChip">Motion · standard</span>
         <span class="chip hud-secondary" id="contrastChip">Contrast · custom</span>
-        <span class="chip hud-secondary" id="versionChip">v0.50 · save 7</span>
+        <span class="chip hud-secondary" id="versionChip">v0.51 · save 7</span>
       </div>
     </section>
 
@@ -134,6 +134,10 @@
         <button data-action="distort" aria-pressed="false" aria-keyshortcuts="D" aria-describedby="actionCostNote modeStatus">〰 Distort</button>
       </div>
       <button id="restBtn">🌙 Let one cycle pass</button>
+      <details>
+        <summary>Next cycle forecast</summary>
+        <div class="discoveries" id="cycleForecast"></div>
+      </details>
       <button id="germinateBtn" disabled aria-describedby="germinateStatus">🌿 Germinate island · 6 resonance + 2 focus</button>
       <div class="small" id="germinateStatus">Unavailable: needs 6 resonance and 2 focus.</div>
       <button id="undoBtn" disabled aria-keyshortcuts="U" aria-describedby="undoStatus">↶ Undo last world action</button>
@@ -284,7 +288,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.50",SAVE_SCHEMA=7;
+  var APP_VERSION="0.51",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -833,9 +837,34 @@
     return became;
   }
   function updateRoleHistories(){state.islands.forEach(recordRoleHistory)}
-  function exportTrait(a){
-    if(a.palimpsest)return ["life","memory","strange"][(state.cycle+a.id)%3];
+  function modeForCycle(cycle){
+    var n=cycle%8;
+    return n===0?"Storm":n===4?"Bloom":n===6?"Static":"Quiet";
+  }
+  function exportTraitAtCycle(a,cycle){
+    if(a.palimpsest)return ["life","memory","strange"][(cycle+a.id)%3];
     return dominantTrait(a);
+  }
+  function exportTrait(a){return exportTraitAtCycle(a,state.cycle)}
+  function cycleForecast(){
+    var cycle=state.cycle+1,mode=modeForCycle(cycle),transfers=[];
+    state.islands.forEach(function(a){
+      if(!a.links.length)return;
+      var targetId=a.links[(cycle+a.id)%a.links.length];
+      var b=state.islands.find(function(x){return x.id===targetId});
+      if(!b)return;
+      transfers.push({from:a.id,to:b.id,type:exportTraitAtCycle(a,cycle)});
+    });
+    var constellation=networkConstellation(),junctions=junctionEcologies();
+    return {
+      cycle:cycle,
+      mode:mode,
+      focusAfter:Math.min(8,state.focus+3),
+      climate:macroClimate().name,
+      transfers:transfers,
+      constellation:constellation?{name:constellation.name,effect:constellation.effect}:null,
+      junctions:junctions.map(function(j){return {island:j.island,name:j.name,kind:j.kind}})
+    };
   }
   function macroClimate(){
     var n=state.islands.length||1;
@@ -1200,8 +1229,7 @@
     var beforeClimate=macroClimate();
     state.cycle++;
     state.focus=Math.min(8,state.focus+3);
-    var n=state.cycle%8;
-    state.mode=n===0?"Storm":n===4?"Bloom":n===6?"Static":"Quiet";
+    state.mode=modeForCycle(state.cycle);
     var transfers=migrateSignals();
     evolve();
     var junctions=applyJunctionEcologies();
@@ -1321,6 +1349,20 @@
     document.getElementById("versionChip").textContent="v"+APP_VERSION+" · save "+SAVE_SCHEMA;
     var guide=suggestedMove();
     document.getElementById("guidePanel").innerHTML="<b>"+esc(guide.title)+"</b><br>"+esc(guide.text);
+    var forecast=cycleForecast(),forecastEl=document.getElementById("cycleForecast");
+    var forecastTransfers=forecast.transfers.length?forecast.transfers.map(function(x){
+      var from=state.islands[x.from],to=state.islands[x.to];
+      return esc(from?from.name:"island "+x.from)+" → "+esc(to?to.name:"island "+x.to)+": "+esc(x.type);
+    }).join("<br>"):"No live routes would carry a migration.";
+    var forecastTopology=[];
+    if(forecast.constellation)forecastTopology.push(esc(forecast.constellation.name)+" · "+esc(forecast.constellation.effect));
+    if(forecast.junctions.length)forecastTopology.push(forecast.junctions.map(function(j){
+      var a=state.islands[j.island];return esc(j.name)+" @ "+esc(a?a.name:"island "+j.island);
+    }).join("<br>"));
+    forecastEl.innerHTML='<div class="discovery"><b>Cycle '+forecast.cycle+' · '+esc(forecast.mode)+'</b><br>Focus would recover to '+forecast.focusAfter+'/8.<br>Climate at pulse start: '+esc(forecast.climate)+'.</div>'+
+      '<div class="discovery"><b>Planned exports</b><br>'+forecastTransfers+'</div>'+
+      '<div class="discovery"><b>Topology if unchanged</b><br>'+(forecastTopology.length?forecastTopology.join("<br>"):"No constellation or mature-bond junction is currently active.")+'</div>'+
+      '<p class="small">Forecast stops before autonomous drift. Migration can change bond/junction state, and later evolution can change roles, climate, or phenomena.</p>';
     var textMap=textMapModel(),textMapEl=document.getElementById("textMap");
     textMapEl.innerHTML='<p class="small">'+esc(textMap.summary)+'</p><ul>'+textMap.islands.map(function(row){return '<li>'+esc(row.text)+'</li>'}).join("")+'</ul>';
     var gb=document.getElementById("germinateBtn"),germStatus=document.getElementById("germinateStatus");
