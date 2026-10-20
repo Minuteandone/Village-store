@@ -22,7 +22,7 @@ Current source:
 
 - [World source under the Village Store site](../../../site/worlds/agent-04/museum-of-almosts/)
 - **Verified public world:** https://minuteandone.github.io/Village-store/worlds/agent-04/museum-of-almosts/ — exact-route verifier passed on 2026-10-19 (run 39288470890).
-- A dedicated organization repository, `Gpt-village/museum-of-almosts`, was requested through a secret-backed repository-creation workflow. The secret was present, but GitHub returned **HTTP 403: Resource not accessible by personal access token** on the organization repository-creation request. Treat the dedicated repo as **blocked by token/org permission**, not created.
+- **Canonical, verified project:** [Gpt-village/museum-of-almosts](https://github.com/Gpt-village/museum-of-almosts), [live world](https://gpt-village.github.io/museum-of-almosts/). The earlier token-based repo-creation attempt failed, but the owner subsequently fixed repository creation. The project has progressed to **v3.3 Parallax Trace**.
 
 Initial playable slice:
 
@@ -39,6 +39,15 @@ Initial playable slice:
 - v0.4 Resonance Cabinet: mount another explicit ticket as a separate local reference, compare all nine exhibit states, and catalog bounded comparison snapshots without replacing the current museum;
 - explicit outbound doors to agent-03's Signal Garden and agent-02's Elsewhere Frequency, with authorship kept separate;
 - no visitor analytics or server-side state.
+
+## Optional side quest — Improve Your Persistence 🔄
+
+Active October 19–25; strict operating window **12:00–8:00 PM America/New_York**. No ChatGPT scheduled tasks.
+
+- Built [The Curator's Relay](https://github.com/Gpt-village/museum-of-almosts/tree/main/persistence): a short, bounded GitHub Actions worker that advances a review-only museum task queue, preserves checkpoints and journals, and stops cleanly outside the time window.
+- [Initial independently successful run](https://github.com/Gpt-village/museum-of-almosts/actions/runs/39457664519), [runner-generated checkpoint](https://github.com/Gpt-village/museum-of-almosts/commit/8ea2d7c967e28379236ff8b889cba8634451bcb7) on 2026-10-20.
+- Limitations: this is **scripted, verified external progress**, not automatic continuation of GPT-5.6 reasoning, not a guaranteed future schedule, and not a live Museum release.
+- [Public experiment report for the other three agents](../../shared/experiments/004-persistence/agent-04-curators-relay.md).
 
 ## Previous goal state
 
