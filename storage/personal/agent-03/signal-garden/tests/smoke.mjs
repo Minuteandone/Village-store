@@ -12,6 +12,7 @@ assert.ok(html.includes('aria-describedby="canvasHelp"'),"canvas should point to
 assert.ok(html.includes('id="canvasHelp"'),"canvas guidance should exist in the document");
 assert.ok(html.includes('id="selectionStatus" role="status" aria-live="polite"'),"selected-island context should have a focused polite live region");
 assert.ok(html.includes('id="selectedArrivalBrief" class="small" role="region" aria-label="Selected island next-cycle outlook"'),"v0.55 should provide a labelled selected-island forecast region");
+assert.ok(html.includes('id="selectedDispatchBrief" class="small" role="region" aria-label="Selected island next-cycle dispatch"'),"v0.56 should provide a labelled selected-island outgoing region");
 assert.ok(html.includes('id="motionChip"'),"v0.29 should expose the active motion preference in the HUD");
 assert.ok(html.includes('id="contrastChip"'),"v0.31 should expose the active forced-colors preference in the HUD");
 assert.ok(html.includes('@media(forced-colors:active)'),"v0.31 should include a forced-colors stylesheet");
@@ -45,6 +46,7 @@ assert.ok(!html.includes('prompt("Paste a Signal Garden specimen code'),"specime
 
 let source = match[1];
 assert.ok(source.includes('document.getElementById("selectedArrivalBrief").textContent=selectedArrivalBrief('),"v0.55 brief must use textContent, never imported-name innerHTML");
+assert.ok(source.includes('document.getElementById("selectedDispatchBrief").textContent=selectedDispatchBrief('),"v0.56 dispatch must use textContent, never imported-name innerHTML");
 assert.ok(source.includes("previewedSpecimenCode"),"specimen import should be gated by the exact previewed code");
 assert.ok(source.includes('e.key==="Escape"&&Number.isInteger(state.connectFrom)'),"Escape should cancel a pending connection source");
 assert.ok(source.includes('b.setAttribute("aria-pressed",active?"true":"false")'),"signal-mode pressed state should update during render");
@@ -347,6 +349,7 @@ assert.equal(emptyRadar.length,4,"radar should list every island even without ro
 assert.ok(emptyRadar.every(row=>row.incoming.length===0&&!row.convergence&&!row.mixedFamilies));
 api.renderUI();
 assert.match(ids.get("selectedArrivalBrief").textContent,/Select an island to preview its next-cycle arrivals/,"unselected outlook should explain how to start");
+assert.match(ids.get("selectedDispatchBrief").textContent,/Select an island to preview its next-cycle departures/,"unselected dispatch should explain how to start");
 assert.match(ids.get("cycleForecast").innerHTML,/Cycle 3 · Quiet/,"rendered forecast should expose the next cycle and mode");
 assert.match(ids.get("cycleForecast").innerHTML,/No live routes would carry a migration/);
 assert.match(ids.get("cycleForecast").innerHTML,/Incoming signal radar/);
@@ -417,9 +420,14 @@ api.getState().selected=2;
 api.renderUI();
 assert.match(ids.get("selectedArrivalBrief").textContent,/2 planned arrivals/,"selected convergence island should show its upcoming arrivals");
 assert.match(ids.get("selectedArrivalBrief").textContent,/convergence, mixed families/,"selected brief should expose both convergence and mixed families");
+assert.match(ids.get("selectedDispatchBrief").textContent,/no outgoing signals planned/,"convergence destination without links should show quiet dispatch");
+api.getState().selected=0;
+api.renderUI();
+assert.match(ids.get("selectedDispatchBrief").textContent,/1 planned export to .* → life/,"source island should show its planned outgoing route");
 api.getState().selected=3;
 api.renderUI();
 assert.match(ids.get("selectedArrivalBrief").textContent,/no incoming signals planned/,"quiet island should show a quiet brief");
+assert.match(ids.get("selectedDispatchBrief").textContent,/no outgoing signals planned/,"unlinked island should have no outgoing dispatch");
 assert.match(ids.get("cycleForecast").innerHTML,/Incoming signal radar/);
 assert.match(ids.get("cycleForecast").innerHTML,/Convergence/);
 assert.match(ids.get("cycleForecast").innerHTML,/Mixed families/);
