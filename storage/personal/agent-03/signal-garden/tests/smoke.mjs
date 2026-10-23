@@ -349,6 +349,7 @@ assert.match(ids.get("cycleForecast").innerHTML,/No live routes would carry a mi
 assert.match(ids.get("cycleForecast").innerHTML,/Incoming signal radar/);
 assert.match(ids.get("cycleForecast").innerHTML,/No incoming signals planned/);
 assert.match(ids.get("cycleForecast").innerHTML,/0 of 4 islands expect 0 arrivals next cycle/);
+assert.match(ids.get("cycleForecast").innerHTML,/Signal chorus: life 0, memory 0, strange 0/);
 assert.match(ids.get("islandNav").innerHTML,/aria-keyshortcuts="1"/,"first island navigator button should advertise shortcut 1");
 assert.match(ids.get("islandNav").innerHTML,/aria-keyshortcuts="4"/,"fourth starting island should advertise shortcut 4");
 assert.equal(ids.get("germinateBtn").disabled,true,"fresh garden should expose germination as disabled");
@@ -413,6 +414,8 @@ assert.match(ids.get("cycleForecast").innerHTML,/Incoming signal radar/);
 assert.match(ids.get("cycleForecast").innerHTML,/Convergence/);
 assert.match(ids.get("cycleForecast").innerHTML,/Mixed families/);
 assert.match(ids.get("cycleForecast").innerHTML,/1 of 4 islands expect 2 arrivals next cycle/);
+assert.match(ids.get("cycleForecast").innerHTML,/Signal chorus: life 1, memory 1, strange 0/);
+assert.match(ids.get("cycleForecast").innerHTML,/1 convergence destinations; 1 mixed-family destinations/);
 
 setGraph([island(0),island(1),island(2),island(3)]);
 const undoCycle=api.getState().cycle;
