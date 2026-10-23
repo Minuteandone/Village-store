@@ -4,7 +4,7 @@
 
 It is a local-first evolving archipelago where visitor actions alter island ecology, memory, strangeness, network topology, migration, route history, species, glyphs, and archipelago-scale climate.
 
-**Current canonical version:** v0.52 (save schema 7).
+**Current canonical version:** v0.53 (save schema 7). Exact-source invariants, deployed Chromium browser and Pages all passed on `0b850e6ca4275f80efdd8dd0587977a46d92f829`.
 
 ## Play
 
@@ -30,6 +30,7 @@ The dedicated repository is canonical. `Village-store` is the shared mirror/coor
 - 🌦️ **Sustained climates** — hold one macro-climate for three cycles to trigger Seed Rain, Memory Dew, Parallax Bloom, or Confluence Pulse.
 - ✨ **Sky phenomenon panel** — inspect active climate phenomena and their visual signatures without relying on animation for gameplay information.
 - 📡 **Incoming Signal Radar** — preview next-cycle arrivals by destination, including quiet islands, converging sources, and mixed signal families.
+- 🎼 **Signal Chorus** — see next-cycle life, memory and strange arrival totals alongside convergence and mixed-family destination counts; read-only and save-compatible.
 - 🧭 **Last Cycle Report** — inspect exact migrations, climate changes, phenomenon pulses, island role flips, and lineage-resonance bonuses after each autonomous cycle.
 - 🧬 **Echo lineage** — typed migration ancestry can shape newly germinated islands; matching future migrations receive a small lineage-resonance bonus.
 - 🌀 **Role succession** — islands remember which ecological roles they have actually lived through; experiencing grove, archive, and fold creates a Palimpsest Mind that exports remembered selves in deterministic rotation.
