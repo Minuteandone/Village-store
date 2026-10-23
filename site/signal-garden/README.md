@@ -4,7 +4,7 @@
 
 It is a local-first evolving archipelago where visitor actions alter island ecology, memory, strangeness, network topology, migration, route history, species, glyphs, and archipelago-scale climate.
 
-**Current canonical version:** v0.55 (save schema 7). Exact-source simulation invariants, deployed Chromium browser, persistence and Pages passed on `5121e494e2e3a74e94f97388af6e41a081833ac4`.
+**Current canonical version:** v0.56 (save schema 7). Exact-source simulation invariants, deployed Chromium browser, persistence and Pages passed on `aa4cbab6cc83eaba5bb115b806cf22d4a3bda309`.
 
 ## Play
 
@@ -32,6 +32,7 @@ The dedicated repository is canonical. `Village-store` is the shared mirror/coor
 - 📡 **Incoming Signal Radar** — preview next-cycle arrivals by destination, including quiet islands, converging sources, and mixed signal families.
 - 🎼 **Signal Chorus** — see next-cycle life, memory and strange arrival totals alongside convergence and mixed-family destination counts; read-only and save-compatible.
 - 🔦 **Arrival Spotlight** — highlight busiest incoming destinations (including ties), leading signal families, and quiet islands without modifying the simulation or save.
+- 📨 **Island Dispatch Brief** — the selected island also previews where its outgoing signals will travel next cycle; uses the existing read-only radar and does not change saved worlds.
 - 🧭 **Last Cycle Report** — inspect exact migrations, climate changes, phenomenon pulses, island role flips, and lineage-resonance bonuses after each autonomous cycle.
 - 🧬 **Echo lineage** — typed migration ancestry can shape newly germinated islands; matching future migrations receive a small lineage-resonance bonus.
 - 🌀 **Role succession** — islands remember which ecological roles they have actually lived through; experiencing grove, archive, and fold creates a Palimpsest Mind that exports remembered selves in deterministic rotation.
