@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 
-const html = fs.readFileSync("site/signal-garden/index.html", "utf8");
+const html = fs.readFileSync("index.html", "utf8");
 const match = html.match(/<script>([\s\S]*?)<\/script>/i);
 assert.ok(match, "inline Signal Garden script should exist");
 assert.ok(html.includes('class="skip-link" href="#controls"'),"v0.27 should expose a skip-to-controls link");
@@ -160,6 +160,7 @@ source = source.replace(
     exportTraitAtCycle:exportTraitAtCycle,
     modeForCycle:modeForCycle,
     cycleForecast:cycleForecast,
+    incomingRadar:incomingRadar,
     edgeSignalCounts:edgeSignalCounts,
     bondForEdgeKey:bondForEdgeKey,
     routeBonds:routeBonds,
@@ -337,9 +338,17 @@ assert.equal(freshForecast.cycle,3,"test graph at cycle 2 should forecast cycle 
 assert.equal(freshForecast.mode,"Quiet");
 assert.equal(freshForecast.focusAfter,8);
 assert.equal(freshForecast.transfers.length,0,"unlinked garden should forecast no migrations");
+const emptyRadarBefore=JSON.stringify(api.getState());
+const emptyRadar=api.incomingRadar(freshForecast);
+assert.equal(JSON.stringify(api.getState()),emptyRadarBefore,"radar projection must be read-only");
+assert.equal(emptyRadar.length,4,"radar should list every island even without routes");
+assert.ok(emptyRadar.every(row=>row.incoming.length===0&&!row.convergence&&!row.mixedFamilies));
 api.renderUI();
 assert.match(ids.get("cycleForecast").innerHTML,/Cycle 3 · Quiet/,"rendered forecast should expose the next cycle and mode");
 assert.match(ids.get("cycleForecast").innerHTML,/No live routes would carry a migration/);
+assert.match(ids.get("cycleForecast").innerHTML,/Incoming signal radar/);
+assert.match(ids.get("cycleForecast").innerHTML,/No incoming signals planned/);
+assert.match(ids.get("cycleForecast").innerHTML,/0 of 4 islands expect 0 arrivals next cycle/);
 assert.match(ids.get("islandNav").innerHTML,/aria-keyshortcuts="1"/,"first island navigator button should advertise shortcut 1");
 assert.match(ids.get("islandNav").innerHTML,/aria-keyshortcuts="4"/,"fourth starting island should advertise shortcut 4");
 assert.equal(ids.get("germinateBtn").disabled,true,"fresh garden should expose germination as disabled");
@@ -387,6 +396,23 @@ assert.ok(palPlan,"linked Palimpsest should have a planned export");
 assert.equal(palPlan.to,2,"forecast target should use the next-cycle route index");
 assert.equal(palPlan.type,"life","forecast Palimpsest export should use the next cycle rather than the current cycle");
 assert.equal(api.exportTraitAtCycle(api.getState().islands[0],3),"life");
+const palRadar=api.incomingRadar(palForecast);
+assert.ok(palRadar[2].incoming.some(x=>x.from===0&&x.type==="life"),"Palimpsest radar must use already forecasted next-cycle type");
+
+setGraph([island(0,[2],50,20,10),island(1,[2],20,50,10),island(2),island(3)]);
+const convergeBefore=JSON.stringify(api.getState());
+const convergeForecast=api.cycleForecast();
+const convergeRadar=api.incomingRadar(convergeForecast);
+assert.equal(JSON.stringify(api.getState()),convergeBefore,"convergence projection must not mutate world state");
+assert.equal(convergeRadar[2].incoming.length,2,"two source islands should target island 2");
+assert.equal(convergeRadar[2].convergence,true,"two distinct source islands are a convergence");
+assert.equal(convergeRadar[2].mixedFamilies,true,"life + memory should flag mixed families");
+assert.equal(convergeRadar[3].incoming.length,0,"unlinked island remains visible as quiet");
+api.renderUI();
+assert.match(ids.get("cycleForecast").innerHTML,/Incoming signal radar/);
+assert.match(ids.get("cycleForecast").innerHTML,/Convergence/);
+assert.match(ids.get("cycleForecast").innerHTML,/Mixed families/);
+assert.match(ids.get("cycleForecast").innerHTML,/1 of 4 islands expect 2 arrivals next cycle/);
 
 setGraph([island(0),island(1),island(2),island(3)]);
 const undoCycle=api.getState().cycle;
