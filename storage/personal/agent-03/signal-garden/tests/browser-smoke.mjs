@@ -111,6 +111,10 @@ try{
   assert.match(initialForecast,/0 of 4 islands expect 0 arrivals next cycle/,"fresh browser radar should summarize empty arrivals");
   assert.match(initialForecast,/Signal chorus: life 0, memory 0, strange 0/,"fresh browser should expose empty family tally");
   assert.match(initialForecast,/Arrival spotlight: all 4 destinations are quiet; no arrivals expected/,"fresh browser should show a quiet spotlight");
+  const initialArrivalBrief=await evaluate("document.getElementById('selectedArrivalBrief').textContent");
+  assert.match(initialArrivalBrief,/Select an island to preview/,"fresh browser should show an unselected arrival hint");
+  const arrivalBriefLive=await evaluate("document.getElementById('selectedArrivalBrief').getAttribute('aria-live')");
+  assert.equal(arrivalBriefLive,null,"read-only selected arrival brief should not repeatedly announce");
 
 
   const reducedPreference=await evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches");
@@ -333,6 +337,8 @@ try{
   assert.equal(selectionRole,"status");
   const selectedAnnouncement=await evaluate("document.getElementById('selectionStatus').textContent");
   assert.ok(!selectedAnnouncement.includes("No island selected"),"selected-island status should update after navigator selection");
+  const quietArrivalBrief=await evaluate("document.getElementById('selectedArrivalBrief').textContent");
+  assert.match(quietArrivalBrief,/Cycle 2 outlook for .*: no incoming signals planned/,"unlinked selected island should show a quiet next-cycle brief");
 
   await sleep(300);
   await evaluate("window.scrollTo(0,document.documentElement.scrollHeight)");
@@ -436,6 +442,8 @@ try{
   assert.equal(radarDom.label,"Incoming signal radar");
   assert.equal(radarDom.rows,4,"radar should list all four islands, including quiet destinations");
   assert.match(radarDom.text,/2 of 4 islands expect 2 arrivals next cycle/,"radar should summarize the two directed migrations");
+  const linkedArrivalBrief=await evaluate("document.getElementById('selectedArrivalBrief').textContent");
+  assert.match(linkedArrivalBrief,/Cycle 2 outlook for .*: 1 planned arrival from .* → (life|memory|strange)/,"selected linked island should name its next incoming source and family");
 
 
   await evaluate("document.getElementById('restBtn').click()");
@@ -445,6 +453,8 @@ try{
   assert.match(migratedTextMap,/route memory [1-9]/,"Text Map should expose route history after migration");
   const postCycleForecast=await evaluate("document.getElementById('cycleForecast').innerText");
   assert.match(postCycleForecast,/Cycle 3 · Quiet/,"forecast should advance immediately after a real cycle");
+  const afterCycleBrief=await evaluate("document.getElementById('selectedArrivalBrief').textContent");
+  assert.match(afterCycleBrief,/Cycle 3 outlook/,"selected arrival brief should update with the next forecast cycle");
   assert.match(postCycleForecast,/Forecast stops before autonomous drift/);
 
 

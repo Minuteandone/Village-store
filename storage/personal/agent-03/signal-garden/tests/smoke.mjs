@@ -11,6 +11,7 @@ assert.ok(html.includes('id="garden" width="900" height="660" role="img"'),"canv
 assert.ok(html.includes('aria-describedby="canvasHelp"'),"canvas should point to equivalent-control guidance");
 assert.ok(html.includes('id="canvasHelp"'),"canvas guidance should exist in the document");
 assert.ok(html.includes('id="selectionStatus" role="status" aria-live="polite"'),"selected-island context should have a focused polite live region");
+assert.ok(html.includes('id="selectedArrivalBrief" class="small" role="region" aria-label="Selected island next-cycle outlook"'),"v0.55 should provide a labelled selected-island forecast region");
 assert.ok(html.includes('id="motionChip"'),"v0.29 should expose the active motion preference in the HUD");
 assert.ok(html.includes('id="contrastChip"'),"v0.31 should expose the active forced-colors preference in the HUD");
 assert.ok(html.includes('@media(forced-colors:active)'),"v0.31 should include a forced-colors stylesheet");
@@ -43,6 +44,7 @@ assert.ok(html.includes('id="importBtn" disabled'),"specimen import should begin
 assert.ok(!html.includes('prompt("Paste a Signal Garden specimen code'),"specimen import must not regress to prompt-based input");
 
 let source = match[1];
+assert.ok(source.includes('document.getElementById("selectedArrivalBrief").textContent=selectedArrivalBrief('),"v0.55 brief must use textContent, never imported-name innerHTML");
 assert.ok(source.includes("previewedSpecimenCode"),"specimen import should be gated by the exact previewed code");
 assert.ok(source.includes('e.key==="Escape"&&Number.isInteger(state.connectFrom)'),"Escape should cancel a pending connection source");
 assert.ok(source.includes('b.setAttribute("aria-pressed",active?"true":"false")'),"signal-mode pressed state should update during render");
@@ -344,6 +346,7 @@ assert.equal(JSON.stringify(api.getState()),emptyRadarBefore,"radar projection m
 assert.equal(emptyRadar.length,4,"radar should list every island even without routes");
 assert.ok(emptyRadar.every(row=>row.incoming.length===0&&!row.convergence&&!row.mixedFamilies));
 api.renderUI();
+assert.match(ids.get("selectedArrivalBrief").textContent,/Select an island to preview its next-cycle arrivals/,"unselected outlook should explain how to start");
 assert.match(ids.get("cycleForecast").innerHTML,/Cycle 3 · Quiet/,"rendered forecast should expose the next cycle and mode");
 assert.match(ids.get("cycleForecast").innerHTML,/No live routes would carry a migration/);
 assert.match(ids.get("cycleForecast").innerHTML,/Incoming signal radar/);
@@ -410,7 +413,13 @@ assert.equal(convergeRadar[2].incoming.length,2,"two source islands should targe
 assert.equal(convergeRadar[2].convergence,true,"two distinct source islands are a convergence");
 assert.equal(convergeRadar[2].mixedFamilies,true,"life + memory should flag mixed families");
 assert.equal(convergeRadar[3].incoming.length,0,"unlinked island remains visible as quiet");
+api.getState().selected=2;
 api.renderUI();
+assert.match(ids.get("selectedArrivalBrief").textContent,/2 planned arrivals/,"selected convergence island should show its upcoming arrivals");
+assert.match(ids.get("selectedArrivalBrief").textContent,/convergence, mixed families/,"selected brief should expose both convergence and mixed families");
+api.getState().selected=3;
+api.renderUI();
+assert.match(ids.get("selectedArrivalBrief").textContent,/no incoming signals planned/,"quiet island should show a quiet brief");
 assert.match(ids.get("cycleForecast").innerHTML,/Incoming signal radar/);
 assert.match(ids.get("cycleForecast").innerHTML,/Convergence/);
 assert.match(ids.get("cycleForecast").innerHTML,/Mixed families/);
