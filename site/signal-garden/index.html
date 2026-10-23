@@ -107,7 +107,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip hud-secondary" id="motionChip">Motion · standard</span>
         <span class="chip hud-secondary" id="contrastChip">Contrast · custom</span>
-        <span class="chip hud-secondary" id="versionChip">v0.55 · save 7</span>
+        <span class="chip hud-secondary" id="versionChip">v0.56 · save 7</span>
       </div>
     </section>
 
@@ -173,6 +173,7 @@
           <div><b id="successionStat">—</b>role history</div>
         </div>
         <div id="selectedArrivalBrief" class="small" role="region" aria-label="Selected island next-cycle outlook" style="margin-top:10px;overflow-wrap:anywhere">Select an island to preview its next-cycle arrivals.</div>
+        <div id="selectedDispatchBrief" class="small" role="region" aria-label="Selected island next-cycle dispatch" style="margin-top:8px;overflow-wrap:anywhere">Select an island to preview its next-cycle departures.</div>
         <div class="meter"><span id="lifeMeter"></span></div>
         <div class="small" id="glyphCostNote" style="margin-top:10px">Root / Echo / Fold cost 3 resonance + 1 focus. Clear costs 1 focus. Glyphs add +2 of their trait whenever this island receives a migration.</div>
         <div class="small" id="glyphStatus">Select an island to inspect glyph availability.</div>
@@ -289,7 +290,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.55",SAVE_SCHEMA=7;
+  var APP_VERSION="0.56",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -937,6 +938,23 @@ function selectedArrivalBrief(rows, selectedId, cycle) {
     ' from ' + arrivals + (badges.length ? ' (' + badges.join(', ') + ')' : '') + '.';
 }
 
+/** Read-only selected-island next-cycle outgoing dispatch for Signal Garden v0.56. */
+function selectedDispatchBrief(rows, selectedId, cycle) {
+  if (!Number.isInteger(selectedId)) return 'Select an island to preview its next-cycle departures.';
+  const source = rows.find(row => row.id === selectedId);
+  if (!source) return 'Selected island is no longer available.';
+  const departures = [];
+  for (const destination of rows) {
+    for (const entry of destination.incoming) {
+      if (entry.from === selectedId) departures.push(`${destination.name} → ${entry.type}`);
+    }
+  }
+  const prefix = `Cycle ${cycle} dispatch from ${source.name}: `;
+  if (!departures.length) return prefix + 'no outgoing signals planned.';
+  return prefix + departures.length + (departures.length === 1 ? ' planned export' : ' planned exports') +
+    ' to ' + departures.join('; ') + '.';
+}
+
 function renderIncomingRadar(rows) {
   function escapeHtml(value) {
     return String(value).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -1469,6 +1487,7 @@ function renderIncomingRadar(rows) {
     var radarRows=incomingRadar(forecast);
     forecastEl.innerHTML += renderIncomingRadar(radarRows);
     document.getElementById("selectedArrivalBrief").textContent=selectedArrivalBrief(radarRows,state.selected,forecast.cycle);
+    document.getElementById("selectedDispatchBrief").textContent=selectedDispatchBrief(radarRows,state.selected,forecast.cycle);
     var textMap=textMapModel(),textMapEl=document.getElementById("textMap");
     textMapEl.innerHTML='<p class="small">'+esc(textMap.summary)+'</p><ul>'+textMap.islands.map(function(row){return '<li>'+esc(row.text)+'</li>'}).join("")+'</ul>';
     var gb=document.getElementById("germinateBtn"),germStatus=document.getElementById("germinateStatus");
