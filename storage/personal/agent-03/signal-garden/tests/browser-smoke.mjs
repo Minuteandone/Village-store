@@ -5,10 +5,10 @@ import os from "node:os";
 import path from "node:path";
 
 const chrome=process.argv[2];
-const baseUrl=process.argv[3]||"https://minuteandone.github.io/Village-store/signal-garden/";
+const baseUrl=process.argv[3]||"https://gpt-village.github.io/agent-03-signal-garden/";
 assert.ok(chrome,"Chrome executable path is required");
 
-const local=fs.readFileSync("site/signal-garden/index.html","utf8");
+const local=fs.readFileSync("index.html","utf8");
 const versionMatch=local.match(/APP_VERSION="([^"]+)"/);
 const schemaMatch=local.match(/SAVE_SCHEMA=(\d+)/);
 assert.ok(versionMatch&&schemaMatch,"local index should expose APP_VERSION and SAVE_SCHEMA");
@@ -103,6 +103,13 @@ try{
   const version=await evaluate("document.getElementById('versionChip').textContent");
   assert.ok(version.includes("v"+expectedVersion),"deployed app version should match checked-out index");
   assert.ok(version.includes("save "+expectedSchema),"deployed save schema should match checked-out index");
+  const initialForecast=await evaluate("document.getElementById('cycleForecast').textContent");
+  assert.match(initialForecast,/Cycle 2 · Quiet/,"fresh garden should forecast cycle 2 Quiet");
+  assert.match(initialForecast,/Focus would recover to 8\/8/);
+  assert.match(initialForecast,/Incoming signal radar/,"fresh browser should show destination-first radar");
+  assert.match(initialForecast,/No incoming signals planned/,"fresh browser should show quiet islands");
+  assert.match(initialForecast,/0 of 4 islands expect 0 arrivals next cycle/,"fresh browser radar should summarize empty arrivals");
+
 
   const reducedPreference=await evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches");
   assert.equal(reducedPreference,true,"Chrome should emulate the user's reduced-motion preference");
@@ -180,20 +187,100 @@ try{
   assert.equal(quickNavPosition,"sticky","390px layout should keep section navigation sticky");
   const quickNavHrefs=await evaluate(`Array.from(document.querySelectorAll('#quickNav a')).map(a=>a.getAttribute('href'))`);
   assert.deepEqual(quickNavHrefs,["#worldSection","#actionsSection","#islandSection","#researchSection","#historySection","#specimenSection"],"quick navigation should expose the six intended destinations");
+
+  await evaluate(`document.querySelector('#quickNav a[href="#actionsSection"]').focus()`);
+  await key("Enter","Enter",13);
+  await waitFor("location.hash==='#actionsSection' && document.activeElement && document.activeElement.id==='actionsSection' && document.querySelector('#quickNav a[href=\"#actionsSection\"]').getAttribute('aria-current')==='location'","keyboard quick-nav destination focus and current state");
+  const actionsFocusStyle=await evaluate(`(()=>{
+    const e=document.getElementById('actionsSection'),cs=getComputedStyle(e);
+    return {outlineStyle:cs.outlineStyle,outlineWidth:parseFloat(cs.outlineWidth),outlineOffset:parseFloat(cs.outlineOffset)};
+  })()`);
+  assert.equal(actionsFocusStyle.outlineStyle,"solid","keyboard fragment destination should render an explicit focus outline");
+  assert.ok(actionsFocusStyle.outlineWidth>=2,"fragment destination focus outline should be at least 2px");
+  assert.ok(actionsFocusStyle.outlineOffset>=4,"fragment destination focus outline should clear the section content");
+  const actionsCurrent=await evaluate(`Array.from(document.querySelectorAll('#quickNav a')).map(a=>[a.getAttribute('href'),a.getAttribute('aria-current')])`);
+  assert.deepEqual(actionsCurrent.filter(x=>x[1]),[["#actionsSection","location"]],"keyboard fragment jump should mark only Actions as current");
+  const actionsCurrentContrast=await evaluate(`(()=>{
+    const e=document.querySelector('#quickNav a[href="#actionsSection"]'),cs=getComputedStyle(e);
+    return {outlineStyle:cs.outlineStyle,outlineWidth:parseFloat(cs.outlineWidth)};
+  })()`);
+  assert.equal(actionsCurrentContrast.outlineStyle,"solid","forced-colors current-location link should retain an explicit outline");
+  assert.ok(actionsCurrentContrast.outlineWidth>=2,"forced-colors current-location outline should be at least 2px");
+
   await evaluate(`document.querySelector('#quickNav a[href="#researchSection"]').click()`);
-  await waitFor("location.hash==='#researchSection'","Research section anchor navigation");
+  await waitFor("location.hash==='#researchSection' && document.activeElement && document.activeElement.id==='researchSection' && document.querySelector('#quickNav a[href=\"#researchSection\"]').getAttribute('aria-current')==='location'","Research section anchor navigation and current state");
   const researchTargetTop=Number(await evaluate("document.getElementById('researchSection').getBoundingClientRect().top"));
   assert.ok(researchTargetTop>=0&&researchTargetTop<844,"Research jump target should land visibly in the mobile viewport");
   const researchFocused=await evaluate("document.activeElement && document.activeElement.id");
   assert.equal(researchFocused,"researchSection","native Research fragment navigation should move focus to its tabindex target");
+  const researchCurrent=await evaluate(`Array.from(document.querySelectorAll('#quickNav a')).filter(a=>a.hasAttribute('aria-current')).map(a=>[a.getAttribute('href'),a.getAttribute('aria-current')])`);
+  assert.deepEqual(researchCurrent,[["#researchSection","location"]],"mouse/script fragment jump should update aria-current to Research");
   const historyInitiallyOpen=await evaluate("document.getElementById('historySection').open");
   assert.equal(historyInitiallyOpen,false,"History should begin collapsed");
   await evaluate(`document.querySelector('#quickNav a[href="#historySection"]').click()`);
-  await waitFor("location.hash==='#historySection' && document.getElementById('historySection').open===true","History section reveal and anchor navigation");
+  await waitFor("location.hash==='#historySection' && document.getElementById('historySection').open===true && document.activeElement && document.activeElement.id==='historySection' && document.querySelector('#quickNav a[href=\"#historySection\"]').getAttribute('aria-current')==='location'","History section reveal, focus, and current state");
   const historyTargetTop=Number(await evaluate("document.getElementById('historySection').getBoundingClientRect().top"));
   assert.ok(historyTargetTop>=0&&historyTargetTop<844,"History jump target should land visibly in the mobile viewport");
   const historyFocused=await evaluate("document.activeElement && document.activeElement.id");
   assert.equal(historyFocused,"historySection","native History fragment navigation should move focus to its tabindex target");
+
+  await send("Emulation.setDeviceMetricsOverride",{width:320,height:568,deviceScaleFactor:1,mobile:true,screenWidth:320,screenHeight:568});
+  await sleep(100);
+  const narrowPhone=await evaluate(`(()=>{
+    const nav=document.getElementById('quickNav').getBoundingClientRect();
+    const target=document.getElementById('specimenSection');
+    return {
+      overflow:document.documentElement.scrollWidth<=document.documentElement.clientWidth+1,
+      navPosition:getComputedStyle(document.getElementById('quickNav')).position,
+      navDisplay:getComputedStyle(document.getElementById('quickNav')).display,
+      navRows:new Set(Array.from(document.querySelectorAll('#quickNav a')).map(a=>Math.round(a.getBoundingClientRect().top))).size,
+      navHeight:nav.height,
+      scrollMargin:parseFloat(getComputedStyle(target).scrollMarginTop)
+    };
+  })()`);
+  assert.equal(narrowPhone.overflow,true,"320px viewport should not overflow horizontally");
+  assert.equal(narrowPhone.navPosition,"sticky","320px viewport should preserve sticky section navigation");
+  assert.equal(narrowPhone.navDisplay,"grid","320px quick navigation should use the narrow-phone grid");
+  assert.equal(narrowPhone.navRows,2,"six quick links should occupy exactly two rows at 320px");
+  assert.ok(narrowPhone.scrollMargin>=narrowPhone.navHeight+8,"mobile fragment clearance should exceed the rendered sticky-nav height");
+
+  const mobileTargets=await evaluate(`(()=>{
+    const nodes=Array.from(document.querySelectorAll('button,#quickNav a,summary'));
+    const visible=nodes.map((e,i)=>({e,i,r:e.getBoundingClientRect(),cs:getComputedStyle(e)})).filter(x=>x.cs.display!=="none"&&x.cs.visibility!=="hidden"&&x.r.width>0&&x.r.height>0);
+    return {
+      count:visible.length,
+      tooSmall:visible.filter(x=>x.r.width<24||x.r.height<24).map(x=>({
+        tag:x.e.tagName,
+        id:x.e.id||"",
+        text:(x.e.textContent||"").trim().slice(0,60),
+        width:x.r.width,
+        height:x.r.height
+      }))
+    };
+  })()`);
+  assert.ok(mobileTargets.count>=20,"320px target-size audit should inspect a meaningful set of visible controls");
+  assert.deepEqual(mobileTargets.tooSmall,[],"every visible button, quick-nav link, and summary should measure at least 24x24 CSS px");
+
+  await evaluate(`document.querySelector('#quickNav a[href="#specimenSection"]').click()`);
+  await waitFor("location.hash==='#specimenSection' && document.activeElement && document.activeElement.id==='specimenSection' && document.querySelector('#quickNav a[href=\"#specimenSection\"]').getAttribute('aria-current')==='location'","Specimen section small-phone anchor navigation and current state");
+  const narrowLanding=await evaluate(`(()=>{
+    const nav=document.getElementById('quickNav').getBoundingClientRect();
+    const target=document.getElementById('specimenSection').getBoundingClientRect();
+    return {targetTop:target.top,navBottom:nav.bottom,viewport:innerHeight,focused:document.activeElement&&document.activeElement.id};
+  })()`);
+  assert.ok(narrowLanding.targetTop>=narrowLanding.navBottom+4,"320px Specimen jump target should clear the sticky navigation");
+  assert.ok(narrowLanding.targetTop<narrowLanding.viewport,"320px Specimen jump target should remain visible");
+  assert.equal(narrowLanding.focused,"specimenSection","small-phone native fragment navigation should focus the Specimen target");
+  const specimenCurrent=await evaluate(`Array.from(document.querySelectorAll('#quickNav a')).filter(a=>a.hasAttribute('aria-current')).map(a=>[a.getAttribute('href'),a.getAttribute('aria-current')])`);
+  assert.deepEqual(specimenCurrent,[["#specimenSection","location"]],"small-phone Specimen jump should mark Specimen current");
+
+  await evaluate("history.back()");
+  await waitFor("location.hash==='#historySection' && document.querySelector('#quickNav a[href=\"#historySection\"]').getAttribute('aria-current')==='location'","native Back fragment navigation and current state");
+  const backCurrent=await evaluate(`Array.from(document.querySelectorAll('#quickNav a')).filter(a=>a.hasAttribute('aria-current')).map(a=>[a.getAttribute('href'),a.getAttribute('aria-current')])`);
+  assert.deepEqual(backCurrent,[["#historySection","location"]],"browser Back should restore aria-current through hashchange");
+
+  await send("Emulation.setDeviceMetricsOverride",{width:390,height:844,deviceScaleFactor:1,mobile:true,screenWidth:390,screenHeight:844});
+  await sleep(100);
 
   const canvasRole=await evaluate("document.getElementById('garden').getAttribute('role')");
   assert.equal(canvasRole,"img","canvas should identify itself as a visual map rather than the only gameplay control");
@@ -332,12 +419,29 @@ try{
   assert.match(linkedGuide,/Let one cycle pass/,"linked cycle-1 garden should advance starter guidance");
   const linkedTextMap=await evaluate("document.getElementById('textMap').innerText");
   assert.match(linkedTextMap,/live route to/,"Text Map should update after a real bridge is created");
+  await evaluate("document.getElementById('cycleForecast').closest('details').open=true");
+  const linkedForecast=await evaluate("document.getElementById('cycleForecast').innerText");
+  assert.match(linkedForecast,/Planned exports/);
+  assert.match(linkedForecast,/→/,"opened linked-garden forecast should name at least one planned migration route");
+  assert.match(linkedForecast,/Incoming signal radar/,"linked garden should show incoming radar");
+  assert.match(linkedForecast,/→ (life|memory|strange)/,"linked radar should show typed arrivals");
+  assert.match(linkedForecast,/[0-9]+ of [0-9]+ islands expect [0-9]+ arrivals? next cycle/,"linked radar should summarize expected arrivals");
+  const radarDom=await evaluate("(() => { const el=document.querySelector('#cycleForecast section[aria-label]'); return el ? {label:el.getAttribute('aria-label'), rows:el.querySelectorAll('li').length, text:el.innerText} : null; })()");
+  assert.ok(radarDom,"radar must exist as its own accessible region");
+  assert.equal(radarDom.label,"Incoming signal radar");
+  assert.equal(radarDom.rows,4,"radar should list all four islands, including quiet destinations");
+  assert.match(radarDom.text,/2 of 4 islands expect 2 arrivals next cycle/,"radar should summarize the two directed migrations");
+
 
   await evaluate("document.getElementById('restBtn').click()");
   const routeMemory=await evaluate("document.getElementById('historyChip').textContent");
   assert.match(routeMemory,/Route memory [1-9]/,"advancing a linked cycle should create route memory");
   const migratedTextMap=await evaluate("document.getElementById('textMap').innerText");
   assert.match(migratedTextMap,/route memory [1-9]/,"Text Map should expose route history after migration");
+  const postCycleForecast=await evaluate("document.getElementById('cycleForecast').innerText");
+  assert.match(postCycleForecast,/Cycle 3 · Quiet/,"forecast should advance immediately after a real cycle");
+  assert.match(postCycleForecast,/Forecast stops before autonomous drift/);
+
 
   await evaluate(`document.querySelector('[data-island-id="1"]').click()`);
   const glyphButtons=await evaluate(`document.querySelectorAll('[data-glyph]').length`);
@@ -463,7 +567,7 @@ try{
   await sleep(150);
   assert.equal(exceptions.length,0,"uncaught browser exceptions: "+JSON.stringify(exceptions));
 
-  console.log("Signal Garden shared-mirror browser smoke passed.");
+  console.log("Signal Garden canonical browser smoke passed.");
   console.log(JSON.stringify({expectedVersion,expectedSchema,version,motionChip,contrastChip,panelShadow,activeOutline,title,mobileHud,mobileHudRows,firstTabClass,controlsLabel,quickNavPosition,quickNavHrefs,researchTargetTop,researchFocused,historyInitiallyOpen,historyTargetTop,historyFocused,canvasRole,touchAction,shortcutMeta,initialGuide,guideLive,fieldLogLive,actionStatusRole,researchSummary,researchCompass,observedResearchSummary,selectedAnnouncement,offscreenCanvasStable:offscreenCanvasA===offscreenCanvasB,offscreenSelectionDeferred:offscreenCanvasAfterSelection===offscreenCanvasB,resumeRenderedLatest:resumedCanvas!==offscreenCanvasAfterSelection,actionAnnouncement,nurturePressedInitially,connectPressed,pendingConnectStatus,cancelledConnectStatus,lifeBefore,lifeAfter,focusBeforeUndo,undoInitiallyDisabled,undoLabel,lifeAfterUndo,focusAfterUndo,undoAnnouncement,lifeAfterRedo,links,routeMemory,glyph,echoGlyphPressed,memoryBefore,memoryAfter,specimenLength,germinationInitiallyDisabled,germinationInitialStatus,echoInitiallyDisabled,glyphInitialStatus,echoReady,glyphDescription,echoDisabledAfterSelection,initialTextMap,linkedTextMap,migratedTextMap,generatedPreview,changedPreview,previewText,specimenStatus,reloadedLife,undoAfterReloadDisabled,exhaustedFocus,nurtureApplyDisabled,exhaustedModeStatus,exhaustedGuide,freeArmText,zeroFocusPending,blockedCompletionStatus,freeCancelText,afterFreeCancel,canvasArmedStatus,canvasCancelledStatus,url:selectedUrl}));
 }finally{
   if(ws)try{ws.close()}catch{}
