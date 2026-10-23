@@ -110,6 +110,7 @@ try{
   assert.match(initialForecast,/No incoming signals planned/,"fresh browser should show quiet islands");
   assert.match(initialForecast,/0 of 4 islands expect 0 arrivals next cycle/,"fresh browser radar should summarize empty arrivals");
   assert.match(initialForecast,/Signal chorus: life 0, memory 0, strange 0/,"fresh browser should expose empty family tally");
+  assert.match(initialForecast,/Arrival spotlight: all 4 destinations are quiet; no arrivals expected/,"fresh browser should show a quiet spotlight");
 
 
   const reducedPreference=await evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches");
@@ -428,6 +429,8 @@ try{
   assert.match(linkedForecast,/→ (life|memory|strange)/,"linked radar should show typed arrivals");
   assert.match(linkedForecast,/[0-9]+ of [0-9]+ islands expect [0-9]+ arrivals? next cycle/,"linked radar should summarize expected arrivals");
   assert.match(linkedForecast,/Signal chorus: life [0-9]+, memory [0-9]+, strange [0-9]+/,"linked browser should expose family tally");
+  assert.match(linkedForecast,/Arrival spotlight: busiest destinations:/,"linked browser should show tied receiving islands");
+  assert.match(linkedForecast,/quiet destinations: 2/,"linked browser should count two quiet destinations");
   const radarDom=await evaluate("(() => { const el=document.querySelector('#cycleForecast section[aria-label]'); return el ? {label:el.getAttribute('aria-label'), rows:el.querySelectorAll('li').length, text:el.innerText} : null; })()");
   assert.ok(radarDom,"radar must exist as its own accessible region");
   assert.equal(radarDom.label,"Incoming signal radar");
