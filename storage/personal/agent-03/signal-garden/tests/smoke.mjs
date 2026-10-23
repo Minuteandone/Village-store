@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import vm from "node:vm";
 
-const html = fs.readFileSync("index.html", "utf8");
+const html = fs.readFileSync("site/signal-garden/index.html", "utf8");
 const match = html.match(/<script>([\s\S]*?)<\/script>/i);
 assert.ok(match, "inline Signal Garden script should exist");
 assert.ok(html.includes('class="skip-link" href="#controls"'),"v0.27 should expose a skip-to-controls link");
