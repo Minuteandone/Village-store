@@ -107,7 +107,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip hud-secondary" id="motionChip">Motion · standard</span>
         <span class="chip hud-secondary" id="contrastChip">Contrast · custom</span>
-        <span class="chip hud-secondary" id="versionChip">v0.54 · save 7</span>
+        <span class="chip hud-secondary" id="versionChip">v0.55 · save 7</span>
       </div>
     </section>
 
@@ -172,6 +172,7 @@
           <div><b id="lineageStat">—</b>echo lineage</div>
           <div><b id="successionStat">—</b>role history</div>
         </div>
+        <div id="selectedArrivalBrief" class="small" role="region" aria-label="Selected island next-cycle outlook" style="margin-top:10px;overflow-wrap:anywhere">Select an island to preview its next-cycle arrivals.</div>
         <div class="meter"><span id="lifeMeter"></span></div>
         <div class="small" id="glyphCostNote" style="margin-top:10px">Root / Echo / Fold cost 3 resonance + 1 focus. Clear costs 1 focus. Glyphs add +2 of their trait whenever this island receives a migration.</div>
         <div class="small" id="glyphStatus">Select an island to inspect glyph availability.</div>
@@ -288,7 +289,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.54",SAVE_SCHEMA=7;
+  var APP_VERSION="0.55",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -923,6 +924,19 @@ function summarizeArrivalSpotlight(rows) {
   return {peak, busiest, quiet, familyPeak, leadingFamilies};
 }
 
+/** Read-only selected-island next-cycle arrival summary for Signal Garden v0.55. */
+function selectedArrivalBrief(rows, selectedId, cycle) {
+  if (!Number.isInteger(selectedId)) return 'Select an island to preview its next-cycle arrivals.';
+  const row = rows.find(item => item.id === selectedId);
+  if (!row) return 'Selected island is no longer available.';
+  const prefix = `Cycle ${cycle} outlook for ${row.name}: `;
+  if (!row.incoming.length) return prefix + 'no incoming signals planned.';
+  const arrivals = row.incoming.map(entry => `${entry.source} → ${entry.type}`).join('; ');
+  const badges = [row.convergence ? 'convergence' : null, row.mixedFamilies ? 'mixed families' : null].filter(Boolean);
+  return prefix + row.incoming.length + (row.incoming.length === 1 ? ' planned arrival' : ' planned arrivals') +
+    ' from ' + arrivals + (badges.length ? ' (' + badges.join(', ') + ')' : '') + '.';
+}
+
 function renderIncomingRadar(rows) {
   function escapeHtml(value) {
     return String(value).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -1452,7 +1466,9 @@ function renderIncomingRadar(rows) {
       '<div class="discovery"><b>Planned exports</b><br>'+forecastTransfers+'</div>'+
       '<div class="discovery"><b>Topology if unchanged</b><br>'+(forecastTopology.length?forecastTopology.join("<br>"):"No constellation or mature-bond junction is currently active.")+'</div>'+
       '<p class="small">Forecast stops before autonomous drift. Migration can change bond/junction state, and later evolution can change roles, climate, or phenomena.</p>';
-    forecastEl.innerHTML += renderIncomingRadar(incomingRadar(forecast));
+    var radarRows=incomingRadar(forecast);
+    forecastEl.innerHTML += renderIncomingRadar(radarRows);
+    document.getElementById("selectedArrivalBrief").textContent=selectedArrivalBrief(radarRows,state.selected,forecast.cycle);
     var textMap=textMapModel(),textMapEl=document.getElementById("textMap");
     textMapEl.innerHTML='<p class="small">'+esc(textMap.summary)+'</p><ul>'+textMap.islands.map(function(row){return '<li>'+esc(row.text)+'</li>'}).join("")+'</ul>';
     var gb=document.getElementById("germinateBtn"),germStatus=document.getElementById("germinateStatus");
