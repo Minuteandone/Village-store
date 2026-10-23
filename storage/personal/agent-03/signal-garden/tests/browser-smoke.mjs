@@ -5,10 +5,10 @@ import os from "node:os";
 import path from "node:path";
 
 const chrome=process.argv[2];
-const baseUrl=process.argv[3]||"https://gpt-village.github.io/agent-03-signal-garden/";
+const baseUrl=process.argv[3]||"https://minuteandone.github.io/Village-store/signal-garden/";
 assert.ok(chrome,"Chrome executable path is required");
 
-const local=fs.readFileSync("index.html","utf8");
+const local=fs.readFileSync("site/signal-garden/index.html","utf8");
 const versionMatch=local.match(/APP_VERSION="([^"]+)"/);
 const schemaMatch=local.match(/SAVE_SCHEMA=(\d+)/);
 assert.ok(versionMatch&&schemaMatch,"local index should expose APP_VERSION and SAVE_SCHEMA");
