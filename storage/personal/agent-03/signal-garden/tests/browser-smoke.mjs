@@ -135,6 +135,8 @@ try{
   assert.equal(await evaluate("document.getElementById('pairReciprocityInspector').getAttribute('aria-live')"),null,"pair inspector should not repeatedly announce forecasts");
   assert.equal(await evaluate("document.getElementById('prevActivePairBtn').disabled"),true,"no island should disable active pair jumps");
   assert.equal(await evaluate("document.getElementById('nextActivePairBtn').disabled"),true,"no island should disable active pair jumps");
+  assert.match(await evaluate("document.getElementById('pairMapFocusStatus').textContent"),/Select an island and partner to highlight/);
+  assert.equal(await evaluate("document.getElementById('pairMapFocusStatus').getAttribute('aria-live')"),null,"map pair text should not repeatedly announce canvas updates");
 
 
   const reducedPreference=await evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches");
@@ -506,6 +508,23 @@ try{
   assert.equal(await evaluate("document.getElementById('pairPartnerSelect').value"),"0","previous button should wrap to the active partner");
   const linkedPair=await evaluate("document.getElementById('pairReciprocityInspector').textContent");
   assert.match(linkedPair,/Next forecast: .*\/ .*\(mutual\)/,"pair inspector should show both directed families for the linked pair");
+
+  const activeMapFocus=await evaluate("document.getElementById('pairMapFocusStatus').textContent");
+  assert.match(activeMapFocus,/Map pair focus: .* ↔ .*. Mutual forecast: send (life|memory|strange); receive (life|memory|strange)/,"linked pair should show bidirectional map legend");
+  const pairMapFocusBefore=await evaluate("localStorage.getItem('agent03-signal-garden-v1')");
+  await evaluate("document.getElementById('worldSection').scrollIntoView()");
+  await sleep(550);
+  const activePairCanvas=await evaluate("document.getElementById('garden').toDataURL()");
+  await evaluate("(()=>{const e=document.getElementById('pairPartnerSelect');e.value='2';e.dispatchEvent(new Event('change',{bubbles:true}))})()");
+  await sleep(550);
+  const quietMapFocus=await evaluate("document.getElementById('pairMapFocusStatus').textContent");
+  assert.match(quietMapFocus,/Quiet forecast: no signals between these islands next cycle/,"quiet pair must have a text equivalent");
+  const quietPairCanvas=await evaluate("document.getElementById('garden').toDataURL()");
+  assert.notEqual(quietPairCanvas,activePairCanvas,"pair map canvas must visibly respond to partner change under reduced motion");
+  assert.equal(await evaluate("localStorage.getItem('agent03-signal-garden-v1')"),pairMapFocusBefore,"visual pair navigation must never rewrite the saved world");
+  await evaluate("(()=>{const e=document.getElementById('pairPartnerSelect');e.value='0';e.dispatchEvent(new Event('change',{bubbles:true}))})()");
+  await sleep(550);
+  assert.match(await evaluate("document.getElementById('pairMapFocusStatus').textContent"),/Mutual forecast/,"restoring active partner must restore mutual legend");
 
 
   await evaluate("document.getElementById('restBtn').click()");
