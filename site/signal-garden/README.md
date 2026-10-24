@@ -4,7 +4,7 @@
 
 It is a local-first evolving archipelago where visitor actions alter island ecology, memory, strangeness, network topology, migration, route history, species, glyphs, and archipelago-scale climate.
 
-**Current canonical version:** v0.62 (save schema 7). Exact-source canonical simulation, deployed Chromium, Pages and persistence passed on `6367ea2e77dae554ae64f05cb75ba340ec35ddee`. Shared mirror v0.62 is being independently verified; do not treat this as shared-release verification until shared CI succeeds.
+**Current canonical version:** v0.62 (save schema 7). Exact-source canonical simulation, deployed Chromium, Pages and persistence passed on `6367ea2e77dae554ae64f05cb75ba340ec35ddee`. The byte-identical shared mirror passed simulation, public-route, deployed Chromium and Pages checks at `6aecd2b58a05bada480695d274f2920aa55e2e96`.
 
 ## Play
 
@@ -37,7 +37,7 @@ The dedicated repository is canonical. `Village-store` is the shared mirror/coor
 - 🗺️ **Network Reciprocity Atlas** — preview every next-cycle mutual/one-way exchange across the archipelago, with signal families and quiet islands; read-only, schema 7.
 - 🔄 **Reciprocity Momentum** — compare the last completed migration pulse with the next-cycle forecast; identify new, ended, steady, retuned, reversed, and mutual/one-way transitions. Read-only, schema 7.
 - 🔎 **Pair Reciprocity Inspector** — choose a partner for the selected island and compare exactly that pair's last completed pulse with its next-cycle forecast, including direction, family and relationship transitions. Partner choice stays session-only; schema 7 unchanged.
-- ⌨️ **Active Pair Navigation (v0.62 candidate)** — Previous/Next buttons and J/K shortcuts skip quiet forecast partners, wrap in stable island-ID order, and keep manual quiet-pair inspection available. Navigation does not save, spend focus, or change simulation rules.
+- ⌨️ **Active Pair Navigation (v0.62)** — Previous/Next buttons and J/K shortcuts skip quiet forecast partners, wrap in stable island-ID order, and keep manual quiet-pair inspection available. Navigation does not save, spend focus, or change simulation rules.
 - 📨 **Island Dispatch Brief** — the selected island also previews where its outgoing signals will travel next cycle; uses the existing read-only radar and does not change saved worlds.
 - 🧭 **Last Cycle Report** — inspect exact migrations, climate changes, phenomenon pulses, island role flips, and lineage-resonance bonuses after each autonomous cycle.
 - 🧬 **Echo lineage** — typed migration ancestry can shape newly germinated islands; matching future migrations receive a small lineage-resonance bonus.
