@@ -107,7 +107,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip hud-secondary" id="motionChip">Motion · standard</span>
         <span class="chip hud-secondary" id="contrastChip">Contrast · custom</span>
-        <span class="chip hud-secondary" id="versionChip">v0.60 · save 7</span>
+        <span class="chip hud-secondary" id="versionChip">v0.61 · save 7</span>
       </div>
     </section>
 
@@ -178,6 +178,11 @@
         <div id="selectedDispatchBrief" class="small" role="region" aria-label="Selected island next-cycle dispatch" style="margin-top:8px;overflow-wrap:anywhere">Select an island to preview its next-cycle departures.</div>
         <div id="selectedFlowCompass" class="small" role="region" aria-label="Selected island next-cycle signal flow" style="margin-top:8px;overflow-wrap:anywhere">Select an island to preview its next-cycle signal flow.</div>
         <div id="selectedRouteReciprocity" class="small" role="region" aria-label="Selected island next-cycle route reciprocity" style="margin-top:8px;overflow-wrap:anywhere">Select an island to preview next-cycle route reciprocity.</div>
+        <div style="margin-top:10px">
+          <label for="pairPartnerSelect" class="small">🔎 Inspect this island with another island</label>
+          <select id="pairPartnerSelect" disabled aria-describedby="pairReciprocityInspector" style="display:block;width:100%;max-width:100%;min-height:36px;margin-top:6px;padding:6px 8px;background:#13271c;color:var(--text);border:1px solid #365743;border-radius:10px;font:inherit"></select>
+          <div id="pairReciprocityInspector" class="small" role="region" aria-label="Selected island pair reciprocity inspector" style="margin-top:8px;overflow-wrap:anywhere">Select an island to inspect a pair.</div>
+        </div>
         <div class="meter"><span id="lifeMeter"></span></div>
         <div class="small" id="glyphCostNote" style="margin-top:10px">Root / Echo / Fold cost 3 resonance + 1 focus. Clear costs 1 focus. Glyphs add +2 of their trait whenever this island receives a migration.</div>
         <div class="small" id="glyphStatus">Select an island to inspect glyph availability.</div>
@@ -294,7 +299,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.60",SAVE_SCHEMA=7;
+  var APP_VERSION="0.61",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -336,6 +341,7 @@
     });
   }
   var state=fresh(),bootNotice="";
+  var inspectedPartnerId=null,pairOptionsKey=""; // UI-only; never serialized.
   if(bootParseError)bootNotice="Could not read the local garden save, so a fresh seed state was used.";
   else if(bootSaved){
     if(validSavedState(bootSaved)){
@@ -1152,6 +1158,66 @@ function reciprocityMomentum(rows, previousTransfers, cycle) {
     ' changed, ' + tally.steady + ' steady. ' + details.join('; ') + '.';
 }
 
+/**
+ * Signal Garden v0.61: inspect one island pair's last completed migration and
+ * next-cycle forecast without changing the world or persisting UI preferences.
+ * Names are plain text; the caller must render with textContent.
+ */
+function pairReciprocityInspector(rows, previousTransfers, firstId, secondId, cycle) {
+  if (!Number.isInteger(firstId)) return 'Select an island to inspect a pair.';
+  if (!Number.isInteger(secondId)) return 'Choose another island to inspect a pair.';
+  const byId = new Map(rows.map(row => [row.id, row]));
+  const first = byId.get(firstId), second = byId.get(secondId);
+  if (!first || !second || firstId === secondId) return 'Pair unavailable; select two different existing islands.';
+  const families = ['life', 'memory', 'strange'];
+  function empty() { return {forward: [], reverse: []}; }
+  const next = empty(), last = empty();
+  for (const destination of rows) {
+    if (!Array.isArray(destination.incoming)) continue;
+    for (const entry of destination.incoming) {
+      if (!entry || !families.includes(entry.type)) continue;
+      if (entry.from === firstId && destination.id === secondId) next.forward.push(entry.type);
+      if (entry.from === secondId && destination.id === firstId) next.reverse.push(entry.type);
+    }
+  }
+  if (Array.isArray(previousTransfers)) {
+    for (const entry of previousTransfers) {
+      if (!entry || !families.includes(entry.type)) continue;
+      if (entry.from === firstId && entry.to === secondId) last.forward.push(entry.type);
+      if (entry.from === secondId && entry.to === firstId) last.reverse.push(entry.type);
+    }
+  }
+  function kind(traffic) {
+    return traffic.forward.length && traffic.reverse.length ? 'mutual' :
+      traffic.forward.length ? 'forward' : traffic.reverse.length ? 'reverse' : 'quiet';
+  }
+  function describe(traffic) {
+    const lines = [];
+    if (traffic.forward.length) lines.push(first.name + ' → ' + second.name + ': ' + traffic.forward.join(', '));
+    if (traffic.reverse.length) lines.push(second.name + ' → ' + first.name + ': ' + traffic.reverse.join(', '));
+    return lines.length ? lines.join(' / ') : 'quiet';
+  }
+  const upcoming = kind(next), preceding = kind(last);
+  const prefix = 'Cycle ' + cycle + ' pair inspector for ' + first.name + ' ↔ ' + second.name + '. ';
+  const nextText = 'Next forecast: ' + describe(next) + ' (' + upcoming + ').';
+  if (!Array.isArray(previousTransfers)) {
+    return prefix + 'Last pulse: unavailable until a cycle completes. ' + nextText;
+  }
+  let change;
+  if (preceding === 'quiet' && upcoming !== 'quiet') change = 'new';
+  else if (preceding !== 'quiet' && upcoming === 'quiet') change = 'ended';
+  else if (preceding === upcoming &&
+      last.forward.join(',') === next.forward.join(',') &&
+      last.reverse.join(',') === next.reverse.join(',')) change = 'steady';
+  else if (preceding !== 'mutual' && upcoming === 'mutual') change = 'became mutual';
+  else if (preceding === 'mutual' && upcoming !== 'mutual') change = 'became one-way';
+  else if ((preceding === 'forward' && upcoming === 'reverse') ||
+           (preceding === 'reverse' && upcoming === 'forward')) change = 'reversed';
+  else change = 'retuned';
+  return prefix + 'Last pulse: ' + describe(last) + ' (' + preceding + '). ' +
+    nextText + ' Change: ' + change + '.';
+}
+
 function renderIncomingRadar(rows) {
   function escapeHtml(value) {
     return String(value).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -1689,6 +1755,17 @@ function renderIncomingRadar(rows) {
     document.getElementById("selectedDispatchBrief").textContent=selectedDispatchBrief(radarRows,state.selected,forecast.cycle);
     document.getElementById("selectedFlowCompass").textContent=selectedFlowCompass(radarRows,state.selected,forecast.cycle);
     document.getElementById("selectedRouteReciprocity").textContent=selectedRouteReciprocityLens(radarRows,state.selected,forecast.cycle);
+    var pairSelect=document.getElementById("pairPartnerSelect");
+    var partners=Number.isInteger(state.selected)?state.islands.filter(function(x){return x.id!==state.selected}):[];
+    var newPairKey=String(state.selected)+"|"+JSON.stringify(partners.map(function(x){return [x.id,x.name]}));
+    if(pairOptionsKey!==newPairKey){
+      pairSelect.innerHTML=partners.map(function(x){return '<option value="'+x.id+'">'+esc(x.name)+'</option>'}).join("");
+      pairOptionsKey=newPairKey;
+    }
+    if(!partners.some(function(x){return x.id===inspectedPartnerId}))inspectedPartnerId=partners.length?partners[0].id:null;
+    pairSelect.disabled=!partners.length;
+    pairSelect.value=inspectedPartnerId===null?"":String(inspectedPartnerId);
+    document.getElementById("pairReciprocityInspector").textContent=pairReciprocityInspector(radarRows,lastCycleReport&&lastCycleReport.transfers,state.selected,inspectedPartnerId,forecast.cycle);
     var textMap=textMapModel(),textMapEl=document.getElementById("textMap");
     textMapEl.innerHTML='<p class="small">'+esc(textMap.summary)+'</p><ul>'+textMap.islands.map(function(row){return '<li>'+esc(row.text)+'</li>'}).join("")+'</ul>';
     var gb=document.getElementById("germinateBtn"),germStatus=document.getElementById("germinateStatus");
@@ -1950,6 +2027,11 @@ function renderIncomingRadar(rows) {
   }
   document.querySelectorAll("[data-action]").forEach(function(b){b.addEventListener("click",function(){state.action=b.dataset.action;delete state.connectFrom;save();renderUI()})});
   document.querySelectorAll("[data-glyph]").forEach(function(b){b.addEventListener("click",function(){inscribeGlyph(b.dataset.glyph)})});
+  document.getElementById("pairPartnerSelect").addEventListener("change",function(){
+    var candidate=Number(this.value);
+    inspectedPartnerId=state.islands.some(function(x){return x.id===candidate&&x.id!==state.selected})?candidate:null;
+    renderUI(); // read-only selection; do not save or spend focus.
+  });
   document.getElementById("islandNav").addEventListener("click",function(e){
     var b=e.target.closest("[data-island-id]");if(!b)return;
     state.selected=Number(b.dataset.islandId);save();renderUI();
