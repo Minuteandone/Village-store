@@ -107,7 +107,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip hud-secondary" id="motionChip">Motion · standard</span>
         <span class="chip hud-secondary" id="contrastChip">Contrast · custom</span>
-        <span class="chip hud-secondary" id="versionChip">v0.57 · save 7</span>
+        <span class="chip hud-secondary" id="versionChip">v0.58 · save 7</span>
       </div>
     </section>
 
@@ -175,6 +175,7 @@
         <div id="selectedArrivalBrief" class="small" role="region" aria-label="Selected island next-cycle outlook" style="margin-top:10px;overflow-wrap:anywhere">Select an island to preview its next-cycle arrivals.</div>
         <div id="selectedDispatchBrief" class="small" role="region" aria-label="Selected island next-cycle dispatch" style="margin-top:8px;overflow-wrap:anywhere">Select an island to preview its next-cycle departures.</div>
         <div id="selectedFlowCompass" class="small" role="region" aria-label="Selected island next-cycle signal flow" style="margin-top:8px;overflow-wrap:anywhere">Select an island to preview its next-cycle signal flow.</div>
+        <div id="selectedRouteReciprocity" class="small" role="region" aria-label="Selected island next-cycle route reciprocity" style="margin-top:8px;overflow-wrap:anywhere">Select an island to preview next-cycle route reciprocity.</div>
         <div class="meter"><span id="lifeMeter"></span></div>
         <div class="small" id="glyphCostNote" style="margin-top:10px">Root / Echo / Fold cost 3 resonance + 1 focus. Clear costs 1 focus. Glyphs add +2 of their trait whenever this island receives a migration.</div>
         <div class="small" id="glyphStatus">Select an island to inspect glyph availability.</div>
@@ -291,7 +292,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.57",SAVE_SCHEMA=7;
+  var APP_VERSION="0.58",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -984,6 +985,53 @@ function selectedFlowCompass(rows, selectedId, cycle) {
     '). By family: ' + families + '.';
 }
 
+/**
+ * Signal Garden v0.58: read-only next-cycle Route Reciprocity Lens.
+ * Consumes the canonical destination-first radar, not live/saved route history.
+ * A pair is mutual only when this forecast contains both directed transfers.
+ * Imported names are returned as text for textContent, never as HTML.
+ */
+function selectedRouteReciprocityLens(rows, selectedId, cycle) {
+  if (!Number.isInteger(selectedId)) return 'Select an island to preview next-cycle route reciprocity.';
+  const selected = rows.find(row => row.id === selectedId);
+  if (!selected) return 'Selected island is no longer available.';
+  const partners = new Map();
+  function partner(id) {
+    if (id === selectedId) return null;
+    const row = rows.find(item => item.id === id);
+    if (!row) return null;
+    if (!partners.has(id)) partners.set(id, {id, name: row.name, incoming: [], outgoing: []});
+    return partners.get(id);
+  }
+  for (const destination of rows) {
+    for (const entry of destination.incoming) {
+      if (destination.id === selectedId) {
+        const p = partner(entry.from);
+        if (p) p.incoming.push(entry.type);
+      } else if (entry.from === selectedId) {
+        const p = partner(destination.id);
+        if (p) p.outgoing.push(entry.type);
+      }
+    }
+  }
+  const ordered = [...partners.values()].sort((a, b) => a.id - b.id);
+  const mutual = ordered.filter(p => p.incoming.length && p.outgoing.length).length;
+  const outbound = ordered.filter(p => p.outgoing.length && !p.incoming.length).length;
+  const inbound = ordered.filter(p => p.incoming.length && !p.outgoing.length).length;
+  const prefix = 'Cycle ' + cycle + ' route reciprocity for ' + selected.name + ': ';
+  if (!ordered.length) return prefix + 'no planned traffic involving this island.';
+  const label = (n, singular) => n + ' ' + singular + (n === 1 ? '' : 's');
+  const details = ordered.map(p => {
+    if (p.incoming.length && p.outgoing.length) {
+      return p.name + ': two-way (send ' + p.outgoing.join(', ') + '; receive ' + p.incoming.join(', ') + ')';
+    }
+    if (p.outgoing.length) return p.name + ': one-way out (send ' + p.outgoing.join(', ') + ')';
+    return p.name + ': one-way in (receive ' + p.incoming.join(', ') + ')';
+  });
+  return prefix + label(mutual, 'mutual pair') + ', ' + label(outbound, 'outbound-only pair') +
+    ', ' + label(inbound, 'inbound-only pair') + '. ' + details.join('; ') + '.';
+}
+
 function renderIncomingRadar(rows) {
   function escapeHtml(value) {
     return String(value).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -1518,6 +1566,7 @@ function renderIncomingRadar(rows) {
     document.getElementById("selectedArrivalBrief").textContent=selectedArrivalBrief(radarRows,state.selected,forecast.cycle);
     document.getElementById("selectedDispatchBrief").textContent=selectedDispatchBrief(radarRows,state.selected,forecast.cycle);
     document.getElementById("selectedFlowCompass").textContent=selectedFlowCompass(radarRows,state.selected,forecast.cycle);
+    document.getElementById("selectedRouteReciprocity").textContent=selectedRouteReciprocityLens(radarRows,state.selected,forecast.cycle);
     var textMap=textMapModel(),textMapEl=document.getElementById("textMap");
     textMapEl.innerHTML='<p class="small">'+esc(textMap.summary)+'</p><ul>'+textMap.islands.map(function(row){return '<li>'+esc(row.text)+'</li>'}).join("")+'</ul>';
     var gb=document.getElementById("germinateBtn"),germStatus=document.getElementById("germinateStatus");
