@@ -19,6 +19,9 @@ assert.ok(html.includes('id="networkReciprocityAtlas" class="small" role="region
 assert.ok(html.includes('id="reciprocityMomentum" class="small" role="region" aria-label="Reciprocity momentum since last cycle"'),"v0.60 should expose a labelled momentum region");
 assert.ok(html.includes('id="pairPartnerSelect" disabled aria-describedby="pairReciprocityInspector"'),"v0.61 should expose an accessible disabled-before-selection pair picker");
 assert.ok(html.includes('id="pairReciprocityInspector" class="small" role="region" aria-label="Selected island pair reciprocity inspector"'),"v0.61 should expose a labelled pair inspector");
+assert.ok(html.includes('id="prevActivePairBtn" disabled aria-keyshortcuts="J" aria-describedby="pairQuickStatus"'),"v0.62 previous-active-pair button must be keyboard-accessible and initially disabled");
+assert.ok(html.includes('id="nextActivePairBtn" disabled aria-keyshortcuts="K" aria-describedby="pairQuickStatus"'),"v0.62 next-active-pair button must be keyboard-accessible and initially disabled");
+assert.ok(html.includes('id="pairQuickStatus" class="small"'),"v0.62 active-pair navigation must explain quiet state and shortcuts");
 assert.ok(html.includes('id="motionChip"'),"v0.29 should expose the active motion preference in the HUD");
 assert.ok(html.includes('id="contrastChip"'),"v0.31 should expose the active forced-colors preference in the HUD");
 assert.ok(html.includes('@media(forced-colors:active)'),"v0.31 should include a forced-colors stylesheet");
@@ -58,6 +61,8 @@ assert.ok(source.includes('document.getElementById("selectedRouteReciprocity").t
 assert.ok(source.includes('document.getElementById("networkReciprocityAtlas").textContent=networkReciprocityAtlas('),"v0.59 atlas must render imported names with textContent");
 assert.ok(source.includes('document.getElementById("reciprocityMomentum").textContent=reciprocityMomentum('),"v0.60 momentum must render imported names with textContent");
 assert.ok(source.includes('document.getElementById("pairReciprocityInspector").textContent=pairReciprocityInspector('),"v0.61 pair inspector must render imported names with textContent");
+assert.ok(source.includes('activePairIds=activePairPartners(radarRows,state.selected)'),"v0.62 active partners must derive from the existing radar");
+assert.ok(source.includes('renderUI(); // navigation is UI-only: no save, no focus cost.'),"v0.62 pair jumping must not save or spend focus");
 assert.ok(source.includes('renderUI(); // read-only selection; do not save or spend focus.'),"pair picker must be a read-only UI preference");
 assert.ok(source.includes("previewedSpecimenCode"),"specimen import should be gated by the exact previewed code");
 assert.ok(source.includes('e.key==="Escape"&&Number.isInteger(state.connectFrom)'),"Escape should cancel a pending connection source");
@@ -179,6 +184,8 @@ source = source.replace(
     incomingRadar:incomingRadar,
     selectedRouteReciprocityLens:selectedRouteReciprocityLens,
     pairReciprocityInspector:pairReciprocityInspector,
+    activePairPartners:activePairPartners,
+    stepActivePairPartner:stepActivePairPartner,
     edgeSignalCounts:edgeSignalCounts,
     bondForEdgeKey:bondForEdgeKey,
     routeBonds:routeBonds,
@@ -295,6 +302,8 @@ vm.runInContext(source, sandbox, { filename: "signal-garden-inline.js" });
 const api = sandbox.__gardenTest;
 assert.ok(api, "test API should be exposed");
 assert.match(api.pairReciprocityInspector([{id:0,name:"A",incoming:[]},{id:1,name:"B",incoming:[{from:0,type:"life"}]}],null,0,1,2),/Last pulse: unavailable.*Next forecast: A → B: life/,"v0.61 inline pair inspector should work in the canonical game script");
+assert.deepEqual(Array.from(api.activePairPartners([{id:0,incoming:[]},{id:1,incoming:[{from:0,type:"life"}]}],0)),[1],"v0.62 inline partner projection should find outgoing traffic");
+assert.equal(api.stepActivePairPartner([1,3],1,-1),3,"v0.62 inline navigation should wrap backwards");
 assert.equal(typeof windowListeners.hashchange,"function","game should register one hashchange listener for quick-nav current state");
 assert.equal(quickNavLinks.filter(x=>x.getAttribute("aria-current")).length,0,"no hash should leave all quick-nav links without aria-current");
 sandbox.location.hash="#researchSection";
@@ -368,6 +377,8 @@ assert.match(ids.get("selectedDispatchBrief").textContent,/Select an island to p
 assert.match(ids.get("selectedRouteReciprocity").textContent,/Select an island to preview next-cycle route reciprocity/,"unselected route lens should explain how to start");
 assert.match(api.selectedRouteReciprocityLens(emptyRadar,0,3),/no planned traffic involving this island/,"unlinked selected island should have quiet reciprocity");
 assert.match(ids.get("reciprocityMomentum").textContent,/advance one cycle to compare/,"fresh garden should not invent prior pulse data");
+assert.equal(ids.get("prevActivePairBtn").disabled,true,"quiet island should not offer active pair navigation");
+assert.equal(ids.get("nextActivePairBtn").disabled,true,"quiet island should not offer active pair navigation");
 assert.match(ids.get("cycleForecast").innerHTML,/Cycle 3 · Quiet/,"rendered forecast should expose the next cycle and mode");
 assert.match(ids.get("cycleForecast").innerHTML,/No live routes would carry a migration/);
 assert.match(ids.get("cycleForecast").innerHTML,/Incoming signal radar/);

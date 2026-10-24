@@ -107,7 +107,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip hud-secondary" id="motionChip">Motion · standard</span>
         <span class="chip hud-secondary" id="contrastChip">Contrast · custom</span>
-        <span class="chip hud-secondary" id="versionChip">v0.61 · save 7</span>
+        <span class="chip hud-secondary" id="versionChip">v0.62 · save 7</span>
       </div>
     </section>
 
@@ -181,6 +181,11 @@
         <div style="margin-top:10px">
           <label for="pairPartnerSelect" class="small">🔎 Inspect this island with another island</label>
           <select id="pairPartnerSelect" disabled aria-describedby="pairReciprocityInspector" style="display:block;width:100%;max-width:100%;min-height:36px;margin-top:6px;padding:6px 8px;background:#13271c;color:var(--text);border:1px solid #365743;border-radius:10px;font:inherit"></select>
+          <div class="actions" style="margin-top:8px">
+            <button id="prevActivePairBtn" disabled aria-keyshortcuts="J" aria-describedby="pairQuickStatus">← Previous active pair</button>
+            <button id="nextActivePairBtn" disabled aria-keyshortcuts="K" aria-describedby="pairQuickStatus">Next active pair →</button>
+          </div>
+          <div id="pairQuickStatus" class="small" style="margin-top:6px">Select an island to inspect active pairs. J previous · K next.</div>
           <div id="pairReciprocityInspector" class="small" role="region" aria-label="Selected island pair reciprocity inspector" style="margin-top:8px;overflow-wrap:anywhere">Select an island to inspect a pair.</div>
         </div>
         <div class="meter"><span id="lifeMeter"></span></div>
@@ -299,7 +304,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.61",SAVE_SCHEMA=7;
+  var APP_VERSION="0.62",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -341,7 +346,7 @@
     });
   }
   var state=fresh(),bootNotice="";
-  var inspectedPartnerId=null,pairOptionsKey=""; // UI-only; never serialized.
+  var inspectedPartnerId=null,pairOptionsKey="",activePairIds=[]; // UI-only; never serialized.
   if(bootParseError)bootNotice="Could not read the local garden save, so a fresh seed state was used.";
   else if(bootSaved){
     if(validSavedState(bootSaved)){
@@ -1163,6 +1168,35 @@ function reciprocityMomentum(rows, previousTransfers, cycle) {
  * next-cycle forecast without changing the world or persisting UI preferences.
  * Names are plain text; the caller must render with textContent.
  */
+/**
+ * Signal Garden v0.62: next-cycle partners with valid signal traffic.
+ * Read-only, deterministic, sorted by island id; no UI state or save mutation.
+ */
+function activePairPartners(rows, selectedId) {
+  if (!Array.isArray(rows) || !Number.isInteger(selectedId)) return [];
+  const ids = new Set(rows.filter(row => row && Number.isInteger(row.id)).map(row => row.id));
+  if (!ids.has(selectedId)) return [];
+  const partners = new Set();
+  for (const destination of rows) {
+    if (!destination || !ids.has(destination.id) || !Array.isArray(destination.incoming)) continue;
+    for (const entry of destination.incoming) {
+      if (!entry || !ids.has(entry.from) || entry.from === destination.id ||
+          !['life', 'memory', 'strange'].includes(entry.type)) continue;
+      if (entry.from === selectedId) partners.add(destination.id);
+      if (destination.id === selectedId) partners.add(entry.from);
+    }
+  }
+  return [...partners].sort((a, b) => a - b);
+}
+
+/** Wrap through active partners; entering from a quiet partner starts at an end. */
+function stepActivePairPartner(partners, currentId, direction) {
+  if (!Array.isArray(partners) || !partners.length || (direction !== 1 && direction !== -1)) return null;
+  const index = partners.indexOf(currentId);
+  if (index < 0) return direction === 1 ? partners[0] : partners[partners.length - 1];
+  return partners[(index + direction + partners.length) % partners.length];
+}
+
 function pairReciprocityInspector(rows, previousTransfers, firstId, secondId, cycle) {
   if (!Number.isInteger(firstId)) return 'Select an island to inspect a pair.';
   if (!Number.isInteger(secondId)) return 'Choose another island to inspect a pair.';
@@ -1765,6 +1799,14 @@ function renderIncomingRadar(rows) {
     if(!partners.some(function(x){return x.id===inspectedPartnerId}))inspectedPartnerId=partners.length?partners[0].id:null;
     pairSelect.disabled=!partners.length;
     pairSelect.value=inspectedPartnerId===null?"":String(inspectedPartnerId);
+    activePairIds=activePairPartners(radarRows,state.selected);
+    document.getElementById("prevActivePairBtn").disabled=!activePairIds.length;
+    document.getElementById("nextActivePairBtn").disabled=!activePairIds.length;
+    document.getElementById("pairQuickStatus").textContent=!Number.isInteger(state.selected)
+      ?"Select an island to inspect active pairs. J previous · K next."
+      :activePairIds.length
+        ?activePairIds.length+" active forecast "+(activePairIds.length===1?"partner":"partners")+". J previous · K next; wraps through active pairs only."
+        :"No active forecast partners; use the selector to inspect quiet pairs.";
     document.getElementById("pairReciprocityInspector").textContent=pairReciprocityInspector(radarRows,lastCycleReport&&lastCycleReport.transfers,state.selected,inspectedPartnerId,forecast.cycle);
     var textMap=textMapModel(),textMapEl=document.getElementById("textMap");
     textMapEl.innerHTML='<p class="small">'+esc(textMap.summary)+'</p><ul>'+textMap.islands.map(function(row){return '<li>'+esc(row.text)+'</li>'}).join("")+'</ul>';
@@ -2027,6 +2069,15 @@ function renderIncomingRadar(rows) {
   }
   document.querySelectorAll("[data-action]").forEach(function(b){b.addEventListener("click",function(){state.action=b.dataset.action;delete state.connectFrom;save();renderUI()})});
   document.querySelectorAll("[data-glyph]").forEach(function(b){b.addEventListener("click",function(){inscribeGlyph(b.dataset.glyph)})});
+  function jumpActivePair(direction){
+    var next=stepActivePairPartner(activePairIds,inspectedPartnerId,direction);
+    if(next===null)return false;
+    inspectedPartnerId=next;
+    renderUI(); // navigation is UI-only: no save, no focus cost.
+    return true;
+  }
+  document.getElementById("prevActivePairBtn").addEventListener("click",function(){jumpActivePair(-1)});
+  document.getElementById("nextActivePairBtn").addEventListener("click",function(){jumpActivePair(1)});
   document.getElementById("pairPartnerSelect").addEventListener("change",function(){
     var candidate=Number(this.value);
     inspectedPartnerId=state.islands.some(function(x){return x.id===candidate&&x.id!==state.selected})?candidate:null;
@@ -2065,8 +2116,12 @@ function renderIncomingRadar(rows) {
       return;
     }
     var tag=(e.target&&e.target.tagName)||"";
-    if(tag==="BUTTON"||tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT")return;
+    if(tag==="BUTTON"||tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT"||(e.target&&e.target.isContentEditable))return;
     var key=e.key.toLowerCase(),m={n:"nurture",o:"observe",c:"connect",d:"distort"};
+    if(!e.altKey&&!e.ctrlKey&&!e.metaKey&&(key==="j"||key==="k")){
+      if(jumpActivePair(key==="j"?-1:1))e.preventDefault();
+      return;
+    }
     if(key==="u"){if(undoSnapshot){e.preventDefault();undoLastAction()}return}
     if(m[key]){state.action=m[key];delete state.connectFrom;save();renderUI();return}
     if(/^[1-7]$/.test(e.key)){
