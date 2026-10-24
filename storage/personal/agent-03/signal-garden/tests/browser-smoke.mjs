@@ -130,6 +130,9 @@ try{
   const initialMomentum=await evaluate("document.getElementById('reciprocityMomentum').textContent");
   assert.match(initialMomentum,/advance one cycle to compare/,"fresh garden must not invent prior pulse traffic");
   assert.equal(await evaluate("document.getElementById('reciprocityMomentum').getAttribute('aria-live')"),null,"momentum must not repeatedly announce");
+  assert.equal(await evaluate("document.getElementById('pairPartnerSelect').disabled"),true,"pair inspector must wait for an island selection");
+  assert.match(await evaluate("document.getElementById('pairReciprocityInspector').textContent"),/Select an island to inspect a pair/);
+  assert.equal(await evaluate("document.getElementById('pairReciprocityInspector').getAttribute('aria-live')"),null,"pair inspector should not repeatedly announce forecasts");
 
 
   const reducedPreference=await evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches");
@@ -360,6 +363,15 @@ try{
   assert.match(quietFlow,/Cycle 2 flow compass for .*: quiet · 0 incoming \/ 0 outgoing \(net 0\)/,"unlinked selected island should show quiet flow");
   const quietReciprocity=await evaluate("document.getElementById('selectedRouteReciprocity').textContent");
   assert.match(quietReciprocity,/Cycle 2 route reciprocity for .*: no planned traffic involving this island/,"unlinked selected island should show no planned route traffic");
+  const pairOptions=await evaluate("Array.from(document.getElementById('pairPartnerSelect').options).map(o=>o.value)");
+  assert.deepEqual(pairOptions,["1","2","3"],"pair picker should list every other island exactly once");
+  assert.equal(await evaluate("document.getElementById('pairPartnerSelect').disabled"),false,"selected island should enable pair inspection");
+  const quietPair=await evaluate("document.getElementById('pairReciprocityInspector').textContent");
+  assert.match(quietPair,/Cycle 2 pair inspector for .*:?.*Last pulse: unavailable until a cycle completes.*Next forecast: quiet/,"fresh pair should not invent history");
+  await evaluate("(()=>{const e=document.getElementById('pairPartnerSelect');e.value='2';e.dispatchEvent(new Event('change',{bubbles:true}))})()");
+  assert.equal(await evaluate("document.getElementById('pairPartnerSelect').value"),"2","pair picker should preserve the chosen partner across rerender");
+  assert.match(await evaluate("document.getElementById('pairReciprocityInspector').textContent"),/pair inspector for .* ↔ .*Next forecast: quiet/,"pair picker should update its read-only forecast");
+  await evaluate("(()=>{const e=document.getElementById('pairPartnerSelect');e.value='1';e.dispatchEvent(new Event('change',{bubbles:true}))})()");
   assert.match(await evaluate("document.getElementById('networkReciprocityAtlas').textContent"),/0 active pairs; all 4 islands quiet/);
 
   await sleep(300);
@@ -476,6 +488,8 @@ try{
   const linkedAtlas=await evaluate("document.getElementById('networkReciprocityAtlas').textContent");
   assert.match(linkedAtlas,/Cycle 2 network reciprocity: 1 active pair, 1 mutual, 0 one-way; 2 quiet islands/);
   assert.match(linkedAtlas,/↔/,"atlas should expose mutual traffic");
+  const linkedPair=await evaluate("document.getElementById('pairReciprocityInspector').textContent");
+  assert.match(linkedPair,/Next forecast: .*\/ .*\(mutual\)/,"pair inspector should show both directed families for the linked pair");
 
 
   await evaluate("document.getElementById('restBtn').click()");
@@ -497,6 +511,9 @@ try{
   const afterCycleMomentum=await evaluate("document.getElementById('reciprocityMomentum').textContent");
   assert.match(afterCycleMomentum,/Cycle 3 reciprocity momentum \(last pulse → next forecast\)/,"momentum should compare actual last cycle with upcoming forecast");
   assert.doesNotMatch(afterCycleMomentum,/advance one cycle to compare/,"completed pulse should replace the initial invitation");
+  const afterCyclePair=await evaluate("document.getElementById('pairReciprocityInspector').textContent");
+  assert.match(afterCyclePair,/Cycle 3 pair inspector/,"pair inspector should follow the next cycle");
+  assert.doesNotMatch(afterCyclePair,/Last pulse: unavailable/,"pair inspector should show completed-cycle history");
   assert.match(postCycleForecast,/Forecast stops before autonomous drift/);
 
 
