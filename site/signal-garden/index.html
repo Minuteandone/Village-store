@@ -107,7 +107,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip hud-secondary" id="motionChip">Motion · standard</span>
         <span class="chip hud-secondary" id="contrastChip">Contrast · custom</span>
-        <span class="chip hud-secondary" id="versionChip">v0.58 · save 7</span>
+        <span class="chip hud-secondary" id="versionChip">v0.59 · save 7</span>
       </div>
     </section>
 
@@ -137,6 +137,7 @@
       <details>
         <summary>Next cycle forecast</summary>
         <div class="discoveries" id="cycleForecast"></div>
+        <div id="networkReciprocityAtlas" class="small" role="region" aria-label="Network-wide next-cycle reciprocity" style="margin-top:8px;overflow-wrap:anywhere">Network reciprocity will appear with the next-cycle forecast.</div>
       </details>
       <button id="germinateBtn" disabled aria-describedby="germinateStatus">🌿 Germinate island · 6 resonance + 2 focus</button>
       <div class="small" id="germinateStatus">Unavailable: needs 6 resonance and 2 focus.</div>
@@ -292,7 +293,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.58",SAVE_SCHEMA=7;
+  var APP_VERSION="0.59",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -1032,6 +1033,51 @@ function selectedRouteReciprocityLens(rows, selectedId, cycle) {
     ', ' + label(inbound, 'inbound-only pair') + '. ' + details.join('; ') + '.';
 }
 
+/** Read-only network-wide next-cycle reciprocity summary for Signal Garden v0.59.
+ * Uses only validated destination-first radar rows. Does not mutate saves or routes.
+ * Return plain text: caller must use textContent for imported island names.
+ */
+function networkReciprocityAtlas(rows, cycle) {
+  const byId = new Map(rows.map(row => [row.id, row]));
+  const pairs = new Map();
+  const active = new Set();
+  for (const destination of rows) {
+    for (const entry of destination.incoming) {
+      if (!byId.has(entry.from) || entry.from === destination.id ||
+          !['life', 'memory', 'strange'].includes(entry.type)) continue;
+      const a = Math.min(entry.from, destination.id);
+      const b = Math.max(entry.from, destination.id);
+      const key = a + ':' + b;
+      if (!pairs.has(key)) pairs.set(key, {a, b, forward: [], reverse: []});
+      const pair = pairs.get(key);
+      (entry.from === a ? pair.forward : pair.reverse).push(entry.type);
+      active.add(entry.from);
+      active.add(destination.id);
+    }
+  }
+  const ordered = [...pairs.values()].sort((x, y) => x.a - y.a || x.b - y.b);
+  const mutual = ordered.filter(pair => pair.forward.length && pair.reverse.length).length;
+  const oneWay = ordered.length - mutual;
+  const quiet = rows.filter(row => !active.has(row.id)).map(row => row.name);
+  const prefix = 'Cycle ' + cycle + ' network reciprocity: ';
+  if (!ordered.length) return prefix + '0 active pairs; all ' + rows.length + ' islands quiet.';
+  const details = ordered.map(pair => {
+    const a = byId.get(pair.a).name;
+    const b = byId.get(pair.b).name;
+    if (pair.forward.length && pair.reverse.length) {
+      return a + ' ↔ ' + b + ' (two-way: ' + pair.forward.join(', ') +
+        ' →; ' + pair.reverse.join(', ') + ' ←)';
+    }
+    return pair.forward.length
+      ? a + ' → ' + b + ' (one-way: ' + pair.forward.join(', ') + ')'
+      : b + ' → ' + a + ' (one-way: ' + pair.reverse.join(', ') + ')';
+  });
+  return prefix + ordered.length + ' active ' + (ordered.length === 1 ? 'pair' : 'pairs') +
+    ', ' + mutual + ' mutual, ' + oneWay + ' one-way; ' + quiet.length +
+    ' quiet ' + (quiet.length === 1 ? 'island' : 'islands') + '. ' +
+    details.join('; ') + '. Quiet islands: ' + (quiet.length ? quiet.join(', ') : 'none') + '.';
+}
+
 function renderIncomingRadar(rows) {
   function escapeHtml(value) {
     return String(value).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -1563,6 +1609,7 @@ function renderIncomingRadar(rows) {
       '<p class="small">Forecast stops before autonomous drift. Migration can change bond/junction state, and later evolution can change roles, climate, or phenomena.</p>';
     var radarRows=incomingRadar(forecast);
     forecastEl.innerHTML += renderIncomingRadar(radarRows);
+    document.getElementById("networkReciprocityAtlas").textContent=networkReciprocityAtlas(radarRows,forecast.cycle);
     document.getElementById("selectedArrivalBrief").textContent=selectedArrivalBrief(radarRows,state.selected,forecast.cycle);
     document.getElementById("selectedDispatchBrief").textContent=selectedDispatchBrief(radarRows,state.selected,forecast.cycle);
     document.getElementById("selectedFlowCompass").textContent=selectedFlowCompass(radarRows,state.selected,forecast.cycle);

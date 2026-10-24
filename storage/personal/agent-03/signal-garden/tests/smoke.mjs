@@ -15,6 +15,7 @@ assert.ok(html.includes('id="selectedArrivalBrief" class="small" role="region" a
 assert.ok(html.includes('id="selectedDispatchBrief" class="small" role="region" aria-label="Selected island next-cycle dispatch"'),"v0.56 should provide a labelled selected-island outgoing region");
 assert.ok(html.includes('id="selectedFlowCompass" class="small" role="region" aria-label="Selected island next-cycle signal flow"'),"v0.57 should provide a labelled read-only flow region");
 assert.ok(html.includes('id="selectedRouteReciprocity" class="small" role="region" aria-label="Selected island next-cycle route reciprocity"'),"v0.58 should expose a labelled selected-island route reciprocity region");
+assert.ok(html.includes('id="networkReciprocityAtlas" class="small" role="region" aria-label="Network-wide next-cycle reciprocity"'),"v0.59 should expose a labelled archipelago-wide reciprocity region");
 assert.ok(html.includes('id="motionChip"'),"v0.29 should expose the active motion preference in the HUD");
 assert.ok(html.includes('id="contrastChip"'),"v0.31 should expose the active forced-colors preference in the HUD");
 assert.ok(html.includes('@media(forced-colors:active)'),"v0.31 should include a forced-colors stylesheet");
@@ -51,6 +52,7 @@ assert.ok(source.includes('document.getElementById("selectedArrivalBrief").textC
 assert.ok(source.includes('document.getElementById("selectedDispatchBrief").textContent=selectedDispatchBrief('),"v0.56 dispatch must use textContent, never imported-name innerHTML");
 assert.ok(source.includes('document.getElementById("selectedFlowCompass").textContent=selectedFlowCompass('),"v0.57 compass must use textContent, never imported-name innerHTML");
 assert.ok(source.includes('document.getElementById("selectedRouteReciprocity").textContent=selectedRouteReciprocityLens('),"v0.58 reciprocity lens must render imported names with textContent");
+assert.ok(source.includes('document.getElementById("networkReciprocityAtlas").textContent=networkReciprocityAtlas('),"v0.59 atlas must render imported names with textContent");
 assert.ok(source.includes("previewedSpecimenCode"),"specimen import should be gated by the exact previewed code");
 assert.ok(source.includes('e.key==="Escape"&&Number.isInteger(state.connectFrom)'),"Escape should cancel a pending connection source");
 assert.ok(source.includes('b.setAttribute("aria-pressed",active?"true":"false")'),"signal-mode pressed state should update during render");

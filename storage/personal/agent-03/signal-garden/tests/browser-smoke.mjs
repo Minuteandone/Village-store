@@ -124,6 +124,9 @@ try{
   const initialReciprocity=await evaluate("document.getElementById('selectedRouteReciprocity').textContent");
   assert.match(initialReciprocity,/Select an island to preview next-cycle route reciprocity/);
   assert.equal(await evaluate("document.getElementById('selectedRouteReciprocity').getAttribute('aria-live')"),null,"read-only route lens must not repeat live announcements");
+  const initialAtlas=await evaluate("document.getElementById('networkReciprocityAtlas').textContent");
+  assert.match(initialAtlas,/Cycle 2 network reciprocity: 0 active pairs; all 4 islands quiet/);
+  assert.equal(await evaluate("document.getElementById('networkReciprocityAtlas').getAttribute('aria-live')"),null,"atlas must not repeatedly announce");
 
 
   const reducedPreference=await evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches");
@@ -354,6 +357,7 @@ try{
   assert.match(quietFlow,/Cycle 2 flow compass for .*: quiet · 0 incoming \/ 0 outgoing \(net 0\)/,"unlinked selected island should show quiet flow");
   const quietReciprocity=await evaluate("document.getElementById('selectedRouteReciprocity').textContent");
   assert.match(quietReciprocity,/Cycle 2 route reciprocity for .*: no planned traffic involving this island/,"unlinked selected island should show no planned route traffic");
+  assert.match(await evaluate("document.getElementById('networkReciprocityAtlas').textContent"),/0 active pairs; all 4 islands quiet/);
 
   await sleep(300);
   await evaluate("window.scrollTo(0,document.documentElement.scrollHeight)");
@@ -466,6 +470,9 @@ try{
   const linkedReciprocity=await evaluate("document.getElementById('selectedRouteReciprocity').textContent");
   assert.match(linkedReciprocity,/Cycle 2 route reciprocity for .*: 1 mutual pair, 0 outbound-only pairs, 0 inbound-only pairs/,"two connected islands should exchange reciprocal next-cycle signals");
   assert.match(linkedReciprocity,/two-way \(send (life|memory|strange); receive (life|memory|strange)\)/,"route lens should identify both signal families on the mutual pair");
+  const linkedAtlas=await evaluate("document.getElementById('networkReciprocityAtlas').textContent");
+  assert.match(linkedAtlas,/Cycle 2 network reciprocity: 1 active pair, 1 mutual, 0 one-way; 2 quiet islands/);
+  assert.match(linkedAtlas,/↔/,"atlas should expose mutual traffic");
 
 
   await evaluate("document.getElementById('restBtn').click()");
@@ -483,6 +490,7 @@ try{
   assert.match(afterCycleFlow,/Cycle 3 flow compass for /,"flow compass should advance with the next cycle");
   const afterCycleReciprocity=await evaluate("document.getElementById('selectedRouteReciprocity').textContent");
   assert.match(afterCycleReciprocity,/Cycle 3 route reciprocity for /,"route lens should advance with the forecast cycle");
+  assert.match(await evaluate("document.getElementById('networkReciprocityAtlas').textContent"),/Cycle 3 network reciprocity:/,"atlas should advance with the forecast cycle");
   assert.match(postCycleForecast,/Forecast stops before autonomous drift/);
 
 
