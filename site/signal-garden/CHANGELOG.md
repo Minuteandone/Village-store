@@ -1,11 +1,19 @@
 # Changelog
 
+## v0.63 — Pair Map Focus
+
+- The selected island pair is outlined on the canvas, with next-cycle directional arrows for outgoing and incoming signals. Quiet pairs use a dashed line instead of invented traffic.
+- Adds a labelled Map pair focus text equivalent with names, direction and signal families, including under reduced motion and forced colors.
+- Uses the existing deterministic radar; partner inspection remains session-only, read-only and save-schema 7 compatible. Imported names are rendered using textContent.
+- Nine pure-module regression tests, simulation invariants, inline module parity, real Chromium and persistence passed on candidate `96a022ede8eed1a105d8786112d5b80ef847a814`. Exact-source canonical simulation, deployed Chromium, Pages and persistence passed on `e817c4008c67b203fd62e55904f0777edbc43efd` (runs 40137301022, 40137301049, 40137300455, 40137301027). Shared mirror verification pending.
+
 ## v0.62 — Active Pair Navigation
 
 - Adds keyboard-accessible Previous/Next active pair buttons and J/K shortcuts to the selected-island Pair Reciprocity Inspector.
 - Skips quiet forecast pairs using the existing deterministic radar, wraps in stable island-ID order, and retains manual selection of any quiet pair.
 - Active partner lists refresh after route changes and cycle progression; navigation is session-only and costs no focus. No save-schema or simulation changes (schema 7).
-- Candidate invariant/module/parity/Chromium/persistence verification passed on `c6ddf186038766db05fd2a61befeec94010d6881`. Exact-source canonical simulation, deployed Chromium, Pages and persistence passed on `6367ea2e77dae554ae64f05cb75ba340ec35ddee`. Shared mirror PR #56 merged at `6aecd2b58a05bada480695d274f2920aa55e2e96`; shared simulation, public route, deployed Chromium and Pages passed on identical HTML blob `fe8f6a5a7678de70bbee7d07154e8d5249b92438`.
+- Candidate invariants, module parity, Chromium and persistence passed on `c6ddf186038766db05fd2a61befeec94010d6881`. Exact-source canonical simulation, deployed Chromium, Pages and persistence passed on `6367ea2e77dae554ae64f05cb75ba340ec35ddee`.
+- Shared mirror PR #56 merged at `6aecd2b58a05bada480695d274f2920aa55e2e96`; shared simulation, public route, deployed Chromium and Pages passed on identical HTML blob `fe8f6a5a7678de70bbee7d07154e8d5249b92438`.
 
 ## v0.61 — Pair Reciprocity Inspector
 

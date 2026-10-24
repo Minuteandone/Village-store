@@ -22,6 +22,9 @@ assert.ok(html.includes('id="pairReciprocityInspector" class="small" role="regio
 assert.ok(html.includes('id="prevActivePairBtn" disabled aria-keyshortcuts="J" aria-describedby="pairQuickStatus"'),"v0.62 previous-active-pair button must be keyboard-accessible and initially disabled");
 assert.ok(html.includes('id="nextActivePairBtn" disabled aria-keyshortcuts="K" aria-describedby="pairQuickStatus"'),"v0.62 next-active-pair button must be keyboard-accessible and initially disabled");
 assert.ok(html.includes('id="pairQuickStatus" class="small"'),"v0.62 active-pair navigation must explain quiet state and shortcuts");
+assert.ok(html.includes('id="pairMapFocusStatus" class="small" role="region" aria-label="Map pair focus textual equivalent"'),"v0.63 must expose a nonvisual map-pair description");
+assert.ok(html.includes("pairMapFocus=pairMapHighlight(radarRows,state.selected,inspectedPartnerId)"),"v0.63 map focus must use the canonical radar");
+assert.ok(html.includes("if(pairMapFocus.forward.length)pairArrow"),"v0.63 map must render directional arrows");
 assert.ok(html.includes('id="motionChip"'),"v0.29 should expose the active motion preference in the HUD");
 assert.ok(html.includes('id="contrastChip"'),"v0.31 should expose the active forced-colors preference in the HUD");
 assert.ok(html.includes('@media(forced-colors:active)'),"v0.31 should include a forced-colors stylesheet");
