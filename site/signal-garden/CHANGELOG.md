@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.57 — Island Flow Compass
+
+- Adds a read-only selected-island signal-flow compass beside arrival and dispatch briefs.
+- Classifies an island as relay, receiver, sender, or quiet; shows net traffic and per-family incoming/outgoing counts from the existing radar.
+- Uses `textContent` for imported names. Save schema remains 7 and simulation rules are unchanged.
+- Exact-source canonical simulation, deployed Chromium browser, persistence and Pages checks passed on `fdff9ccff7934ce45151b7d958cb3cced1315b61`.
+
 ## v0.56 — Island Dispatch Brief
 
 - Adds a read-only selected-island next-cycle outgoing dispatch beside the incoming outlook.
