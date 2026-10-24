@@ -1,11 +1,19 @@
 # Changelog
 
+## v0.62 — Active Pair Navigation
+
+- Adds keyboard-accessible Previous/Next active pair buttons and J/K shortcuts to the selected-island Pair Reciprocity Inspector.
+- Skips quiet forecast pairs using the existing deterministic radar, wraps in stable island-ID order, and retains manual selection of any quiet pair.
+- Active partner lists refresh after route changes and cycle progression; navigation is session-only and costs no focus. No save-schema or simulation changes (schema 7).
+- Candidate invariant/module/parity/Chromium/persistence verification passed on `c6ddf186038766db05fd2a61befeec94010d6881`. Exact-source canonical simulation, deployed Chromium, Pages and persistence passed on `6367ea2e77dae554ae64f05cb75ba340ec35ddee`. Shared verification pending.
+
 ## v0.61 — Pair Reciprocity Inspector
 
 - Adds an accessible partner selector to the selected-island panel, with read-only last-pulse and next-cycle traffic for exactly one island pair.
 - Distinguishes mutual, one-way and quiet pairs, plus new, ended, steady, retuned, reversed, and mutual/one-way transitions.
 - Partner choice is session-only and never written to saves or specimen codes; imported names render with textContent and escaped option labels. Save schema stays 7.
-- Ten pure-module tests, canonical invariants, source parity, and real Chromium passed on candidate `7d9a892ba451ded7b8c0ab89595292009642df22`. Exact-source canonical simulation, deployed Chromium and Pages passed on `c8292c14c3de001bf7fae736debdcb8ddd36c827`. Shared mirroring follows release verification.
+- Ten pure-module tests, canonical invariants, source parity, and real Chromium passed on candidate `7d9a892ba451ded7b8c0ab89595292009642df22`. Exact-source canonical simulation, deployed Chromium and Pages passed on `c8292c14c3de001bf7fae736debdcb8ddd36c827`; persistence passed on later docs/workflow head `7b0b99ae8ad3a520dc7e7ff5ec30056c689a746f`.
+- Shared mirror PR #55 merged at `b9b448d531443d01a988433f7aa1fd767d1283a1` with byte-identical HTML; shared simulation, public route, Chromium and Pages checks passed.
 
 ## v0.60 — Reciprocity Momentum
 

@@ -133,6 +133,8 @@ try{
   assert.equal(await evaluate("document.getElementById('pairPartnerSelect').disabled"),true,"pair inspector must wait for an island selection");
   assert.match(await evaluate("document.getElementById('pairReciprocityInspector').textContent"),/Select an island to inspect a pair/);
   assert.equal(await evaluate("document.getElementById('pairReciprocityInspector').getAttribute('aria-live')"),null,"pair inspector should not repeatedly announce forecasts");
+  assert.equal(await evaluate("document.getElementById('prevActivePairBtn').disabled"),true,"no island should disable active pair jumps");
+  assert.equal(await evaluate("document.getElementById('nextActivePairBtn').disabled"),true,"no island should disable active pair jumps");
 
 
   const reducedPreference=await evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches");
@@ -366,6 +368,8 @@ try{
   const pairOptions=await evaluate("Array.from(document.getElementById('pairPartnerSelect').options).map(o=>o.value)");
   assert.deepEqual(pairOptions,["1","2","3"],"pair picker should list every other island exactly once");
   assert.equal(await evaluate("document.getElementById('pairPartnerSelect').disabled"),false,"selected island should enable pair inspection");
+  assert.equal(await evaluate("document.getElementById('nextActivePairBtn').disabled"),true,"quiet selected island should disable active pair navigation");
+  assert.match(await evaluate("document.getElementById('pairQuickStatus').textContent"),/No active forecast partners/);
   const quietPair=await evaluate("document.getElementById('pairReciprocityInspector').textContent");
   assert.match(quietPair,/Cycle 2 pair inspector for .*:?.*Last pulse: unavailable until a cycle completes.*Next forecast: quiet/,"fresh pair should not invent history");
   await evaluate("(()=>{const e=document.getElementById('pairPartnerSelect');e.value='2';e.dispatchEvent(new Event('change',{bubbles:true}))})()");
@@ -488,6 +492,18 @@ try{
   const linkedAtlas=await evaluate("document.getElementById('networkReciprocityAtlas').textContent");
   assert.match(linkedAtlas,/Cycle 2 network reciprocity: 1 active pair, 1 mutual, 0 one-way; 2 quiet islands/);
   assert.match(linkedAtlas,/↔/,"atlas should expose mutual traffic");
+  assert.equal(await evaluate("document.getElementById('prevActivePairBtn').disabled"),false,"active route should enable previous-pair jump");
+  assert.equal(await evaluate("document.getElementById('nextActivePairBtn').disabled"),false,"active route should enable next-pair jump");
+  assert.match(await evaluate("document.getElementById('pairQuickStatus').textContent"),/1 active forecast partner/);
+  await evaluate("(()=>{const e=document.getElementById('pairPartnerSelect');e.value='2';e.dispatchEvent(new Event('change',{bubbles:true}))})()");
+  const focusBeforePairJump=await evaluate("document.getElementById('focusChip').textContent");
+  await evaluate("document.getElementById('worldSection').focus()");
+  await key("k","KeyK",75,"k");
+  assert.equal(await evaluate("document.getElementById('pairPartnerSelect').value"),"0","K shortcut should jump from a quiet pair to the active partner");
+  assert.equal(await evaluate("document.getElementById('focusChip').textContent"),focusBeforePairJump,"pair navigation must not spend focus");
+  await evaluate("(()=>{const e=document.getElementById('pairPartnerSelect');e.value='2';e.dispatchEvent(new Event('change',{bubbles:true}))})()");
+  await evaluate("document.getElementById('prevActivePairBtn').click()");
+  assert.equal(await evaluate("document.getElementById('pairPartnerSelect').value"),"0","previous button should wrap to the active partner");
   const linkedPair=await evaluate("document.getElementById('pairReciprocityInspector').textContent");
   assert.match(linkedPair,/Next forecast: .*\/ .*\(mutual\)/,"pair inspector should show both directed families for the linked pair");
 
