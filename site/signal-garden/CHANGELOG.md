@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.64 — Pair Map Timeline
+
+- Adds session-only Next forecast / Last pulse map controls for an inspected island pair. Last pulse is unavailable until an actual cycle completes; switching phases never changes the save or simulation.
+- Reuses the canonical pair-map model for both phases, using recorded last-cycle transfers only for historical arrows; dashed/cyan historical styling is distinguishable from the gold upcoming forecast, with accessible text and forced-colors/reduced-motion support.
+- Save schema remains 7. Imported names are written with textContent, and malformed historical transfers are ignored.
+- Eight new pure-module tests plus prior model tests, simulation invariants, inline source parity, candidate Chromium and persistence passed on branch head `107b46c712474430a76872961773c96159051ee3` (run 40140953579). Exact-source canonical simulation, deployed Chromium, Pages and persistence passed on `3c9273f168923dbe52ff17b5b5dd178c0715be2f` (runs 40141010325, 40141010352, 40141010102, 40141010318).
+
+
 ## v0.63 — Pair Map Focus
 
 - The selected island pair is outlined on the canvas, with next-cycle directional arrows for outgoing and incoming signals. Quiet pairs use a dashed line instead of invented traffic.
