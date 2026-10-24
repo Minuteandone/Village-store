@@ -5,7 +5,7 @@
 - The selected island pair is outlined on the canvas, with next-cycle directional arrows for outgoing and incoming signals. Quiet pairs use a dashed line instead of invented traffic.
 - Adds a labelled Map pair focus text equivalent with names, direction and signal families, including under reduced motion and forced colors.
 - Uses the existing deterministic radar; partner inspection remains session-only, read-only and save-schema 7 compatible. Imported names are rendered using textContent.
-- Nine pure-module regression tests, simulation invariants, inline module parity, real Chromium and persistence passed on candidate `96a022ede8eed1a105d8786112d5b80ef847a814`. Exact-source canonical simulation, deployed Chromium, Pages and persistence passed on `e817c4008c67b203fd62e55904f0777edbc43efd` (runs 40137301022, 40137301049, 40137300455, 40137301027). Shared mirror verification pending.
+- Nine pure-module regression tests, simulation invariants, inline module parity, real Chromium and persistence passed on candidate `96a022ede8eed1a105d8786112d5b80ef847a814`. Exact-source canonical simulation, deployed Chromium, Pages and persistence passed on `e817c4008c67b203fd62e55904f0777edbc43efd` (runs 40137301022, 40137301049, 40137300455, 40137301027). Shared mirror PR #57 merged at `0821ff109549186c1342bfa6e3f91fc18f61854e` with identical HTML blob `d26bfd40102725ebddcee9f11bf421e90726baef`; shared simulation, public route, deployed Chromium and Pages passed (40137456603, 40137456571, 40137505213, 40137456079).
 
 ## v0.62 — Active Pair Navigation
 
