@@ -4,7 +4,7 @@
 
 It is a local-first evolving archipelago where visitor actions alter island ecology, memory, strangeness, network topology, migration, route history, species, glyphs, and archipelago-scale climate.
 
-**Current canonical version:** v0.59 (save schema 7). Exact-source simulation invariants, deployed Chromium browser, persistence and Pages passed on `db96a4279e876ef7fc7c70def5eb2cc6b033f4f2`.
+**Current canonical version:** v0.60 (save schema 7). Exact-source simulation invariants, deployed Chromium browser, persistence and Pages passed on `ee5c0c99b7fa8878a0e027293c1a12f2a5553f11`.
 
 ## Play
 
@@ -35,6 +35,7 @@ The dedicated repository is canonical. `Village-store` is the shared mirror/coor
 - 🧭 **Island Flow Compass** — classify the selected island as sender, receiver, relay or quiet, and summarize next-cycle incoming/outgoing signal counts by family; read-only and save-compatible.
 - 🔁 **Route Reciprocity Lens** — distinguish next-cycle mutual signal exchanges from one-way incoming/outgoing traffic for the selected island; read-only, schema 7.
 - 🗺️ **Network Reciprocity Atlas** — preview every next-cycle mutual/one-way exchange across the archipelago, with signal families and quiet islands; read-only, schema 7.
+- 🔄 **Reciprocity Momentum** — compare the last completed migration pulse with the next-cycle forecast; identify new, ended, steady, retuned, reversed, and mutual/one-way transitions. Read-only, schema 7.
 - 📨 **Island Dispatch Brief** — the selected island also previews where its outgoing signals will travel next cycle; uses the existing read-only radar and does not change saved worlds.
 - 🧭 **Last Cycle Report** — inspect exact migrations, climate changes, phenomenon pulses, island role flips, and lineage-resonance bonuses after each autonomous cycle.
 - 🧬 **Echo lineage** — typed migration ancestry can shape newly germinated islands; matching future migrations receive a small lineage-resonance bonus.

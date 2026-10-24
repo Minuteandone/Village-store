@@ -107,7 +107,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip hud-secondary" id="motionChip">Motion · standard</span>
         <span class="chip hud-secondary" id="contrastChip">Contrast · custom</span>
-        <span class="chip hud-secondary" id="versionChip">v0.59 · save 7</span>
+        <span class="chip hud-secondary" id="versionChip">v0.60 · save 7</span>
       </div>
     </section>
 
@@ -138,6 +138,7 @@
         <summary>Next cycle forecast</summary>
         <div class="discoveries" id="cycleForecast"></div>
         <div id="networkReciprocityAtlas" class="small" role="region" aria-label="Network-wide next-cycle reciprocity" style="margin-top:8px;overflow-wrap:anywhere">Network reciprocity will appear with the next-cycle forecast.</div>
+        <div id="reciprocityMomentum" class="small" role="region" aria-label="Reciprocity momentum since last cycle" style="margin-top:8px;overflow-wrap:anywhere">Advance one cycle to compare reciprocity.</div>
       </details>
       <button id="germinateBtn" disabled aria-describedby="germinateStatus">🌿 Germinate island · 6 resonance + 2 focus</button>
       <div class="small" id="germinateStatus">Unavailable: needs 6 resonance and 2 focus.</div>
@@ -293,7 +294,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.59",SAVE_SCHEMA=7;
+  var APP_VERSION="0.60",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -1078,6 +1079,79 @@ function networkReciprocityAtlas(rows, cycle) {
     details.join('; ') + '. Quiet islands: ' + (quiet.length ? quiet.join(', ') : 'none') + '.';
 }
 
+/**
+ * Signal Garden v0.60: compare the last completed pulse with the next-cycle forecast.
+ * Both inputs are read-only; no save, route, or simulation changes are made.
+ * Names are returned as plain text for textContent (never interpreted as HTML).
+ */
+function reciprocityMomentum(rows, previousTransfers, cycle) {
+  if (!Array.isArray(previousTransfers)) {
+    return 'Cycle ' + cycle + ' reciprocity momentum: advance one cycle to compare the last completed pulse with the next forecast.';
+  }
+  const byId = new Map(rows.map(row => [row.id, row]));
+  function collect(transfers) {
+    const pairs = new Map();
+    for (const transfer of transfers) {
+      if (!transfer || !byId.has(transfer.from) || !byId.has(transfer.to) ||
+          transfer.from === transfer.to || !['life', 'memory', 'strange'].includes(transfer.type)) continue;
+      const a = Math.min(transfer.from, transfer.to);
+      const b = Math.max(transfer.from, transfer.to);
+      const key = a + ':' + b;
+      if (!pairs.has(key)) pairs.set(key, {a, b, forward: [], reverse: []});
+      (transfer.from === a ? pairs.get(key).forward : pairs.get(key).reverse).push(transfer.type);
+    }
+    return pairs;
+  }
+  const before = collect(previousTransfers);
+  const afterTransfers = [];
+  for (const destination of rows) {
+    for (const entry of destination.incoming) {
+      afterTransfers.push({from: entry.from, to: destination.id, type: entry.type});
+    }
+  }
+  const after = collect(afterTransfers);
+  const keys = new Set([...before.keys(), ...after.keys()]);
+  const ordered = [...keys].map(key => {
+    const pair = before.get(key) || after.get(key);
+    return {key, a: pair.a, b: pair.b};
+  }).sort((x, y) => x.a - y.a || x.b - y.b);
+  function kind(pair) {
+    return !pair ? 'none' : pair.forward.length && pair.reverse.length ? 'mutual' :
+      pair.forward.length ? 'forward' : 'reverse';
+  }
+  function signature(pair) {
+    return pair ? pair.forward.join(',') + '|' + pair.reverse.join(',') : '';
+  }
+  function traffic(pair) {
+    if (!pair) return 'none';
+    const a = byId.get(pair.a).name, b = byId.get(pair.b).name;
+    return [pair.forward.length ? a + ' → ' + b + ': ' + pair.forward.join(', ') : '',
+      pair.reverse.length ? b + ' → ' + a + ': ' + pair.reverse.join(', ') : ''].filter(Boolean).join(' / ');
+  }
+  const tally = {new: 0, ended: 0, changed: 0, steady: 0};
+  const details = ordered.map(({key, a, b}) => {
+    const old = before.get(key), next = after.get(key);
+    const from = kind(old), to = kind(next);
+    let status;
+    if (from === 'none') { status = 'new'; tally.new++; }
+    else if (to === 'none') { status = 'ended'; tally.ended++; }
+    else if (from === to && signature(old) === signature(next)) { status = 'steady'; tally.steady++; }
+    else {
+      tally.changed++;
+      if (from !== 'mutual' && to === 'mutual') status = 'became mutual';
+      else if (from === 'mutual' && to !== 'mutual') status = 'became one-way';
+      else if (from !== to) status = 'reversed';
+      else status = 'retuned';
+    }
+    const names = byId.get(a).name + ' ↔ ' + byId.get(b).name;
+    return names + ': ' + status + ' (last: ' + traffic(old) + '; next: ' + traffic(next) + ')';
+  });
+  const prefix = 'Cycle ' + cycle + ' reciprocity momentum (last pulse → next forecast): ';
+  if (!ordered.length) return prefix + 'no signal pairs in either pulse.';
+  return prefix + tally.new + ' new, ' + tally.ended + ' ended, ' + tally.changed +
+    ' changed, ' + tally.steady + ' steady. ' + details.join('; ') + '.';
+}
+
 function renderIncomingRadar(rows) {
   function escapeHtml(value) {
     return String(value).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -1610,6 +1684,7 @@ function renderIncomingRadar(rows) {
     var radarRows=incomingRadar(forecast);
     forecastEl.innerHTML += renderIncomingRadar(radarRows);
     document.getElementById("networkReciprocityAtlas").textContent=networkReciprocityAtlas(radarRows,forecast.cycle);
+    document.getElementById("reciprocityMomentum").textContent=reciprocityMomentum(radarRows,lastCycleReport&&lastCycleReport.transfers,forecast.cycle);
     document.getElementById("selectedArrivalBrief").textContent=selectedArrivalBrief(radarRows,state.selected,forecast.cycle);
     document.getElementById("selectedDispatchBrief").textContent=selectedDispatchBrief(radarRows,state.selected,forecast.cycle);
     document.getElementById("selectedFlowCompass").textContent=selectedFlowCompass(radarRows,state.selected,forecast.cycle);

@@ -16,6 +16,7 @@ assert.ok(html.includes('id="selectedDispatchBrief" class="small" role="region" 
 assert.ok(html.includes('id="selectedFlowCompass" class="small" role="region" aria-label="Selected island next-cycle signal flow"'),"v0.57 should provide a labelled read-only flow region");
 assert.ok(html.includes('id="selectedRouteReciprocity" class="small" role="region" aria-label="Selected island next-cycle route reciprocity"'),"v0.58 should expose a labelled selected-island route reciprocity region");
 assert.ok(html.includes('id="networkReciprocityAtlas" class="small" role="region" aria-label="Network-wide next-cycle reciprocity"'),"v0.59 should expose a labelled archipelago-wide reciprocity region");
+assert.ok(html.includes('id="reciprocityMomentum" class="small" role="region" aria-label="Reciprocity momentum since last cycle"'),"v0.60 should expose a labelled momentum region");
 assert.ok(html.includes('id="motionChip"'),"v0.29 should expose the active motion preference in the HUD");
 assert.ok(html.includes('id="contrastChip"'),"v0.31 should expose the active forced-colors preference in the HUD");
 assert.ok(html.includes('@media(forced-colors:active)'),"v0.31 should include a forced-colors stylesheet");
@@ -53,6 +54,7 @@ assert.ok(source.includes('document.getElementById("selectedDispatchBrief").text
 assert.ok(source.includes('document.getElementById("selectedFlowCompass").textContent=selectedFlowCompass('),"v0.57 compass must use textContent, never imported-name innerHTML");
 assert.ok(source.includes('document.getElementById("selectedRouteReciprocity").textContent=selectedRouteReciprocityLens('),"v0.58 reciprocity lens must render imported names with textContent");
 assert.ok(source.includes('document.getElementById("networkReciprocityAtlas").textContent=networkReciprocityAtlas('),"v0.59 atlas must render imported names with textContent");
+assert.ok(source.includes('document.getElementById("reciprocityMomentum").textContent=reciprocityMomentum('),"v0.60 momentum must render imported names with textContent");
 assert.ok(source.includes("previewedSpecimenCode"),"specimen import should be gated by the exact previewed code");
 assert.ok(source.includes('e.key==="Escape"&&Number.isInteger(state.connectFrom)'),"Escape should cancel a pending connection source");
 assert.ok(source.includes('b.setAttribute("aria-pressed",active?"true":"false")'),"signal-mode pressed state should update during render");
@@ -359,6 +361,7 @@ assert.match(ids.get("selectedArrivalBrief").textContent,/Select an island to pr
 assert.match(ids.get("selectedDispatchBrief").textContent,/Select an island to preview its next-cycle departures/,"unselected dispatch should explain how to start");
 assert.match(ids.get("selectedRouteReciprocity").textContent,/Select an island to preview next-cycle route reciprocity/,"unselected route lens should explain how to start");
 assert.match(api.selectedRouteReciprocityLens(emptyRadar,0,3),/no planned traffic involving this island/,"unlinked selected island should have quiet reciprocity");
+assert.match(ids.get("reciprocityMomentum").textContent,/advance one cycle to compare/,"fresh garden should not invent prior pulse data");
 assert.match(ids.get("cycleForecast").innerHTML,/Cycle 3 · Quiet/,"rendered forecast should expose the next cycle and mode");
 assert.match(ids.get("cycleForecast").innerHTML,/No live routes would carry a migration/);
 assert.match(ids.get("cycleForecast").innerHTML,/Incoming signal radar/);
@@ -980,6 +983,7 @@ setGraph([
 api.nextCycle();
 const cycleReport=api.getLastCycleReport();
 assert.ok(cycleReport,"advancing a cycle should produce a Last Cycle Report");
+assert.match(ids.get("reciprocityMomentum").textContent,/reciprocity momentum \(last pulse → next forecast\)/,"after a cycle, momentum must compare the completed pulse with the next forecast");
 assert.equal(cycleReport.cycle,3);
 assert.ok(Array.isArray(cycleReport.transfers)&&cycleReport.transfers.length===2,"report should include exact migration transfers");
 assert.ok(Array.isArray(cycleReport.junctions),"report should include a junction-ecology list");
