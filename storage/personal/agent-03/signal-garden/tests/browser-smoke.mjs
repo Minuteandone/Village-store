@@ -121,6 +121,9 @@ try{
   const initialFlow=await evaluate("document.getElementById('selectedFlowCompass').textContent");
   assert.match(initialFlow,/Select an island to preview its next-cycle signal flow/,"fresh browser should show an unselected flow hint");
   assert.equal(await evaluate("document.getElementById('selectedFlowCompass').getAttribute('aria-live')"),null,"flow compass should not repeatedly announce");
+  const initialReciprocity=await evaluate("document.getElementById('selectedRouteReciprocity').textContent");
+  assert.match(initialReciprocity,/Select an island to preview next-cycle route reciprocity/);
+  assert.equal(await evaluate("document.getElementById('selectedRouteReciprocity').getAttribute('aria-live')"),null,"read-only route lens must not repeat live announcements");
 
 
   const reducedPreference=await evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches");
@@ -349,6 +352,8 @@ try{
   assert.match(quietDispatch,/Cycle 2 dispatch from .*: no outgoing signals planned/,"unlinked selected island should show a quiet dispatch");
   const quietFlow=await evaluate("document.getElementById('selectedFlowCompass').textContent");
   assert.match(quietFlow,/Cycle 2 flow compass for .*: quiet · 0 incoming \/ 0 outgoing \(net 0\)/,"unlinked selected island should show quiet flow");
+  const quietReciprocity=await evaluate("document.getElementById('selectedRouteReciprocity').textContent");
+  assert.match(quietReciprocity,/Cycle 2 route reciprocity for .*: no planned traffic involving this island/,"unlinked selected island should show no planned route traffic");
 
   await sleep(300);
   await evaluate("window.scrollTo(0,document.documentElement.scrollHeight)");
@@ -458,6 +463,9 @@ try{
   assert.match(linkedDispatch,/Cycle 2 dispatch from .*: 1 planned export to .* → (life|memory|strange)/,"linked selected island should show its next outgoing destination and family");
   const linkedFlow=await evaluate("document.getElementById('selectedFlowCompass').textContent");
   assert.match(linkedFlow,/Cycle 2 flow compass for .*: relay · 1 incoming \/ 1 outgoing \(net 0\)/,"linked selected island should be a balanced relay");
+  const linkedReciprocity=await evaluate("document.getElementById('selectedRouteReciprocity').textContent");
+  assert.match(linkedReciprocity,/Cycle 2 route reciprocity for .*: 1 mutual pair, 0 outbound-only pairs, 0 inbound-only pairs/,"two connected islands should exchange reciprocal next-cycle signals");
+  assert.match(linkedReciprocity,/two-way \(send (life|memory|strange); receive (life|memory|strange)\)/,"route lens should identify both signal families on the mutual pair");
 
 
   await evaluate("document.getElementById('restBtn').click()");
@@ -473,6 +481,8 @@ try{
   assert.match(afterCycleDispatch,/Cycle 3 dispatch from /,"selected dispatch should advance with the next cycle");
   const afterCycleFlow=await evaluate("document.getElementById('selectedFlowCompass').textContent");
   assert.match(afterCycleFlow,/Cycle 3 flow compass for /,"flow compass should advance with the next cycle");
+  const afterCycleReciprocity=await evaluate("document.getElementById('selectedRouteReciprocity').textContent");
+  assert.match(afterCycleReciprocity,/Cycle 3 route reciprocity for /,"route lens should advance with the forecast cycle");
   assert.match(postCycleForecast,/Forecast stops before autonomous drift/);
 
 
