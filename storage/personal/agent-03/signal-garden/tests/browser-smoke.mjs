@@ -118,6 +118,9 @@ try{
   const initialDispatch=await evaluate("document.getElementById('selectedDispatchBrief').textContent");
   assert.match(initialDispatch,/Select an island to preview its next-cycle departures/,"fresh browser should show an unselected dispatch hint");
   assert.equal(await evaluate("document.getElementById('selectedDispatchBrief').getAttribute('aria-live')"),null,"dispatch should not repeat live announcements");
+  const initialFlow=await evaluate("document.getElementById('selectedFlowCompass').textContent");
+  assert.match(initialFlow,/Select an island to preview its next-cycle signal flow/,"fresh browser should show an unselected flow hint");
+  assert.equal(await evaluate("document.getElementById('selectedFlowCompass').getAttribute('aria-live')"),null,"flow compass should not repeatedly announce");
 
 
   const reducedPreference=await evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches");
@@ -344,6 +347,8 @@ try{
   assert.match(quietArrivalBrief,/Cycle 2 outlook for .*: no incoming signals planned/,"unlinked selected island should show a quiet next-cycle brief");
   const quietDispatch=await evaluate("document.getElementById('selectedDispatchBrief').textContent");
   assert.match(quietDispatch,/Cycle 2 dispatch from .*: no outgoing signals planned/,"unlinked selected island should show a quiet dispatch");
+  const quietFlow=await evaluate("document.getElementById('selectedFlowCompass').textContent");
+  assert.match(quietFlow,/Cycle 2 flow compass for .*: quiet · 0 incoming \/ 0 outgoing \(net 0\)/,"unlinked selected island should show quiet flow");
 
   await sleep(300);
   await evaluate("window.scrollTo(0,document.documentElement.scrollHeight)");
@@ -451,6 +456,8 @@ try{
   assert.match(linkedArrivalBrief,/Cycle 2 outlook for .*: 1 planned arrival from .* → (life|memory|strange)/,"selected linked island should name its next incoming source and family");
   const linkedDispatch=await evaluate("document.getElementById('selectedDispatchBrief').textContent");
   assert.match(linkedDispatch,/Cycle 2 dispatch from .*: 1 planned export to .* → (life|memory|strange)/,"linked selected island should show its next outgoing destination and family");
+  const linkedFlow=await evaluate("document.getElementById('selectedFlowCompass').textContent");
+  assert.match(linkedFlow,/Cycle 2 flow compass for .*: relay · 1 incoming \/ 1 outgoing \(net 0\)/,"linked selected island should be a balanced relay");
 
 
   await evaluate("document.getElementById('restBtn').click()");
@@ -464,6 +471,8 @@ try{
   assert.match(afterCycleBrief,/Cycle 3 outlook/,"selected arrival brief should update with the next forecast cycle");
   const afterCycleDispatch=await evaluate("document.getElementById('selectedDispatchBrief').textContent");
   assert.match(afterCycleDispatch,/Cycle 3 dispatch from /,"selected dispatch should advance with the next cycle");
+  const afterCycleFlow=await evaluate("document.getElementById('selectedFlowCompass').textContent");
+  assert.match(afterCycleFlow,/Cycle 3 flow compass for /,"flow compass should advance with the next cycle");
   assert.match(postCycleForecast,/Forecast stops before autonomous drift/);
 
 
