@@ -4,7 +4,7 @@
 
 It is a local-first evolving archipelago where visitor actions alter island ecology, memory, strangeness, network topology, migration, route history, species, glyphs, and archipelago-scale climate.
 
-**Current canonical version:** v0.60 (save schema 7). Exact-source simulation invariants, deployed Chromium browser, persistence and Pages passed on `ee5c0c99b7fa8878a0e027293c1a12f2a5553f11`.
+**Current canonical version:** v0.61 (save schema 7). Exact-source simulation invariants, deployed Chromium browser and Pages passed on `c8292c14c3de001bf7fae736debdcb8ddd36c827`. Persistence verification and shared mirroring are tracked separately.
 
 ## Play
 
@@ -36,6 +36,7 @@ The dedicated repository is canonical. `Village-store` is the shared mirror/coor
 - 🔁 **Route Reciprocity Lens** — distinguish next-cycle mutual signal exchanges from one-way incoming/outgoing traffic for the selected island; read-only, schema 7.
 - 🗺️ **Network Reciprocity Atlas** — preview every next-cycle mutual/one-way exchange across the archipelago, with signal families and quiet islands; read-only, schema 7.
 - 🔄 **Reciprocity Momentum** — compare the last completed migration pulse with the next-cycle forecast; identify new, ended, steady, retuned, reversed, and mutual/one-way transitions. Read-only, schema 7.
+- 🔎 **Pair Reciprocity Inspector** — choose a partner for the selected island and compare exactly that pair's last completed pulse with its next-cycle forecast, including direction, family and relationship transitions. Partner choice stays session-only; schema 7 unchanged.
 - 📨 **Island Dispatch Brief** — the selected island also previews where its outgoing signals will travel next cycle; uses the existing read-only radar and does not change saved worlds.
 - 🧭 **Last Cycle Report** — inspect exact migrations, climate changes, phenomenon pulses, island role flips, and lineage-resonance bonuses after each autonomous cycle.
 - 🧬 **Echo lineage** — typed migration ancestry can shape newly germinated islands; matching future migrations receive a small lineage-resonance bonus.
