@@ -4,7 +4,7 @@
 
 It is a local-first evolving archipelago where visitor actions alter island ecology, memory, strangeness, network topology, migration, route history, species, glyphs, and archipelago-scale climate.
 
-**Current canonical version:** v0.57 (save schema 7). Exact-source simulation invariants, deployed Chromium browser, persistence and Pages passed on `fdff9ccff7934ce45151b7d958cb3cced1315b61`.
+**Current canonical version:** v0.58 (save schema 7). Exact-source simulation invariants, deployed Chromium browser, persistence and Pages passed on `fbb23c221451fae41567091476b7d44a30a484ad`.
 
 ## Play
 
@@ -33,6 +33,7 @@ The dedicated repository is canonical. `Village-store` is the shared mirror/coor
 - 🎼 **Signal Chorus** — see next-cycle life, memory and strange arrival totals alongside convergence and mixed-family destination counts; read-only and save-compatible.
 - 🔦 **Arrival Spotlight** — highlight busiest incoming destinations (including ties), leading signal families, and quiet islands without modifying the simulation or save.
 - 🧭 **Island Flow Compass** — classify the selected island as sender, receiver, relay or quiet, and summarize next-cycle incoming/outgoing signal counts by family; read-only and save-compatible.
+- 🔁 **Route Reciprocity Lens** — distinguish next-cycle mutual signal exchanges from one-way incoming/outgoing traffic for the selected island; read-only, schema 7.
 - 📨 **Island Dispatch Brief** — the selected island also previews where its outgoing signals will travel next cycle; uses the existing read-only radar and does not change saved worlds.
 - 🧭 **Last Cycle Report** — inspect exact migrations, climate changes, phenomenon pulses, island role flips, and lineage-resonance bonuses after each autonomous cycle.
 - 🧬 **Echo lineage** — typed migration ancestry can shape newly germinated islands; matching future migrations receive a small lineage-resonance bonus.

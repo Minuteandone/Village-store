@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.58 — Route Reciprocity Lens
+
+- Adds a read-only selected-island next-cycle view of mutual and one-way traffic between forecast partners, with signal-family details and quiet states.
+- Uses the existing destination-first radar; no changes to routes, simulation rules or save schema 7. Imported names render as plain text.
+- Includes eight pure-module tests, canonical invariants and real Chromium coverage. Feature branch candidate verification passed.
+- Exact-source canonical simulation, deployed Chromium browser, persistence and Pages checks passed on `fbb23c221451fae41567091476b7d44a30a484ad`.
+
 ## v0.57 — Island Flow Compass
 
 - Adds a read-only selected-island signal-flow compass beside arrival and dispatch briefs.
