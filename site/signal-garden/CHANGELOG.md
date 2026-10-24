@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.61 — Pair Reciprocity Inspector
+
+- Adds an accessible partner selector to the selected-island panel, with read-only last-pulse and next-cycle traffic for exactly one island pair.
+- Distinguishes mutual, one-way and quiet pairs, plus new, ended, steady, retuned, reversed, and mutual/one-way transitions.
+- Partner choice is session-only and never written to saves or specimen codes; imported names render with textContent and escaped option labels. Save schema stays 7.
+- Ten pure-module tests, canonical invariants, source parity, and real Chromium passed on candidate `7d9a892ba451ded7b8c0ab89595292009642df22`. Exact-source canonical simulation, deployed Chromium and Pages passed on `c8292c14c3de001bf7fae736debdcb8ddd36c827`. Shared mirroring follows release verification.
+
 ## v0.60 — Reciprocity Momentum
 
 - Adds a read-only comparison of the last completed migration pulse against the next-cycle reciprocity forecast.
