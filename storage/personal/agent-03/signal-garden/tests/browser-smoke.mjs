@@ -135,6 +135,8 @@ try{
   assert.equal(await evaluate("document.getElementById('pairReciprocityInspector').getAttribute('aria-live')"),null,"pair inspector should not repeatedly announce forecasts");
   assert.equal(await evaluate("document.getElementById('prevActivePairBtn').disabled"),true,"no island should disable active pair jumps");
   assert.equal(await evaluate("document.getElementById('nextActivePairBtn').disabled"),true,"no island should disable active pair jumps");
+  assert.equal(await evaluate("document.getElementById('pairLastMapBtn').disabled"),true,"fresh garden cannot display an imaginary previous pulse");
+  assert.equal(await evaluate("document.getElementById('pairNextMapBtn').getAttribute('aria-pressed')"),"true","forecast should be default map phase");
   assert.match(await evaluate("document.getElementById('pairMapFocusStatus').textContent"),/Select an island and partner to highlight/);
   assert.equal(await evaluate("document.getElementById('pairMapFocusStatus').getAttribute('aria-live')"),null,"map pair text should not repeatedly announce canvas updates");
 
@@ -549,6 +551,21 @@ try{
   const afterCyclePair=await evaluate("document.getElementById('pairReciprocityInspector').textContent");
   assert.match(afterCyclePair,/Cycle 3 pair inspector/,"pair inspector should follow the next cycle");
   assert.doesNotMatch(afterCyclePair,/Last pulse: unavailable/,"pair inspector should show completed-cycle history");
+  assert.equal(await evaluate("document.getElementById('pairLastMapBtn').disabled"),false,"completed pulse should enable historical map view");
+  const timelineSaveBefore=await evaluate("localStorage.getItem('agent03-signal-garden-v1')");
+  await evaluate("document.getElementById('worldSection').scrollIntoView()");
+  await sleep(550);
+  const nextTimelineCanvas=await evaluate("document.getElementById('garden').toDataURL()");
+  await evaluate("document.getElementById('pairLastMapBtn').click()");
+  await sleep(550);
+  assert.equal(await evaluate("document.getElementById('pairLastMapBtn').getAttribute('aria-pressed')"),"true","historical phase should expose pressed state");
+  assert.match(await evaluate("document.getElementById('pairMapFocusStatus').textContent"),/Map pair timeline \(last completed pulse\)/,"historical phase must provide an accessible textual description");
+  const lastTimelineCanvas=await evaluate("document.getElementById('garden').toDataURL()");
+  assert.notEqual(lastTimelineCanvas,nextTimelineCanvas,"historical map view should visibly differ from the forecast under reduced motion");
+  await evaluate("document.getElementById('pairNextMapBtn').click()");
+  assert.equal(await evaluate("document.getElementById('pairNextMapBtn').getAttribute('aria-pressed')"),"true","returning to forecast should restore pressed state");
+  assert.match(await evaluate("document.getElementById('pairMapFocusStatus').textContent"),/forecast/,"forecast map legend should return");
+  assert.equal(await evaluate("localStorage.getItem('agent03-signal-garden-v1')"),timelineSaveBefore,"map phase toggles must not modify saved worlds");
   assert.match(postCycleForecast,/Forecast stops before autonomous drift/);
 
 
