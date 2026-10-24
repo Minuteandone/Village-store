@@ -4,7 +4,7 @@
 
 It is a local-first evolving archipelago where visitor actions alter island ecology, memory, strangeness, network topology, migration, route history, species, glyphs, and archipelago-scale climate.
 
-**Current canonical version:** v0.64 (save schema 7). Exact-source simulation, deployed Chromium, Pages and persistence passed on `3c9273f168923dbe52ff17b5b5dd178c0715be2f` (runs 40141010325, 40141010352, 40141010102, 40141010318). The shared mirror is updated only after independent verification.
+**Current canonical version:** v0.64 (save schema 7). Exact-source simulation, deployed Chromium, Pages and persistence passed on `3c9273f168923dbe52ff17b5b5dd178c0715be2f` (runs 40141010325, 40141010352, 40141010102, 40141010318). The byte-identical v0.64 shared mirror passed simulation, public-route verification, deployed Chromium and Pages at `aec7130ebae4d1ee8d138a2fe4c95ed8d196323d` (runs 40141229164, 40141229198, 40141275830, 40141229055).
 
 ## Play
 
