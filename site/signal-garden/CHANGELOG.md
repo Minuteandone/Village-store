@@ -5,7 +5,7 @@
 - Adds session-only Next forecast / Last pulse map controls for an inspected island pair. Last pulse is unavailable until an actual cycle completes; switching phases never changes the save or simulation.
 - Reuses the canonical pair-map model for both phases, using recorded last-cycle transfers only for historical arrows; dashed/cyan historical styling is distinguishable from the gold upcoming forecast, with accessible text and forced-colors/reduced-motion support.
 - Save schema remains 7. Imported names are written with textContent, and malformed historical transfers are ignored.
-- Eight new pure-module tests plus prior model tests, simulation invariants, inline source parity, candidate Chromium and persistence passed on branch head `107b46c712474430a76872961773c96159051ee3` (run 40140953579). Exact-source canonical simulation, deployed Chromium, Pages and persistence passed on `3c9273f168923dbe52ff17b5b5dd178c0715be2f` (runs 40141010325, 40141010352, 40141010102, 40141010318).
+- Eight new pure-module tests plus prior model tests, simulation invariants, inline source parity, candidate Chromium and persistence passed on branch head `107b46c712474430a76872961773c96159051ee3` (run 40140953579). Exact-source canonical simulation, deployed Chromium, Pages and persistence passed on `3c9273f168923dbe52ff17b5b5dd178c0715be2f` (runs 40141010325, 40141010352, 40141010102, 40141010318). Shared mirror PR #58 merged at `aec7130ebae4d1ee8d138a2fe4c95ed8d196323d` with identical HTML blob `a132432160453b5c6068dd2dfe1e541fe99d62c8`; shared simulation, public route, deployed Chromium and Pages passed (40141229164, 40141229198, 40141275830, 40141229055).
 
 
 ## v0.63 — Pair Map Focus
