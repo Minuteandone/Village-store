@@ -14,6 +14,7 @@ assert.ok(html.includes('id="selectionStatus" role="status" aria-live="polite"')
 assert.ok(html.includes('id="selectedArrivalBrief" class="small" role="region" aria-label="Selected island next-cycle outlook"'),"v0.55 should provide a labelled selected-island forecast region");
 assert.ok(html.includes('id="selectedDispatchBrief" class="small" role="region" aria-label="Selected island next-cycle dispatch"'),"v0.56 should provide a labelled selected-island outgoing region");
 assert.ok(html.includes('id="selectedFlowCompass" class="small" role="region" aria-label="Selected island next-cycle signal flow"'),"v0.57 should provide a labelled read-only flow region");
+assert.ok(html.includes('id="selectedRouteReciprocity" class="small" role="region" aria-label="Selected island next-cycle route reciprocity"'),"v0.58 should expose a labelled selected-island route reciprocity region");
 assert.ok(html.includes('id="motionChip"'),"v0.29 should expose the active motion preference in the HUD");
 assert.ok(html.includes('id="contrastChip"'),"v0.31 should expose the active forced-colors preference in the HUD");
 assert.ok(html.includes('@media(forced-colors:active)'),"v0.31 should include a forced-colors stylesheet");
@@ -49,6 +50,7 @@ let source = match[1];
 assert.ok(source.includes('document.getElementById("selectedArrivalBrief").textContent=selectedArrivalBrief('),"v0.55 brief must use textContent, never imported-name innerHTML");
 assert.ok(source.includes('document.getElementById("selectedDispatchBrief").textContent=selectedDispatchBrief('),"v0.56 dispatch must use textContent, never imported-name innerHTML");
 assert.ok(source.includes('document.getElementById("selectedFlowCompass").textContent=selectedFlowCompass('),"v0.57 compass must use textContent, never imported-name innerHTML");
+assert.ok(source.includes('document.getElementById("selectedRouteReciprocity").textContent=selectedRouteReciprocityLens('),"v0.58 reciprocity lens must render imported names with textContent");
 assert.ok(source.includes("previewedSpecimenCode"),"specimen import should be gated by the exact previewed code");
 assert.ok(source.includes('e.key==="Escape"&&Number.isInteger(state.connectFrom)'),"Escape should cancel a pending connection source");
 assert.ok(source.includes('b.setAttribute("aria-pressed",active?"true":"false")'),"signal-mode pressed state should update during render");
@@ -167,6 +169,7 @@ source = source.replace(
     modeForCycle:modeForCycle,
     cycleForecast:cycleForecast,
     incomingRadar:incomingRadar,
+    selectedRouteReciprocityLens:selectedRouteReciprocityLens,
     edgeSignalCounts:edgeSignalCounts,
     bondForEdgeKey:bondForEdgeKey,
     routeBonds:routeBonds,
@@ -352,6 +355,8 @@ assert.ok(emptyRadar.every(row=>row.incoming.length===0&&!row.convergence&&!row.
 api.renderUI();
 assert.match(ids.get("selectedArrivalBrief").textContent,/Select an island to preview its next-cycle arrivals/,"unselected outlook should explain how to start");
 assert.match(ids.get("selectedDispatchBrief").textContent,/Select an island to preview its next-cycle departures/,"unselected dispatch should explain how to start");
+assert.match(ids.get("selectedRouteReciprocity").textContent,/Select an island to preview next-cycle route reciprocity/,"unselected route lens should explain how to start");
+assert.match(api.selectedRouteReciprocityLens(emptyRadar,0,3),/no planned traffic involving this island/,"unlinked selected island should have quiet reciprocity");
 assert.match(ids.get("cycleForecast").innerHTML,/Cycle 3 · Quiet/,"rendered forecast should expose the next cycle and mode");
 assert.match(ids.get("cycleForecast").innerHTML,/No live routes would carry a migration/);
 assert.match(ids.get("cycleForecast").innerHTML,/Incoming signal radar/);
@@ -407,6 +412,7 @@ assert.equal(palPlan.to,2,"forecast target should use the next-cycle route index
 assert.equal(palPlan.type,"life","forecast Palimpsest export should use the next cycle rather than the current cycle");
 assert.equal(api.exportTraitAtCycle(api.getState().islands[0],3),"life");
 const palRadar=api.incomingRadar(palForecast);
+assert.match(api.selectedRouteReciprocityLens(palRadar,0,palForecast.cycle),/route reciprocity/,"reciprocity lens should consume the existing forecast");
 assert.ok(palRadar[2].incoming.some(x=>x.from===0&&x.type==="life"),"Palimpsest radar must use already forecasted next-cycle type");
 
 setGraph([island(0,[2],50,20,10),island(1,[2],20,50,10),island(2),island(3)]);
