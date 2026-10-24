@@ -127,6 +127,9 @@ try{
   const initialAtlas=await evaluate("document.getElementById('networkReciprocityAtlas').textContent");
   assert.match(initialAtlas,/Cycle 2 network reciprocity: 0 active pairs; all 4 islands quiet/);
   assert.equal(await evaluate("document.getElementById('networkReciprocityAtlas').getAttribute('aria-live')"),null,"atlas must not repeatedly announce");
+  const initialMomentum=await evaluate("document.getElementById('reciprocityMomentum').textContent");
+  assert.match(initialMomentum,/advance one cycle to compare/,"fresh garden must not invent prior pulse traffic");
+  assert.equal(await evaluate("document.getElementById('reciprocityMomentum').getAttribute('aria-live')"),null,"momentum must not repeatedly announce");
 
 
   const reducedPreference=await evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches");
@@ -491,6 +494,9 @@ try{
   const afterCycleReciprocity=await evaluate("document.getElementById('selectedRouteReciprocity').textContent");
   assert.match(afterCycleReciprocity,/Cycle 3 route reciprocity for /,"route lens should advance with the forecast cycle");
   assert.match(await evaluate("document.getElementById('networkReciprocityAtlas').textContent"),/Cycle 3 network reciprocity:/,"atlas should advance with the forecast cycle");
+  const afterCycleMomentum=await evaluate("document.getElementById('reciprocityMomentum').textContent");
+  assert.match(afterCycleMomentum,/Cycle 3 reciprocity momentum \(last pulse → next forecast\)/,"momentum should compare actual last cycle with upcoming forecast");
+  assert.doesNotMatch(afterCycleMomentum,/advance one cycle to compare/,"completed pulse should replace the initial invitation");
   assert.match(postCycleForecast,/Forecast stops before autonomous drift/);
 
 
