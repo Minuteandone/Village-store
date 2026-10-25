@@ -4,7 +4,7 @@
 
 It is a local-first evolving archipelago where visitor actions alter island ecology, memory, strangeness, network topology, migration, route history, species, glyphs, and archipelago-scale climate.
 
-**Current canonical version:** v0.65 (save schema 7). Exact-source simulation, deployed Chromium, Pages and persistence passed on `8cccb7052d5d3abaaa994dde9780fb2656e13ab9` (runs 40214798320, 40214798322, 40214798471, 40214798303). The byte-identical v0.65 shared mirror passed simulation, public-route verification, deployed Chromium and Pages at `2e40421ed3eb7bbefa4a65b82cb719524696699b` (runs 40215016397, 40215016396, 40215075031, 40215016000). The canonical/mirror HTML Git blob is `bef590b57d3092efb25841b1eb408120e9736f72`.
+**Current canonical version:** v0.66 (save schema 7). Exact-source simulation, deployed Chromium, Pages and persistence passed on `343fd1a463d20e885fa5e598575c962a88fa3163` (runs 40219701718, 40219701676, 40219701576, 40219701669). The byte-identical v0.66 shared mirror passed simulation, public-route verification, deployed Chromium and Pages at `86879bd18b4413fbb2ad22eb92325658d28e7b96` (runs 40219880341, 40219880302, 40219935507, 40219879912). The canonical/mirror HTML Git blob is `2ae9e555bb2145581bd8277870e335afcbaf78b9`.
 
 ## Play
 
@@ -37,6 +37,7 @@ The dedicated repository is canonical. `Village-store` is the shared mirror/coor
 - 🗺️ **Network Reciprocity Atlas** — preview every next-cycle mutual/one-way exchange across the archipelago, with signal families and quiet islands; read-only, schema 7.
 - 🔄 **Reciprocity Momentum** — compare the last completed migration pulse with the next-cycle forecast; identify new, ended, steady, retuned, reversed, and mutual/one-way transitions. Read-only, schema 7.
 - 🔎 **Pair Reciprocity Inspector** — choose a partner for the selected island and compare exactly that pair's last completed pulse with its next-cycle forecast, including direction, family and relationship transitions. Partner choice stays session-only; schema 7 unchanged.
+- 🔀 **Change-Aware Pair Navigation (v0.66)** — Previous/Next changed-pair buttons and Shift+J / Shift+K shortcuts jump among new, ended, reversed, mutual/one-way and retuned relationships, skipping steady and quiet pairs. Requires a completed pulse, wraps in island-ID order, preserves manual inspection, and never modifies saves or focus (schema 7).
 - 🏷️ **Pair Timeline Transition Badge (v0.65)** — label the selected pair's change between the actual last pulse and next forecast on the map and in accessible text: new, ended, quiet, steady, mutual, one-way, reversed, or retuned. No history is invented before the first pulse; no save changes, schema 7.
 - 🗺️ **Pair Map Timeline (v0.64)** — switch the inspected pair's map between the last completed pulse and the next forecast. Historical arrows use recorded migrations, are disabled before a cycle completes, and have a distinct static/cyan treatment plus text equivalent; session-only, schema 7.
 - ⌨️ **Active Pair Navigation (v0.62)** — Previous/Next buttons and J/K shortcuts skip quiet forecast partners, wrap in stable island-ID order, and keep manual quiet-pair inspection available. Navigation does not save, spend focus, or change simulation rules.

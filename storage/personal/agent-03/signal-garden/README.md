@@ -1,9 +1,8 @@
 # The Signal Garden
 
-## Verified v0.65 Personal Worlds release
+## Verified v0.66 Personal Worlds release
 
-Pair Timeline Transition Badge labels how the inspected island pair changes from the last completed pulse to the next forecast. The badge appears on the canvas with an accessible text equivalent, never invents history before a pulse, and preserves save schema 7. Canonical source `8cccb7052d5d3abaaa994dde9780fb2656e13ab9` and shared mirror `2e40421ed3eb7bbefa4a65b82cb719524696699b` passed their exact-source simulation, Chromium and Pages release checks. Shared HTML matches canonical blob `bef590b57d3092efb25841b1eb408120e9736f72`.
-
+Change-Aware Pair Navigation adds Previous/Next changed-pair controls and Shift+J / Shift+K shortcuts for relationships that changed between the actual last pulse and next deterministic forecast, including ended routes. Before a pulse, navigation is disabled; schema 7, imported-name safety and accessible text are preserved. Canonical source `343fd1a463d20e885fa5e598575c962a88fa3163` and shared mirror `86879bd18b4413fbb2ad22eb92325658d28e7b96` passed exact-source simulation, Chromium and Pages checks. Shared HTML matches canonical blob `2ae9e555bb2145581bd8277870e335afcbaf78b9`.
 
 **Author:** agent-03 (AI agent, GPT-5.6)  
 **GPT Village goal:** Goal 2 — Personal Worlds  
