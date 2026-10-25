@@ -72,7 +72,10 @@ assert.ok(source.includes('document.getElementById("selectedFlowCompass").textCo
 assert.ok(source.includes('document.getElementById("selectedRouteReciprocity").textContent=selectedRouteReciprocityLens('),"v0.58 reciprocity lens must render imported names with textContent");
 assert.ok(source.includes('document.getElementById("networkReciprocityAtlas").textContent=networkReciprocityAtlas('),"v0.59 atlas must render imported names with textContent");
 assert.ok(source.includes('document.getElementById("reciprocityMomentum").textContent=reciprocityMomentum('),"v0.60 momentum must render imported names with textContent");
-assert.ok(source.includes('document.getElementById("archipelagoChangeAtlas").textContent=archipelagoChangeAtlas('),"v0.68 atlas must render imported names with textContent");
+assert.ok(source.includes('document.getElementById("archipelagoChangeAtlas").textContent=atlasOverview.text'),"v0.68 atlas must render imported names with textContent");
+assert.ok(source.includes('atlasPairSelect.appendChild(option); // imported names never enter HTML markup.'),"v0.69 drill-down options must use DOM text, not imported HTML");
+assert.ok(source.includes('archipelagoCategoryDrilldown(atlasOverview,atlasDrillCategory)'),"v0.69 drill-down must use canonical atlas data");
+assert.ok(html.includes('id="archipelagoDrillFocusBtn" disabled'),"v0.69 focus must start disabled without history");
 assert.ok(source.includes('document.getElementById("pairReciprocityInspector").textContent=pairReciprocityInspector('),"v0.61 pair inspector must render imported names with textContent");
 assert.ok(source.includes('activePairIds=activePairPartners(radarRows,state.selected)'),"v0.62 active partners must derive from the existing radar");
 assert.ok(source.includes('changedPairIds=changeOverview.partnerIds'),"v0.67 changed partners must use category-filtered canonical radar and completed history");
@@ -80,8 +83,8 @@ assert.ok(source.includes('changedPairCategoryOverview(radarRows,lastCycleReport
 assert.ok(source.includes('document.getElementById("pairChangeCategorySummary").textContent='),"v0.67 category summary must use textContent");
 assert.ok(source.includes('renderUI(); // changed-pair navigation is UI-only: no save or focus cost.'),"v0.66 change navigation must remain session-only");
 assert.ok(source.includes('pairTimelineHighlight(radarRows,lastCycleReport.transfers,state.selected,inspectedPartnerId,"last")'),"v0.64 last map must use completed migrations, not invented forecasts");
-assert.ok(source.includes('document.getElementById("pairMapFocusStatus").textContent=pairMapFocus?'),"v0.64 map descriptions must render imported names as text");
-assert.ok(source.includes('document.getElementById("pairTransitionStatus").textContent=pairTransition?'),"v0.65 transition descriptions must use textContent");
+assert.ok(source.includes('document.getElementById("pairMapFocusStatus").textContent=(atlasMapEntry?'),"v0.64 map descriptions must render imported names as text");
+assert.ok(source.includes('document.getElementById("pairTransitionStatus").textContent=(atlasMapEntry?'),"v0.65 transition descriptions must use textContent");
 assert.ok(source.includes('pairTransition=pairTransitionBadge(nextPairFocus,lastPairFocus)'),"v0.65 badge must compare canonical last/next pair models");
 assert.ok(source.includes('pairTimelineView="next";renderUI()'),"v0.64 phase changes should be session-only");
 assert.ok(source.includes('ctx.setLineDash(quietPair?[6,8]:pairTimelineView==="last"?[10,5]:[])'),"v0.64 historical map overlay must be visually distinct without animation");
@@ -241,8 +244,11 @@ function element(extra = {}) {
     disabled: false,
     style: {},
     dataset: {},
+    children: [],
     classList: { toggle() {} },
     addEventListener() {},
+    replaceChildren(...nodes){this.children=[...nodes];this.options=this.children;},
+    appendChild(node){this.children.push(node);this.options=this.children;return node;},
     setAttribute(name,value){attrs[name]=String(value)},
     getAttribute(name){return Object.prototype.hasOwnProperty.call(attrs,name)?attrs[name]:null},
     removeAttribute(name){delete attrs[name]},
@@ -268,6 +274,10 @@ const canvas = element({
 const ids = new Map();
 ids.set("garden", canvas);
 ids.set("pairChangeCategory",element({
+  value:"all",
+  options:["all","new","ended","mutual","one-way","reversed","retuned"].map(value=>({value,textContent:""}))
+}));
+ids.set("archipelagoDrillCategory",element({
   value:"all",
   options:["all","new","ended","mutual","one-way","reversed","retuned"].map(value=>({value,textContent:""}))
 }));
@@ -299,6 +309,7 @@ const sandbox = {
       if (!ids.has(id)) ids.set(id, element());
       return ids.get(id);
     },
+    createElement(tag){return element({tagName:String(tag).toUpperCase()});},
     querySelectorAll(sel) {
       return sel === "[data-action]" ? actionButtons
         : sel === "[data-glyph]" ? glyphButtons
