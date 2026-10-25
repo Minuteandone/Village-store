@@ -107,7 +107,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip hud-secondary" id="motionChip">Motion · standard</span>
         <span class="chip hud-secondary" id="contrastChip">Contrast · custom</span>
-        <span class="chip hud-secondary" id="versionChip">v0.64 · save 7</span>
+        <span class="chip hud-secondary" id="versionChip">v0.65 · save 7</span>
       </div>
     </section>
 
@@ -192,6 +192,7 @@
              <button id="pairLastMapBtn" aria-pressed="false" aria-describedby="pairMapFocusStatus" disabled>Last pulse on map</button>
            </div>
            <div id="pairMapFocusStatus" class="small" role="region" aria-label="Map pair focus textual equivalent" style="margin-top:8px;overflow-wrap:anywhere">Select an island and partner to highlight a pair on the map.</div>
+           <div id="pairTransitionStatus" class="small" role="region" aria-label="Pair timeline transition" style="margin-top:8px;overflow-wrap:anywhere">Select an island and partner to compare their pulses.</div>
         </div>
         <div class="meter"><span id="lifeMeter"></span></div>
         <div class="small" id="glyphCostNote" style="margin-top:10px">Root / Echo / Fold cost 3 resonance + 1 focus. Clear costs 1 focus. Glyphs add +2 of their trait whenever this island receives a migration.</div>
@@ -309,7 +310,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.64",SAVE_SCHEMA=7;
+  var APP_VERSION="0.65",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -351,7 +352,7 @@
     });
   }
   var state=fresh(),bootNotice="";
-  var inspectedPartnerId=null,pairOptionsKey="",activePairIds=[],pairMapFocus=null,pairTimelineView="next"; // UI-only; never serialized.
+  var inspectedPartnerId=null,pairOptionsKey="",activePairIds=[],pairMapFocus=null,pairTransition=null,pairTimelineView="next"; // UI-only; never serialized.
   if(bootParseError)bootNotice="Could not read the local garden save, so a fresh seed state was used.";
   else if(bootSaved){
     if(validSavedState(bootSaved)){
@@ -1322,6 +1323,68 @@ function pairTimelineHighlight(rows, previousTransfers, selectedId, partnerId, p
   };
 }
 
+/**
+ * Signal Garden v0.65: read-only relationship transition badge.
+ * Inputs are canonical pair-map forecasts for the next and last pulse.
+ * No mutation, save changes, or HTML interpretation; schema 7 unchanged.
+ */
+function pairTransitionBadge(nextFocus, lastFocus) {
+  const families = ['life', 'memory', 'strange'];
+  function normalize(focus) {
+    if (!focus || !Number.isInteger(focus.source) || !Number.isInteger(focus.target) ||
+        focus.source === focus.target || !Array.isArray(focus.forward) ||
+        !Array.isArray(focus.backward)) return null;
+    const forward = families.filter(type => focus.forward.includes(type));
+    const backward = families.filter(type => focus.backward.includes(type));
+    const direction = forward.length && backward.length ? 'mutual' :
+      forward.length ? 'outbound' : backward.length ? 'inbound' : 'quiet';
+    return {source: focus.source, target: focus.target, forward, backward, direction};
+  }
+  const next = normalize(nextFocus);
+  if (!next) return null;
+  const last = normalize(lastFocus);
+  if (!last || last.source !== next.source || last.target !== next.target) {
+    return {
+      kind: 'unavailable', label: 'Await first pulse',
+      description: 'Pair transition: awaiting the first completed pulse. Next forecast: ' +
+        describe(next) + '.'
+    };
+  }
+  const identical = last.forward.join(',') === next.forward.join(',') &&
+    last.backward.join(',') === next.backward.join(',');
+  let kind, label;
+  if (last.direction === 'quiet' && next.direction !== 'quiet') {
+    kind = 'new'; label = 'New exchange';
+  } else if (last.direction !== 'quiet' && next.direction === 'quiet') {
+    kind = 'ended'; label = 'Exchange ended';
+  } else if (last.direction === 'quiet' && next.direction === 'quiet') {
+    kind = 'quiet'; label = 'Quiet in both';
+  } else if (identical) {
+    kind = 'steady'; label = 'Steady exchange';
+  } else if (last.direction !== 'mutual' && next.direction === 'mutual') {
+    kind = 'mutual'; label = 'Becoming mutual';
+  } else if (last.direction === 'mutual' && next.direction !== 'mutual') {
+    kind = 'one-way'; label = 'Becoming one-way';
+  } else if ((last.direction === 'outbound' && next.direction === 'inbound') ||
+             (last.direction === 'inbound' && next.direction === 'outbound')) {
+    kind = 'reversed'; label = 'Direction reversed';
+  } else {
+    kind = 'retuned'; label = 'Families retuned';
+  }
+  return {
+    kind, label,
+    description: 'Pair transition: ' + label + '. Last pulse: ' +
+      describe(last) + '. Next forecast: ' + describe(next) + '.'
+  };
+  function describe(focus) {
+    if (focus.direction === 'quiet') return 'quiet';
+    const parts = [];
+    if (focus.forward.length) parts.push('send ' + focus.forward.join(', '));
+    if (focus.backward.length) parts.push('receive ' + focus.backward.join(', '));
+    return focus.direction + ' (' + parts.join('; ') + ')';
+  }
+}
+
 function renderIncomingRadar(rows) {
   function escapeHtml(value) {
     return String(value).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
@@ -1884,6 +1947,10 @@ function renderIncomingRadar(rows) {
     document.getElementById("pairLastMapBtn").setAttribute("aria-pressed",pairTimelineView==="last"?"true":"false");
     document.getElementById("pairLastMapBtn").disabled=!lastMapAvailable;
     pairMapFocus=pairMapHighlight(radarRows,state.selected,inspectedPartnerId);
+    var nextPairFocus=pairMapFocus;
+    var lastPairFocus=lastMapAvailable?pairTimelineHighlight(radarRows,lastCycleReport.transfers,state.selected,inspectedPartnerId,"last"):null;
+    pairTransition=pairTransitionBadge(nextPairFocus,lastPairFocus);
+    document.getElementById("pairTransitionStatus").textContent=pairTransition?pairTransition.description:"Select an island and partner to compare their pulses.";
     if(pairTimelineView==="last")pairMapFocus=pairTimelineHighlight(radarRows,lastCycleReport.transfers,state.selected,inspectedPartnerId,"last");
     document.getElementById("pairMapFocusStatus").textContent=pairMapFocus?pairMapFocus.description:"Select an island and partner to highlight a pair on the map.";
     var textMap=textMapModel(),textMapEl=document.getElementById("textMap");
@@ -2122,6 +2189,18 @@ function renderIncomingRadar(rows) {
         }
         if(pairMapFocus.forward.length)pairArrow(.42,false);
         if(pairMapFocus.backward.length)pairArrow(.58,true);
+        // v0.65: static, accessible-text-backed relationship transition badge.
+        if(pairTransition){
+          var badgeX=(x0+2*x1+x2)/4,badgeY=Math.max(46,Math.min(h-38,(y0+2*y1+y2)/4-32));
+          ctx.font="bold 14px system-ui,sans-serif";
+          var badgeWidth=Math.min(190,ctx.measureText(pairTransition.label).width+24);
+          ctx.fillStyle=forcedColors?"Canvas":"#071b13";
+          ctx.fillRect(badgeX-badgeWidth/2,badgeY-15,badgeWidth,30);
+          ctx.strokeStyle=forcedColors?"CanvasText":"#9ee7ef";
+          ctx.lineWidth=2;ctx.strokeRect(badgeX-badgeWidth/2,badgeY-15,badgeWidth,30);
+          ctx.fillStyle=forcedColors?"CanvasText":"#e9f5ed";
+          ctx.textAlign="center";ctx.fillText(pairTransition.label,badgeX,badgeY+5);
+        }
         ctx.restore();
       }
     }
