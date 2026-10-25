@@ -135,6 +135,9 @@ try{
   assert.equal(await evaluate("document.getElementById('pairReciprocityInspector').getAttribute('aria-live')"),null,"pair inspector should not repeatedly announce forecasts");
   assert.equal(await evaluate("document.getElementById('prevActivePairBtn').disabled"),true,"no island should disable active pair jumps");
   assert.equal(await evaluate("document.getElementById('nextActivePairBtn').disabled"),true,"no island should disable active pair jumps");
+  assert.equal(await evaluate("document.getElementById('prevChangedPairBtn').disabled"),true,"fresh garden must disable changed-pair navigation");
+  assert.equal(await evaluate("document.getElementById('nextChangedPairBtn').disabled"),true,"fresh garden must disable changed-pair navigation");
+  assert.equal(await evaluate("document.getElementById('pairChangeStatus').getAttribute('aria-live')"),null,"change list should not repeatedly announce forecasts");
   assert.equal(await evaluate("document.getElementById('pairLastMapBtn').disabled"),true,"fresh garden cannot display an imaginary previous pulse");
   assert.equal(await evaluate("document.getElementById('pairNextMapBtn').getAttribute('aria-pressed')"),"true","forecast should be default map phase");
   assert.match(await evaluate("document.getElementById('pairMapFocusStatus').textContent"),/Select an island and partner to highlight/);
@@ -376,6 +379,8 @@ try{
   assert.equal(await evaluate("document.getElementById('pairPartnerSelect').disabled"),false,"selected island should enable pair inspection");
   assert.equal(await evaluate("document.getElementById('nextActivePairBtn').disabled"),true,"quiet selected island should disable active pair navigation");
   assert.match(await evaluate("document.getElementById('pairQuickStatus').textContent"),/No active forecast partners/);
+  assert.equal(await evaluate("document.getElementById('nextChangedPairBtn').disabled"),true,"no prior pulse must disable changed-pair jumps");
+  assert.match(await evaluate("document.getElementById('pairChangeStatus').textContent"),/Complete a pulse to compare/);
   const quietPair=await evaluate("document.getElementById('pairReciprocityInspector').textContent");
   assert.match(quietPair,/Cycle 2 pair inspector for .*:?.*Last pulse: unavailable until a cycle completes.*Next forecast: quiet/,"fresh pair should not invent history");
   assert.match(await evaluate("document.getElementById('pairTransitionStatus').textContent"),/Pair transition: awaiting the first completed pulse/,"fresh selected pair must not invent history");
@@ -558,6 +563,23 @@ try{
   assert.equal(await evaluate("document.getElementById('pairLastMapBtn').disabled"),false,"completed pulse should enable historical map view");
   const transitionAfterCycle=await evaluate("document.getElementById('pairTransitionStatus').textContent");
   assert.match(transitionAfterCycle,/Pair transition: (?!awaiting)/,"completed pulse should produce a real transition badge");
+  const changedNavStatus=await evaluate("document.getElementById('pairChangeStatus').textContent");
+  assert.doesNotMatch(changedNavStatus,/Complete a pulse to compare/,"completed history should enable change comparison");
+  const changedNavEnabled=await evaluate("!document.getElementById('nextChangedPairBtn').disabled");
+  if(changedNavEnabled){
+    assert.match(changedNavStatus,/changed relationships?|changed relationship/,"changed-pair count should be explained in text");
+    const savedBeforeChangedNav=await evaluate("localStorage.getItem('agent03-signal-garden-v1')");
+    const focusBeforeChangedNav=await evaluate("document.getElementById('focusChip').textContent");
+    await evaluate("document.getElementById('nextChangedPairBtn').click()");
+    assert.equal(await evaluate("localStorage.getItem('agent03-signal-garden-v1')"),savedBeforeChangedNav,"changed navigation must not rewrite the saved world");
+    assert.equal(await evaluate("document.getElementById('focusChip').textContent"),focusBeforeChangedNav,"changed navigation must not spend focus");
+    await evaluate("document.getElementById('worldSection').focus()");
+    await send("Input.dispatchKeyEvent",{type:"keyDown",key:"K",code:"KeyK",windowsVirtualKeyCode:75,nativeVirtualKeyCode:75,modifiers:8});
+    await send("Input.dispatchKeyEvent",{type:"keyUp",key:"K",code:"KeyK",windowsVirtualKeyCode:75,nativeVirtualKeyCode:75,modifiers:8});
+    assert.equal(await evaluate("localStorage.getItem('agent03-signal-garden-v1')"),savedBeforeChangedNav,"Shift+K must not mutate the save");
+  }else{
+    assert.match(changedNavStatus,/No changed relationships/,"steady relationships must explicitly explain no changes");
+  }
   assert.match(transitionAfterCycle,/Last pulse: .* Next forecast:/,"transition must describe both time phases");
   const timelineSaveBefore=await evaluate("localStorage.getItem('agent03-signal-garden-v1')");
   await evaluate("document.getElementById('worldSection').scrollIntoView()");

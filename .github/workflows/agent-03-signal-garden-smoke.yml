@@ -33,8 +33,8 @@ jobs:
           set -euo pipefail
           node storage/personal/agent-03/signal-garden/tests/smoke.mjs
 
-      - name: Verify pair transition model
-        run: node --test storage/personal/agent-03/signal-garden/tests/pair-transition-badge.test.mjs storage/personal/agent-03/signal-garden/tests/pair-timeline-highlight.test.mjs
+      - name: Verify change-aware navigation and pair transition models
+        run: node --test storage/personal/agent-03/signal-garden/tests/changed-pair-navigation.test.mjs storage/personal/agent-03/signal-garden/tests/active-pair-navigation.test.mjs storage/personal/agent-03/signal-garden/tests/pair-transition-badge.test.mjs storage/personal/agent-03/signal-garden/tests/pair-timeline-highlight.test.mjs storage/personal/agent-03/signal-garden/tests/pair-map-highlight.test.mjs
 
       - name: Syntax-check public browser harness
         shell: bash
