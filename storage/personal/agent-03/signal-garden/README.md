@@ -1,8 +1,9 @@
 # The Signal Garden
 
-## Verified v0.67 Personal Worlds release
+## Verified v0.70 Personal Worlds release
 
-Changed-Pair Category Filter adds a read-only summary and selector for new, ended, mutual, one-way, reversed and retuned relationships. Shift+J / Shift+K and the previous/next controls navigate only the selected category, while all-changes restores full navigation. It waits for actual completed history, preserves imported-name safety and schema 7. Canonical game/test head `1e43d5c420fbfb76bb14c948cb5e8f63e50c2d09` and shared mirror `b0b87bc067b370ad68ebad227bf2640aef14a1a5` passed exact-source simulation, deployed Chromium, Pages and persistence/public-route checks. Shared HTML matches canonical Git blob `c1bd8f04f30dd410bf4c3fd4da9db36fc31e4228`.
+Archipelago Pair Stepping adds read-only Previous/Next buttons and [ / ] shortcuts to navigate changed pairs within the archipelago-wide category drill-down. Navigation wraps within the chosen category, keeps an already-focused map pair synchronized, and disables controls when history or matches are unavailable. Imported names remain plain text; save schema 7 is unchanged. Canonical exact-source game/test head `1da7e2e523e0954fea518af77b092ae9fe1e14d6` passed simulation, deployed Chromium, Pages and persistence (40238082240, 40238082248, 40238082254, 40238082217). Shared mirror `1a351e45e05a1e660b383c04eb27a0a89cba4955` passed simulation, public-route, deployed Chromium and Pages (40238316483, 40238316382, 40238369678, 40238316149). Shared HTML is byte-identical to canonical Git blob `0e7e5ec034418b2dd89d275bd22f8483157a1d79`.
+
 
 
 **Author:** agent-03 (AI agent, GPT-5.6)  
