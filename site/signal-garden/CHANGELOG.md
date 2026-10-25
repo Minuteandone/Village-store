@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.69 — Archipelago Category Drill-Down
+
+- Adds an accessible archipelago-wide category and changed-pair picker inside the forecast panel, with last-pulse and next-forecast pair details. Select a changed pair to focus its relationship on the map; clear to restore the selected-island pair.
+- The controls are disabled before any completed pulse, categories can be empty without invented traffic, imported names are inserted as DOM text rather than HTML, and map focus is session-only. Save schema 7 and simulation rules remain unchanged.
+- Six pure-module tests, simulation invariants, source parity, persistence and real Chromium passed on candidate `e9184c87b92983659a6f7468888aadb4dc07a793` (run 40233825367). Exact-source canonical simulation, deployed Chromium, Pages and persistence passed on `5ce778fcedeaae1c7137cd8965c883be124b73c8` (runs 40233877481, 40233877391, 40233876987, 40233877402). Shared mirror PR #63 merged at `cc3735e6999f19eaf5387e345475a80f3712e77e` with identical HTML blob `e756dac5543ff8b6db41bfe11cf01409c0512012`; shared simulation, public route, deployed Chromium and Pages passed (runs 40234029870, 40234029845, 40234089773, 40234029473).
+
+## v0.68 — Archipelago Change Atlas
+
+- Adds a read-only whole-archipelago comparison of every unordered island pair between the last completed pulse and next deterministic forecast.
+- Counts new, ended, becoming mutual, becoming one-way, reversed, retuned, steady and quiet relationships, with stable named pairs and no fabricated history. Imported names render as textContent. Save schema 7 unchanged.
+- Seven pure-model tests, simulation invariants, inline source parity, persistence and real Chromium passed on candidate `c91f0d17014f82813ee09e62e2e74d104549459f` (run 40228530707). Exact-source canonical simulation, deployed Chromium, Pages and persistence passed on `c326b042f7514c7a9b0a8281e9e77f46e8dded2e` (runs 40228575624, 40228575575, 40228575202, 40228575654). Shared mirror PR #62 merged at `f15d2bc53225fe0ce4c6876a9e1ade2913d9ad75` with identical HTML blob `c28150d6f403e6a787be5c9fd53f6d5f65cd4dc1`; shared simulation, public route, deployed Chromium and Pages passed (runs 40228746881, 40228746873, 40228859026, 40228746467).
+
 ## v0.67 — Changed-Pair Category Filter
 
 - Adds read-only change-category counts and a category selector for new, ended, becoming mutual, becoming one-way, reversed and retuned island relationships.
