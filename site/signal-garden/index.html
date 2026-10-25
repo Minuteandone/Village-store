@@ -107,7 +107,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip hud-secondary" id="motionChip">Motion · standard</span>
         <span class="chip hud-secondary" id="contrastChip">Contrast · custom</span>
-        <span class="chip hud-secondary" id="versionChip">v0.69 · save 7</span>
+        <span class="chip hud-secondary" id="versionChip">v0.70 · save 7</span>
       </div>
     </section>
 
@@ -150,6 +150,8 @@
           <label for="archipelagoDrillPair" class="small" style="display:block;margin-top:8px">Changed island pair</label>
           <select id="archipelagoDrillPair" disabled aria-describedby="archipelagoDrillStatus" style="display:block;width:100%;min-height:36px;margin-top:6px;padding:6px;background:#13271c;color:var(--text);border:1px solid #365743;border-radius:10px;font:inherit"></select>
           <div class="actions" style="margin-top:8px">
+            <button id="archipelagoDrillPrevBtn" disabled aria-keyshortcuts="[" aria-describedby="archipelagoDrillStatus">◀ Previous changed pair</button>
+            <button id="archipelagoDrillNextBtn" disabled aria-keyshortcuts="]" aria-describedby="archipelagoDrillStatus">Next changed pair ▶</button>
             <button id="archipelagoDrillFocusBtn" disabled aria-describedby="archipelagoDrillStatus">🔎 Focus pair on map</button>
             <button id="archipelagoDrillClearBtn" disabled aria-describedby="archipelagoDrillStatus">Clear atlas focus</button>
           </div>
@@ -342,7 +344,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.69",SAVE_SCHEMA=7;
+  var APP_VERSION="0.70",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -385,7 +387,7 @@
   }
   var state=fresh(),bootNotice="";
   var inspectedPartnerId=null,pairOptionsKey="",activePairIds=[],changedPairIds=[],pairMapFocus=null,pairTransition=null,pairTimelineView="next",pairChangeCategory="all"; // UI-only; never serialized.
-  var atlasDrillCategory="all",atlasDrillPairKey="",atlasDrillOptionsKey="",atlasMapPairKey=""; // UI-only; never serialized.
+  var atlasDrillCategory="all",atlasDrillPairKey="",atlasDrillOptionsKey="",atlasMapPairKey="",atlasDrillEntries=[]; // UI-only; never serialized.
   if(bootParseError)bootNotice="Could not read the local garden save, so a fresh seed state was used.";
   else if(bootSaved){
     if(validSavedState(bootSaved)){
@@ -2022,6 +2024,28 @@ function archipelagoCategoryDrilldown(atlas, category = 'all') {
   return {available, filter, total: entries.length, entries};
 }
 
+/**
+ * Signal Garden v0.70: read-only stepping through filtered archipelago pairs.
+ * Uses the already-validated atlas drill-down entries; never mutates them.
+ * Missing/empty history returns null rather than fabricating relationships.
+ */
+function stepArchipelagoPair(entries, currentKey, direction) {
+  if (!Array.isArray(entries) || !Number.isFinite(direction) || direction === 0) return null;
+  const keys = [];
+  const seen = new Set();
+  for (const row of entries) {
+    if (!row || !Number.isInteger(row.firstId) || !Number.isInteger(row.secondId) ||
+        row.firstId >= row.secondId || typeof row.key !== 'string' ||
+        row.key !== row.firstId + ':' + row.secondId || seen.has(row.key)) continue;
+    seen.add(row.key);
+    keys.push(row.key);
+  }
+  if (!keys.length) return null;
+  const at = keys.indexOf(currentKey);
+  if (at < 0) return direction > 0 ? keys[0] : keys[keys.length - 1];
+  return keys[(at + (direction > 0 ? 1 : -1) + keys.length) % keys.length];
+}
+
   function renderUI(){
     document.getElementById("seasonChip").textContent="Cycle "+state.cycle+" · "+state.mode;
     document.getElementById("focusChip").textContent="Focus "+state.focus+"/8";
@@ -2068,6 +2092,7 @@ function archipelagoCategoryDrilldown(atlas, category = 'all') {
     var atlasOverview=archipelagoChangeAtlas(radarRows,lastCycleReport&&lastCycleReport.transfers,forecast.cycle);
     document.getElementById("archipelagoChangeAtlas").textContent=atlasOverview.text;
     var atlasDrill=archipelagoCategoryDrilldown(atlasOverview,atlasDrillCategory);
+    atlasDrillEntries=atlasDrill.entries;
     var atlasCategorySelect=document.getElementById("archipelagoDrillCategory");
     atlasCategorySelect.disabled=!atlasDrill.available;
     atlasCategorySelect.value=atlasDrill.filter;
@@ -2091,6 +2116,8 @@ function archipelagoCategoryDrilldown(atlas, category = 'all') {
       atlasDrillPairKey=atlasDrill.entries.length?atlasDrill.entries[0].key:"";
     atlasPairSelect.disabled=!atlasDrill.entries.length;
     atlasPairSelect.value=atlasDrillPairKey;
+    document.getElementById("archipelagoDrillPrevBtn").disabled=!atlasDrill.entries.length;
+    document.getElementById("archipelagoDrillNextBtn").disabled=!atlasDrill.entries.length;
     var atlasChosen=atlasDrill.entries.find(function(e){return e.key===atlasDrillPairKey});
     var atlasMapEntry=atlasOverview.entries.find(function(e){return e.firstId+":"+e.secondId===atlasMapPairKey});
     if(!atlasMapEntry)atlasMapPairKey="";
@@ -2101,7 +2128,9 @@ function archipelagoCategoryDrilldown(atlas, category = 'all') {
       :!atlasChosen
         ?"No "+atlasDrill.filter+" changed pairs in this category. Try All changes."
         :(atlasMapPairKey===atlasChosen.key?"Focused on map. ":"Select Focus pair on map to highlight this relationship. ")+
-          pairReciprocityInspector(radarRows,lastCycleReport.transfers,atlasChosen.firstId,atlasChosen.secondId,forecast.cycle);
+          pairReciprocityInspector(radarRows,lastCycleReport.transfers,atlasChosen.firstId,atlasChosen.secondId,forecast.cycle)+
+          " Pair "+(atlasDrill.entries.findIndex(function(e){return e.key===atlasDrillPairKey})+1)+
+          " of "+atlasDrill.entries.length+". [ previous · ] next; wraps within this category.";
     document.getElementById("selectedArrivalBrief").textContent=selectedArrivalBrief(radarRows,state.selected,forecast.cycle);
     document.getElementById("selectedDispatchBrief").textContent=selectedDispatchBrief(radarRows,state.selected,forecast.cycle);
     document.getElementById("selectedFlowCompass").textContent=selectedFlowCompass(radarRows,state.selected,forecast.cycle);
@@ -2495,6 +2524,17 @@ function archipelagoCategoryDrilldown(atlas, category = 'all') {
     renderUI(); // changed-pair navigation is UI-only: no save or focus cost.
     return true;
   }
+  function jumpArchipelagoPair(direction){
+    var next=stepArchipelagoPair(atlasDrillEntries,atlasDrillPairKey,direction);
+    if(next===null)return false;
+    var wasFocused=!!atlasMapPairKey;
+    atlasDrillPairKey=next;
+    if(wasFocused)atlasMapPairKey=next; // keep visible map focus synchronized while stepping.
+    renderUI(); // UI-only; no save or focus cost.
+    return true;
+  }
+  document.getElementById("archipelagoDrillPrevBtn").addEventListener("click",function(){jumpArchipelagoPair(-1)});
+  document.getElementById("archipelagoDrillNextBtn").addEventListener("click",function(){jumpArchipelagoPair(1)});
   document.getElementById("archipelagoDrillCategory").addEventListener("change",function(e){
     atlasDrillCategory=e.target.value;atlasDrillPairKey="";atlasMapPairKey="";renderUI(); // session-only.
   });
@@ -2560,6 +2600,10 @@ function archipelagoCategoryDrilldown(atlas, category = 'all') {
     var tag=(e.target&&e.target.tagName)||"";
     if(tag==="BUTTON"||tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT"||(e.target&&e.target.isContentEditable))return;
     var key=e.key.toLowerCase(),m={n:"nurture",o:"observe",c:"connect",d:"distort"};
+    if(!e.altKey&&!e.ctrlKey&&!e.metaKey&&!e.shiftKey&&(e.key==="["||e.key==="]")){
+      if(jumpArchipelagoPair(e.key==="["?-1:1))e.preventDefault();
+      return;
+    }
     if(!e.altKey&&!e.ctrlKey&&!e.metaKey&&(key==="j"||key==="k")){
       var pairJump=e.shiftKey?jumpChangedPair:jumpActivePair;
       if(pairJump(key==="j"?-1:1))e.preventDefault();
