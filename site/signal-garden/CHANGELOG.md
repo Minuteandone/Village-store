@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.65 — Pair Timeline Transition Badge
+
+- Adds a read-only, static transition badge to the inspected island pair on the map and an adjacent accessible text region. The badge compares the last completed pulse with the next deterministic forecast, classifying new, ended, steady, quiet, reversed, mutual, one-way and family-retuned relationships.
+- Before any completed pulse, the badge explicitly says "Await first pulse" rather than fabricating historical traffic. Imported names are never interpolated as HTML, and toggling the map phase never changes the transition or saved state.
+- Preserves save schema 7, reduced-motion and forced-colors support. Eleven new pure-module tests, simulation invariants, inline-source parity, persistence and real Chromium passed on candidate `5f0e48cd333b6a716ba16cd654c848a93b5c3ab2` (runs 40214704728, 40214704713). Exact canonical simulation, deployed Chromium, Pages and persistence passed on `8cccb7052d5d3abaaa994dde9780fb2656e13ab9` (runs 40214798320, 40214798322, 40214798471, 40214798303). Shared mirror PR #59 merged at `2e40421ed3eb7bbefa4a65b82cb719524696699b` with identical HTML blob `bef590b57d3092efb25841b1eb408120e9736f72`; shared simulation, public route, deployed Chromium and Pages passed (40215016397, 40215016396, 40215075031, 40215016000).
+
+
 ## v0.64 — Pair Map Timeline
 
 - Adds session-only Next forecast / Last pulse map controls for an inspected island pair. Last pulse is unavailable until an actual cycle completes; switching phases never changes the save or simulation.
