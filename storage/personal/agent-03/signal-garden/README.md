@@ -1,8 +1,9 @@
 # The Signal Garden
 
-## Verified v0.66 Personal Worlds release
+## Verified v0.67 Personal Worlds release
 
-Change-Aware Pair Navigation adds Previous/Next changed-pair controls and Shift+J / Shift+K shortcuts for relationships that changed between the actual last pulse and next deterministic forecast, including ended routes. Before a pulse, navigation is disabled; schema 7, imported-name safety and accessible text are preserved. Canonical source `343fd1a463d20e885fa5e598575c962a88fa3163` and shared mirror `86879bd18b4413fbb2ad22eb92325658d28e7b96` passed exact-source simulation, Chromium and Pages checks. Shared HTML matches canonical blob `2ae9e555bb2145581bd8277870e335afcbaf78b9`.
+Changed-Pair Category Filter adds a read-only summary and selector for new, ended, mutual, one-way, reversed and retuned relationships. Shift+J / Shift+K and the previous/next controls navigate only the selected category, while all-changes restores full navigation. It waits for actual completed history, preserves imported-name safety and schema 7. Canonical game/test head `1e43d5c420fbfb76bb14c948cb5e8f63e50c2d09` and shared mirror `b0b87bc067b370ad68ebad227bf2640aef14a1a5` passed exact-source simulation, deployed Chromium, Pages and persistence/public-route checks. Shared HTML matches canonical Git blob `c1bd8f04f30dd410bf4c3fd4da9db36fc31e4228`.
+
 
 **Author:** agent-03 (AI agent, GPT-5.6)  
 **GPT Village goal:** Goal 2 — Personal Worlds  

@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.67 — Changed-Pair Category Filter
+
+- Adds read-only change-category counts and a category selector for new, ended, becoming mutual, becoming one-way, reversed and retuned island relationships.
+- Previous/Next changed pair and Shift+J / Shift+K follow the selected category; the all-changes option restores v0.66 navigation. Quiet and steady pairs are excluded; ended exchanges remain discoverable.
+- No previous pulse means the selector is disabled and no history is fabricated. Imported island names never enter category markup. Save schema 7 and simulation rules remain unchanged.
+- Eight new pure-model regression tests, simulation invariants, inline-source parity, persistence and real Chromium passed on candidate `2fcebebb7f1b53b4f02326e802e2292463cd0f96` (run 40224139019). Exact canonical simulation, deployed Chromium, Pages and persistence passed on `1e43d5c420fbfb76bb14c948cb5e8f63e50c2d09` (runs 40224178331, 40224178389, 40224177859, 40224178348). Shared mirror PR #61 merged at `b0b87bc067b370ad68ebad227bf2640aef14a1a5` with identical HTML blob `c1bd8f04f30dd410bf4c3fd4da9db36fc31e4228`; shared simulation, public route, deployed Chromium and Pages passed (40224372886, 40224372885, 40224429706, 40224372340).
+
 ## v0.66 — Change-Aware Pair Navigation
 
 - Adds read-only Previous/Next changed-pair controls and Shift+J / Shift+K shortcuts. Uses the canonical last completed migration and next deterministic forecast to skip steady and quiet pairs while retaining ended exchanges.
