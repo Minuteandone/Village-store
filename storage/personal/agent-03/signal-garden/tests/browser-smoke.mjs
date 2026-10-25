@@ -132,6 +132,10 @@ try{
   assert.equal(await evaluate("document.getElementById('reciprocityMomentum').getAttribute('aria-live')"),null,"momentum must not repeatedly announce");
   assert.match(await evaluate("document.getElementById('archipelagoChangeAtlas').textContent"),/complete a pulse to compare/,"fresh archipelago atlas must not invent history");
   assert.equal(await evaluate("document.getElementById('archipelagoChangeAtlas').getAttribute('aria-live')"),null,"atlas must not repeatedly announce");
+  assert.equal(await evaluate("document.getElementById('archipelagoDrillCategory').disabled"),true,"fresh atlas drill-down requires actual history");
+  assert.equal(await evaluate("document.getElementById('archipelagoDrillPair').disabled"),true,"fresh atlas has no pair to inspect");
+  assert.equal(await evaluate("document.getElementById('archipelagoDrillFocusBtn').disabled"),true,"fresh atlas cannot focus invented traffic");
+  assert.match(await evaluate("document.getElementById('archipelagoDrillStatus').textContent"),/Complete a pulse/,"fresh atlas drill-down explains missing history");
   assert.equal(await evaluate("document.getElementById('pairPartnerSelect').disabled"),true,"pair inspector must wait for an island selection");
   assert.match(await evaluate("document.getElementById('pairReciprocityInspector').textContent"),/Select an island to inspect a pair/);
   assert.equal(await evaluate("document.getElementById('pairReciprocityInspector').getAttribute('aria-live')"),null,"pair inspector should not repeatedly announce forecasts");
@@ -565,6 +569,26 @@ try{
   const atlasAfterCycle=await evaluate("document.getElementById('archipelagoChangeAtlas').textContent");
   assert.match(atlasAfterCycle,/Cycle 3 archipelago change atlas \(last pulse → next forecast\): \d+ changed of 6 island pairs/,"whole archipelago should count unordered pairs after a pulse");
   assert.match(atlasAfterCycle,/new exchanges \d+, ended exchanges \d+/,"atlas must classify relationship changes");
+  assert.equal(await evaluate("document.getElementById('archipelagoDrillCategory').disabled"),false,"completed pulse enables atlas category drill-down");
+  const drillSave=await evaluate("localStorage.getItem('agent03-signal-garden-v1')");
+  const drillFocus=await evaluate("document.getElementById('focusChip').textContent");
+  await evaluate("(()=>{const e=document.getElementById('archipelagoDrillCategory');e.value='ended';e.dispatchEvent(new Event('change',{bubbles:true}))})()");
+  assert.match(await evaluate("document.getElementById('archipelagoDrillStatus').textContent"),/No ended changed pairs|Cycle 3 pair inspector/,"empty and populated categories have truthful detail");
+  await evaluate("(()=>{const e=document.getElementById('archipelagoDrillCategory');e.value='all';e.dispatchEvent(new Event('change',{bubbles:true}))})()");
+  const atlasPairCount=await evaluate("document.getElementById('archipelagoDrillPair').options.length");
+  if(atlasPairCount){
+    assert.equal(await evaluate("document.getElementById('archipelagoDrillFocusBtn').disabled"),false,"changed pairs are inspectable");
+    assert.match(await evaluate("document.getElementById('archipelagoDrillStatus').textContent"),/Cycle 3 pair inspector/,"drill-down exposes last and next traffic");
+    await evaluate("document.getElementById('archipelagoDrillFocusBtn').click()");
+    assert.match(await evaluate("document.getElementById('pairMapFocusStatus').textContent"),/Archipelago atlas focus/,"atlas pair is highlighted on map");
+    assert.equal(await evaluate("document.getElementById('archipelagoDrillClearBtn').disabled"),false,"atlas focus can be cleared");
+    await evaluate("document.getElementById('archipelagoDrillClearBtn').click()");
+    assert.doesNotMatch(await evaluate("document.getElementById('pairMapFocusStatus').textContent"),/Archipelago atlas focus/,"clear restores selected island pair");
+  }else{
+    assert.match(await evaluate("document.getElementById('archipelagoDrillStatus').textContent"),/No all changed pairs/,"zero-change archipelago is explicit");
+  }
+  assert.equal(await evaluate("localStorage.getItem('agent03-signal-garden-v1')"),drillSave,"atlas drill-down must never mutate saved worlds");
+  assert.equal(await evaluate("document.getElementById('focusChip').textContent"),drillFocus,"atlas drill-down must not spend focus");
   const afterCyclePair=await evaluate("document.getElementById('pairReciprocityInspector').textContent");
   assert.match(afterCyclePair,/Cycle 3 pair inspector/,"pair inspector should follow the next cycle");
   assert.doesNotMatch(afterCyclePair,/Last pulse: unavailable/,"pair inspector should show completed-cycle history");
