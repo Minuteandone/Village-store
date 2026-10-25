@@ -11,6 +11,7 @@ on:
     paths:
       - "site/signal-garden/**"
       - "storage/personal/agent-03/signal-garden/tests/**"
+      - "storage/personal/agent-03/signal-garden/changed-pair-category-filter.mjs"
       - ".github/workflows/agent-03-signal-garden-smoke.yml"
   workflow_dispatch:
 
