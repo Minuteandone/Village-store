@@ -25,6 +25,8 @@ assert.ok(html.includes('id="pairQuickStatus" class="small"'),"v0.62 active-pair
 assert.ok(html.includes('id="prevChangedPairBtn" disabled aria-keyshortcuts="Shift+J"'),"v0.66 previous-changed button must be keyboard accessible");
 assert.ok(html.includes('id="nextChangedPairBtn" disabled aria-keyshortcuts="Shift+K"'),"v0.66 next-changed button must be keyboard accessible");
 assert.ok(html.includes('id="pairChangeStatus" class="small" role="region"'),"v0.66 change navigation needs an accessible text equivalent");
+assert.ok(html.includes('id="pairChangeCategory" disabled aria-describedby="pairChangeCategorySummary pairChangeStatus"'),"v0.67 category selector must start disabled and describe its controls");
+assert.ok(html.includes('id="pairChangeCategorySummary" class="small" role="region" aria-label="Changed relationship category counts"'),"v0.67 category counts need a labelled non-live text region");
 assert.ok(html.includes('id="pairMapFocusStatus" class="small" role="region" aria-label="Map pair focus textual equivalent"'),"v0.63 must expose a nonvisual map-pair description");
 assert.ok(html.includes('id="pairTransitionStatus" class="small" role="region" aria-label="Pair timeline transition"'),"v0.65 must expose a nonvisual transition description");
 assert.ok(html.includes('id="pairNextMapBtn" aria-pressed="true"'),"v0.64 should default to next forecast on the map");
@@ -71,7 +73,9 @@ assert.ok(source.includes('document.getElementById("networkReciprocityAtlas").te
 assert.ok(source.includes('document.getElementById("reciprocityMomentum").textContent=reciprocityMomentum('),"v0.60 momentum must render imported names with textContent");
 assert.ok(source.includes('document.getElementById("pairReciprocityInspector").textContent=pairReciprocityInspector('),"v0.61 pair inspector must render imported names with textContent");
 assert.ok(source.includes('activePairIds=activePairPartners(radarRows,state.selected)'),"v0.62 active partners must derive from the existing radar");
-assert.ok(source.includes('changedPairIds=changedPairPartners(radarRows,lastCycleReport&&lastCycleReport.transfers,state.selected)'),"v0.66 changed partners must use canonical radar and completed history");
+assert.ok(source.includes('changedPairIds=changeOverview.partnerIds'),"v0.67 changed partners must use category-filtered canonical radar and completed history");
+assert.ok(source.includes('changedPairCategoryOverview(radarRows,lastCycleReport&&lastCycleReport.transfers,state.selected,pairChangeCategory)'),"v0.67 category filter must use canonical radar and completed history");
+assert.ok(source.includes('document.getElementById("pairChangeCategorySummary").textContent='),"v0.67 category summary must use textContent");
 assert.ok(source.includes('renderUI(); // changed-pair navigation is UI-only: no save or focus cost.'),"v0.66 change navigation must remain session-only");
 assert.ok(source.includes('pairTimelineHighlight(radarRows,lastCycleReport.transfers,state.selected,inspectedPartnerId,"last")'),"v0.64 last map must use completed migrations, not invented forecasts");
 assert.ok(source.includes('document.getElementById("pairMapFocusStatus").textContent=pairMapFocus?'),"v0.64 map descriptions must render imported names as text");
@@ -261,6 +265,10 @@ const canvas = element({
 
 const ids = new Map();
 ids.set("garden", canvas);
+ids.set("pairChangeCategory",element({
+  value:"all",
+  options:["all","new","ended","mutual","one-way","reversed","retuned"].map(value=>({value,textContent:""}))
+}));
 [
   "seasonChip","focusChip","resChip","transitChip","historyChip","bondChip","junctionChip","constellationChip","provenanceChip","researchChip","climateChip","motionChip","contrastChip","germinateBtn","germinateStatus","undoBtn","undoStatus",
   "islandNav","applySelectedBtn","selectedName","selectedLore","lifeStat",

@@ -190,6 +190,17 @@
             <button id="prevChangedPairBtn" disabled aria-keyshortcuts="Shift+J" aria-describedby="pairChangeStatus">← Previous changed pair</button>
             <button id="nextChangedPairBtn" disabled aria-keyshortcuts="Shift+K" aria-describedby="pairChangeStatus">Next changed pair →</button>
           </div>
+          <label for="pairChangeCategory" class="small" style="display:block;margin-top:8px">🔀 Show changed relationships by category</label>
+          <select id="pairChangeCategory" disabled aria-describedby="pairChangeCategorySummary pairChangeStatus" style="display:block;width:100%;min-height:36px;margin-top:6px;padding:6px 8px;background:#13271c;color:var(--text);border:1px solid #365743;border-radius:10px;font:inherit">
+            <option value="all">All changes</option>
+            <option value="new">New exchanges</option>
+            <option value="ended">Ended exchanges</option>
+            <option value="mutual">Becoming mutual</option>
+            <option value="one-way">Becoming one-way</option>
+            <option value="reversed">Reversed direction</option>
+            <option value="retuned">Retuned families</option>
+          </select>
+          <div id="pairChangeCategorySummary" class="small" role="region" aria-label="Changed relationship category counts" style="margin-top:6px;overflow-wrap:anywhere">Complete a pulse to see change categories.</div>
           <div id="pairChangeStatus" class="small" role="region" aria-label="Changed island relationships" style="margin-top:6px">Select an island and complete a pulse to inspect changes. Shift+J previous · Shift+K next.</div>
           <div id="pairReciprocityInspector" class="small" role="region" aria-label="Selected island pair reciprocity inspector" style="margin-top:8px;overflow-wrap:anywhere">Select an island to inspect a pair.</div>
           <div class="actions" role="group" aria-label="Pair map timeline" style="margin-top:8px">
@@ -315,7 +326,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.66",SAVE_SCHEMA=7;
+  var APP_VERSION="0.67",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -357,7 +368,7 @@
     });
   }
   var state=fresh(),bootNotice="";
-  var inspectedPartnerId=null,pairOptionsKey="",activePairIds=[],changedPairIds=[],pairMapFocus=null,pairTransition=null,pairTimelineView="next"; // UI-only; never serialized.
+  var inspectedPartnerId=null,pairOptionsKey="",activePairIds=[],changedPairIds=[],pairMapFocus=null,pairTransition=null,pairTimelineView="next",pairChangeCategory="all"; // UI-only; never serialized.
   if(bootParseError)bootNotice="Could not read the local garden save, so a fresh seed state was used.";
   else if(bootSaved){
     if(validSavedState(bootSaved)){
@@ -1900,6 +1911,38 @@ function changedPairPartners(rows, previousTransfers, selectedId) {
   });
 }
 
+/**
+ * Signal Garden v0.67: read-only category counts and filtered changed partners.
+ * Uses the canonical forecast/history pair models. No history means unavailable.
+ * No imported names or saved-world fields enter the result; schema 7 unchanged.
+ */
+function changedPairCategoryOverview(rows, previousTransfers, selectedId, category = 'all') {
+  const kinds = ['new', 'ended', 'mutual', 'one-way', 'reversed', 'retuned'];
+  const counts = Object.fromEntries(kinds.map(kind => [kind, 0]));
+  const filter = kinds.includes(category) ? category : 'all';
+  const available = Array.isArray(rows) && Array.isArray(previousTransfers) &&
+    Number.isInteger(selectedId) && rows.some(row => row && row.id === selectedId);
+  const entries = [];
+  if (available) {
+    const ids = [...new Set(rows.filter(row => row && Number.isInteger(row.id))
+      .map(row => row.id))].sort((a, b) => a - b);
+    for (const partnerId of ids) {
+      if (partnerId === selectedId) continue;
+      const next = pairMapHighlight(rows, selectedId, partnerId);
+      const last = pairTimelineHighlight(rows, previousTransfers, selectedId, partnerId, 'last');
+      const badge = pairTransitionBadge(next, last);
+      if (!badge || !kinds.includes(badge.kind)) continue;
+      counts[badge.kind]++;
+      entries.push({partnerId, kind: badge.kind});
+    }
+  }
+  return {
+    available, filter, total: entries.length, counts,
+    partnerIds: entries.filter(entry => filter === 'all' || entry.kind === filter)
+      .map(entry => entry.partnerId)
+  };
+}
+
   function renderUI(){
     document.getElementById("seasonChip").textContent="Cycle "+state.cycle+" · "+state.mode;
     document.getElementById("focusChip").textContent="Focus "+state.focus+"/8";
@@ -1965,16 +2008,32 @@ function changedPairPartners(rows, previousTransfers, selectedId) {
       :activePairIds.length
         ?activePairIds.length+" active forecast "+(activePairIds.length===1?"partner":"partners")+". J previous · K next; wraps through active pairs only."
         :"No active forecast partners; use the selector to inspect quiet pairs.";
-    changedPairIds=changedPairPartners(radarRows,lastCycleReport&&lastCycleReport.transfers,state.selected);
+    var changeOverview=changedPairCategoryOverview(radarRows,lastCycleReport&&lastCycleReport.transfers,state.selected,pairChangeCategory);
+    var categorySelect=document.getElementById("pairChangeCategory");
+    categorySelect.disabled=!changeOverview.available;
+    categorySelect.value=changeOverview.filter;
+    Array.from(categorySelect.options).forEach(function(option){
+      var count=option.value==="all"?changeOverview.total:changeOverview.counts[option.value];
+      option.textContent=option.value==="all"?"All changes ("+count+")":
+        ({new:"New exchanges",ended:"Ended exchanges",mutual:"Becoming mutual","one-way":"Becoming one-way",reversed:"Reversed direction",retuned:"Retuned families"}[option.value]||option.value)+" ("+count+")";
+    });
+    document.getElementById("pairChangeCategorySummary").textContent=!changeOverview.available
+      ?"Select an island and complete a pulse to see change categories."
+      :"Change categories: "+["new","ended","mutual","one-way","reversed","retuned"].map(function(kind){
+        return kind+" "+changeOverview.counts[kind];
+      }).join(" · ")+".";
+    changedPairIds=changeOverview.partnerIds;
     document.getElementById("prevChangedPairBtn").disabled=!changedPairIds.length;
     document.getElementById("nextChangedPairBtn").disabled=!changedPairIds.length;
     document.getElementById("pairChangeStatus").textContent=!Number.isInteger(state.selected)
       ?"Select an island and complete a pulse to inspect changes. Shift+J previous · Shift+K next."
       :!(lastCycleReport&&Array.isArray(lastCycleReport.transfers))
         ?"Complete a pulse to compare changed relationships. Shift+J previous · Shift+K next."
-        :changedPairIds.length
-          ?changedPairIds.length+" changed "+(changedPairIds.length===1?"relationship":"relationships")+". Shift+J previous · Shift+K next; includes ended exchanges."
-          :"No changed relationships for this island; manual pair inspection remains available.";
+        :changeOverview.total===0
+          ?"No changed relationships for this island; manual pair inspection remains available."
+          :pairChangeCategory!=="all"
+            ?"Showing "+changedPairIds.length+" "+pairChangeCategory+" of "+changeOverview.total+" changed relationships. Shift+J previous · Shift+K next; manual pair inspection remains available."
+            :changedPairIds.length+" changed "+(changedPairIds.length===1?"relationship":"relationships")+". Shift+J previous · Shift+K next; includes ended exchanges.";
     document.getElementById("pairReciprocityInspector").textContent=pairReciprocityInspector(radarRows,lastCycleReport&&lastCycleReport.transfers,state.selected,inspectedPartnerId,forecast.cycle);
     var lastMapAvailable=!!(lastCycleReport&&Array.isArray(lastCycleReport.transfers));
     if(!lastMapAvailable&&pairTimelineView==="last")pairTimelineView="next";
@@ -2317,6 +2376,9 @@ function changedPairPartners(rows, previousTransfers, selectedId) {
    });
    document.getElementById("prevActivePairBtn").addEventListener("click",function(){jumpActivePair(-1)});
   document.getElementById("nextActivePairBtn").addEventListener("click",function(){jumpActivePair(1)});
+  document.getElementById("pairChangeCategory").addEventListener("change",function(e){
+    pairChangeCategory=e.target.value;renderUI(); // session-only; does not save.
+  });
   document.getElementById("prevChangedPairBtn").addEventListener("click",function(){jumpChangedPair(-1)});
   document.getElementById("nextChangedPairBtn").addEventListener("click",function(){jumpChangedPair(1)});
   document.getElementById("pairPartnerSelect").addEventListener("change",function(){

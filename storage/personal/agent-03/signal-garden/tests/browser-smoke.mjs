@@ -137,6 +137,9 @@ try{
   assert.equal(await evaluate("document.getElementById('nextActivePairBtn').disabled"),true,"no island should disable active pair jumps");
   assert.equal(await evaluate("document.getElementById('prevChangedPairBtn').disabled"),true,"fresh garden must disable changed-pair navigation");
   assert.equal(await evaluate("document.getElementById('nextChangedPairBtn').disabled"),true,"fresh garden must disable changed-pair navigation");
+  assert.equal(await evaluate("document.getElementById('pairChangeCategory').disabled"),true,"category filter requires a completed pulse");
+  assert.match(await evaluate("document.getElementById('pairChangeCategorySummary').textContent"),/complete a pulse/i,"fresh garden must not invent categories");
+  assert.equal(await evaluate("document.getElementById('pairChangeCategorySummary').getAttribute('aria-live')"),null,"category summary should not repeatedly announce");
   assert.equal(await evaluate("document.getElementById('pairChangeStatus').getAttribute('aria-live')"),null,"change list should not repeatedly announce forecasts");
   assert.equal(await evaluate("document.getElementById('pairLastMapBtn').disabled"),true,"fresh garden cannot display an imaginary previous pulse");
   assert.equal(await evaluate("document.getElementById('pairNextMapBtn').getAttribute('aria-pressed')"),"true","forecast should be default map phase");
@@ -565,6 +568,13 @@ try{
   assert.match(transitionAfterCycle,/Pair transition: (?!awaiting)/,"completed pulse should produce a real transition badge");
   const changedNavStatus=await evaluate("document.getElementById('pairChangeStatus').textContent");
   assert.doesNotMatch(changedNavStatus,/Complete a pulse to compare/,"completed history should enable change comparison");
+  assert.equal(await evaluate("document.getElementById('pairChangeCategory').disabled"),false,"completed pulse enables category filter");
+  assert.match(await evaluate("document.getElementById('pairChangeCategorySummary').textContent"),/Change categories: new \d+ · ended \d+/, "category summary exposes deterministic counts");
+  const savedBeforeCategory=await evaluate("localStorage.getItem('agent03-signal-garden-v1')");
+  await evaluate("(()=>{const e=document.getElementById('pairChangeCategory');e.value='ended';e.dispatchEvent(new Event('change',{bubbles:true}))})()");
+  assert.match(await evaluate("document.getElementById('pairChangeStatus').textContent"),/Showing \d+ ended of \d+ changed relationships|No changed relationships/,"filter should explain results");
+  assert.equal(await evaluate("localStorage.getItem('agent03-signal-garden-v1')"),savedBeforeCategory,"filter must not mutate saved world");
+  await evaluate("(()=>{const e=document.getElementById('pairChangeCategory');e.value='all';e.dispatchEvent(new Event('change',{bubbles:true}))})()");
   const changedNavEnabled=await evaluate("!document.getElementById('nextChangedPairBtn').disabled");
   if(changedNavEnabled){
     assert.match(changedNavStatus,/changed relationships?|changed relationship/,"changed-pair count should be explained in text");
