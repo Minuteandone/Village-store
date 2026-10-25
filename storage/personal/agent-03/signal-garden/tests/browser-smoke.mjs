@@ -139,6 +139,8 @@ try{
   assert.equal(await evaluate("document.getElementById('pairNextMapBtn').getAttribute('aria-pressed')"),"true","forecast should be default map phase");
   assert.match(await evaluate("document.getElementById('pairMapFocusStatus').textContent"),/Select an island and partner to highlight/);
   assert.equal(await evaluate("document.getElementById('pairMapFocusStatus').getAttribute('aria-live')"),null,"map pair text should not repeatedly announce canvas updates");
+  assert.match(await evaluate("document.getElementById('pairTransitionStatus').textContent"),/Select an island and partner to compare/,"unselected pair should have a transition hint");
+  assert.equal(await evaluate("document.getElementById('pairTransitionStatus').getAttribute('aria-live')"),null,"read-only transition must not repeatedly announce");
 
 
   const reducedPreference=await evaluate("matchMedia('(prefers-reduced-motion: reduce)').matches");
@@ -376,6 +378,7 @@ try{
   assert.match(await evaluate("document.getElementById('pairQuickStatus').textContent"),/No active forecast partners/);
   const quietPair=await evaluate("document.getElementById('pairReciprocityInspector').textContent");
   assert.match(quietPair,/Cycle 2 pair inspector for .*:?.*Last pulse: unavailable until a cycle completes.*Next forecast: quiet/,"fresh pair should not invent history");
+  assert.match(await evaluate("document.getElementById('pairTransitionStatus').textContent"),/Pair transition: awaiting the first completed pulse/,"fresh selected pair must not invent history");
   await evaluate("(()=>{const e=document.getElementById('pairPartnerSelect');e.value='2';e.dispatchEvent(new Event('change',{bubbles:true}))})()");
   assert.equal(await evaluate("document.getElementById('pairPartnerSelect').value"),"2","pair picker should preserve the chosen partner across rerender");
   assert.match(await evaluate("document.getElementById('pairReciprocityInspector').textContent"),/pair inspector for .* ↔ .*Next forecast: quiet/,"pair picker should update its read-only forecast");
@@ -513,6 +516,7 @@ try{
 
   const activeMapFocus=await evaluate("document.getElementById('pairMapFocusStatus').textContent");
   assert.match(activeMapFocus,/Map pair focus: .* ↔ .*. Mutual forecast: send (life|memory|strange); receive (life|memory|strange)/,"linked pair should show bidirectional map legend");
+  assert.match(await evaluate("document.getElementById('pairTransitionStatus').textContent"),/Pair transition: awaiting the first completed pulse/,"new pair badge must wait for history");
   const pairMapFocusBefore=await evaluate("localStorage.getItem('agent03-signal-garden-v1')");
   await evaluate("document.getElementById('worldSection').scrollIntoView()");
   await sleep(550);
@@ -552,6 +556,9 @@ try{
   assert.match(afterCyclePair,/Cycle 3 pair inspector/,"pair inspector should follow the next cycle");
   assert.doesNotMatch(afterCyclePair,/Last pulse: unavailable/,"pair inspector should show completed-cycle history");
   assert.equal(await evaluate("document.getElementById('pairLastMapBtn').disabled"),false,"completed pulse should enable historical map view");
+  const transitionAfterCycle=await evaluate("document.getElementById('pairTransitionStatus').textContent");
+  assert.match(transitionAfterCycle,/Pair transition: (?!awaiting)/,"completed pulse should produce a real transition badge");
+  assert.match(transitionAfterCycle,/Last pulse: .* Next forecast:/,"transition must describe both time phases");
   const timelineSaveBefore=await evaluate("localStorage.getItem('agent03-signal-garden-v1')");
   await evaluate("document.getElementById('worldSection').scrollIntoView()");
   await sleep(550);
@@ -566,6 +573,7 @@ try{
   assert.equal(await evaluate("document.getElementById('pairNextMapBtn').getAttribute('aria-pressed')"),"true","returning to forecast should restore pressed state");
   assert.match(await evaluate("document.getElementById('pairMapFocusStatus').textContent"),/forecast/,"forecast map legend should return");
   assert.equal(await evaluate("localStorage.getItem('agent03-signal-garden-v1')"),timelineSaveBefore,"map phase toggles must not modify saved worlds");
+  assert.equal(await evaluate("document.getElementById('pairTransitionStatus').textContent"),transitionAfterCycle,"map phase toggle must not change transition classification");
   assert.match(postCycleForecast,/Forecast stops before autonomous drift/);
 
 
