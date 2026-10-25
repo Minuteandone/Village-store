@@ -107,7 +107,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip hud-secondary" id="motionChip">Motion · standard</span>
         <span class="chip hud-secondary" id="contrastChip">Contrast · custom</span>
-        <span class="chip hud-secondary" id="versionChip">v0.68 · save 7</span>
+        <span class="chip hud-secondary" id="versionChip">v0.69 · save 7</span>
       </div>
     </section>
 
@@ -140,6 +140,21 @@
         <div id="networkReciprocityAtlas" class="small" role="region" aria-label="Network-wide next-cycle reciprocity" style="margin-top:8px;overflow-wrap:anywhere">Network reciprocity will appear with the next-cycle forecast.</div>
         <div id="reciprocityMomentum" class="small" role="region" aria-label="Reciprocity momentum since last cycle" style="margin-top:8px;overflow-wrap:anywhere">Advance one cycle to compare reciprocity.</div>
         <div id="archipelagoChangeAtlas" class="small" role="region" aria-label="Archipelago-wide relationship changes" style="margin-top:8px;overflow-wrap:anywhere">Complete a pulse to compare relationships across all islands.</div>
+        <div style="margin-top:10px;border-top:1px dashed var(--line);padding-top:10px">
+          <label for="archipelagoDrillCategory" class="small">🌐 Drill down into archipelago changes</label>
+          <select id="archipelagoDrillCategory" disabled aria-describedby="archipelagoDrillStatus" style="display:block;width:100%;min-height:36px;margin-top:6px;padding:6px;background:#13271c;color:var(--text);border:1px solid #365743;border-radius:10px;font:inherit">
+            <option value="all">All changes</option><option value="new">New exchanges</option><option value="ended">Ended exchanges</option>
+            <option value="mutual">Becoming mutual</option><option value="one-way">Becoming one-way</option>
+            <option value="reversed">Reversed direction</option><option value="retuned">Retuned families</option>
+          </select>
+          <label for="archipelagoDrillPair" class="small" style="display:block;margin-top:8px">Changed island pair</label>
+          <select id="archipelagoDrillPair" disabled aria-describedby="archipelagoDrillStatus" style="display:block;width:100%;min-height:36px;margin-top:6px;padding:6px;background:#13271c;color:var(--text);border:1px solid #365743;border-radius:10px;font:inherit"></select>
+          <div class="actions" style="margin-top:8px">
+            <button id="archipelagoDrillFocusBtn" disabled aria-describedby="archipelagoDrillStatus">🔎 Focus pair on map</button>
+            <button id="archipelagoDrillClearBtn" disabled aria-describedby="archipelagoDrillStatus">Clear atlas focus</button>
+          </div>
+          <div id="archipelagoDrillStatus" class="small" role="region" aria-label="Archipelago pair drill-down details" style="margin-top:8px;overflow-wrap:anywhere">Complete a pulse to inspect changed pairs.</div>
+        </div>
       </details>
       <button id="germinateBtn" disabled aria-describedby="germinateStatus">🌿 Germinate island · 6 resonance + 2 focus</button>
       <div class="small" id="germinateStatus">Unavailable: needs 6 resonance and 2 focus.</div>
@@ -327,7 +342,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.68",SAVE_SCHEMA=7;
+  var APP_VERSION="0.69",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -370,6 +385,7 @@
   }
   var state=fresh(),bootNotice="";
   var inspectedPartnerId=null,pairOptionsKey="",activePairIds=[],changedPairIds=[],pairMapFocus=null,pairTransition=null,pairTimelineView="next",pairChangeCategory="all"; // UI-only; never serialized.
+  var atlasDrillCategory="all",atlasDrillPairKey="",atlasDrillOptionsKey="",atlasMapPairKey=""; // UI-only; never serialized.
   if(bootParseError)bootNotice="Could not read the local garden save, so a fresh seed state was used.";
   else if(bootSaved){
     if(validSavedState(bootSaved)){
@@ -1987,6 +2003,25 @@ function archipelagoChangeAtlas(rows, previousTransfers, cycle) {
   return {available:true,pairCount,total:entries.length,counts,steady,quiet,entries,text};
 }
 
+/**
+ * Signal Garden v0.69: session-only archipelago category drill-down.
+ * Consumes the already verified unordered-pair atlas; never changes the world.
+ */
+function archipelagoCategoryDrilldown(atlas, category = 'all') {
+  const kinds = ['new', 'ended', 'mutual', 'one-way', 'reversed', 'retuned'];
+  const filter = kinds.includes(category) ? category : 'all';
+  const available = !!atlas && atlas.available === true && Array.isArray(atlas.entries);
+  const entries = available ? atlas.entries
+    .filter(row => row && Number.isInteger(row.firstId) && Number.isInteger(row.secondId) &&
+      row.firstId !== row.secondId && kinds.includes(row.kind) &&
+      (filter === 'all' || row.kind === filter))
+    .map(row => ({
+      key: row.firstId + ':' + row.secondId, firstId: row.firstId, secondId: row.secondId,
+      kind: row.kind, firstName: String(row.firstName), secondName: String(row.secondName)
+    })) : [];
+  return {available, filter, total: entries.length, entries};
+}
+
   function renderUI(){
     document.getElementById("seasonChip").textContent="Cycle "+state.cycle+" · "+state.mode;
     document.getElementById("focusChip").textContent="Focus "+state.focus+"/8";
@@ -2030,7 +2065,43 @@ function archipelagoChangeAtlas(rows, previousTransfers, cycle) {
     forecastEl.innerHTML += renderIncomingRadar(radarRows);
     document.getElementById("networkReciprocityAtlas").textContent=networkReciprocityAtlas(radarRows,forecast.cycle);
     document.getElementById("reciprocityMomentum").textContent=reciprocityMomentum(radarRows,lastCycleReport&&lastCycleReport.transfers,forecast.cycle);
-    document.getElementById("archipelagoChangeAtlas").textContent=archipelagoChangeAtlas(radarRows,lastCycleReport&&lastCycleReport.transfers,forecast.cycle).text;
+    var atlasOverview=archipelagoChangeAtlas(radarRows,lastCycleReport&&lastCycleReport.transfers,forecast.cycle);
+    document.getElementById("archipelagoChangeAtlas").textContent=atlasOverview.text;
+    var atlasDrill=archipelagoCategoryDrilldown(atlasOverview,atlasDrillCategory);
+    var atlasCategorySelect=document.getElementById("archipelagoDrillCategory");
+    atlasCategorySelect.disabled=!atlasDrill.available;
+    atlasCategorySelect.value=atlasDrill.filter;
+    Array.from(atlasCategorySelect.options).forEach(function(option){
+      var n=option.value==="all"?atlasOverview.total:atlasOverview.counts[option.value];
+      option.textContent=({all:"All changes",new:"New exchanges",ended:"Ended exchanges",mutual:"Becoming mutual",
+        "one-way":"Becoming one-way",reversed:"Reversed direction",retuned:"Retuned families"}[option.value]||option.value)+" ("+(n||0)+")";
+    });
+    var atlasPairSelect=document.getElementById("archipelagoDrillPair");
+    var atlasOptionsKey=JSON.stringify(atlasDrill.entries.map(function(e){return [e.key,e.firstName,e.secondName,e.kind]}));
+    if(atlasOptionsKey!==atlasDrillOptionsKey){
+      atlasPairSelect.replaceChildren();
+      atlasDrill.entries.forEach(function(entry){
+        var option=document.createElement("option");option.value=entry.key;
+        option.textContent=entry.firstName+" ↔ "+entry.secondName+" · "+entry.kind;
+        atlasPairSelect.appendChild(option); // imported names never enter HTML markup.
+      });
+      atlasDrillOptionsKey=atlasOptionsKey;
+    }
+    if(!atlasDrill.entries.some(function(e){return e.key===atlasDrillPairKey}))
+      atlasDrillPairKey=atlasDrill.entries.length?atlasDrill.entries[0].key:"";
+    atlasPairSelect.disabled=!atlasDrill.entries.length;
+    atlasPairSelect.value=atlasDrillPairKey;
+    var atlasChosen=atlasDrill.entries.find(function(e){return e.key===atlasDrillPairKey});
+    var atlasMapEntry=atlasOverview.entries.find(function(e){return e.firstId+":"+e.secondId===atlasMapPairKey});
+    if(!atlasMapEntry)atlasMapPairKey="";
+    document.getElementById("archipelagoDrillFocusBtn").disabled=!atlasChosen;
+    document.getElementById("archipelagoDrillClearBtn").disabled=!atlasMapPairKey;
+    document.getElementById("archipelagoDrillStatus").textContent=!atlasDrill.available
+      ?"Complete a pulse to inspect changed pairs. No history has been invented."
+      :!atlasChosen
+        ?"No "+atlasDrill.filter+" changed pairs in this category. Try All changes."
+        :(atlasMapPairKey===atlasChosen.key?"Focused on map. ":"Select Focus pair on map to highlight this relationship. ")+
+          pairReciprocityInspector(radarRows,lastCycleReport.transfers,atlasChosen.firstId,atlasChosen.secondId,forecast.cycle);
     document.getElementById("selectedArrivalBrief").textContent=selectedArrivalBrief(radarRows,state.selected,forecast.cycle);
     document.getElementById("selectedDispatchBrief").textContent=selectedDispatchBrief(radarRows,state.selected,forecast.cycle);
     document.getElementById("selectedFlowCompass").textContent=selectedFlowCompass(radarRows,state.selected,forecast.cycle);
@@ -2089,9 +2160,18 @@ function archipelagoChangeAtlas(rows, previousTransfers, cycle) {
     var nextPairFocus=pairMapFocus;
     var lastPairFocus=lastMapAvailable?pairTimelineHighlight(radarRows,lastCycleReport.transfers,state.selected,inspectedPartnerId,"last"):null;
     pairTransition=pairTransitionBadge(nextPairFocus,lastPairFocus);
-    document.getElementById("pairTransitionStatus").textContent=pairTransition?pairTransition.description:"Select an island and partner to compare their pulses.";
-    if(pairTimelineView==="last")pairMapFocus=pairTimelineHighlight(radarRows,lastCycleReport.transfers,state.selected,inspectedPartnerId,"last");
-    document.getElementById("pairMapFocusStatus").textContent=pairMapFocus?pairMapFocus.description:"Select an island and partner to highlight a pair on the map.";
+    if(atlasMapEntry){
+      nextPairFocus=pairMapHighlight(radarRows,atlasMapEntry.firstId,atlasMapEntry.secondId);
+      lastPairFocus=lastMapAvailable?pairTimelineHighlight(radarRows,lastCycleReport.transfers,atlasMapEntry.firstId,atlasMapEntry.secondId,"last"):null;
+      pairTransition=pairTransitionBadge(nextPairFocus,lastPairFocus);
+      pairMapFocus=pairTimelineView==="last"?lastPairFocus:nextPairFocus;
+    }else if(pairTimelineView==="last"){
+      pairMapFocus=pairTimelineHighlight(radarRows,lastCycleReport.transfers,state.selected,inspectedPartnerId,"last");
+    }
+    document.getElementById("pairTransitionStatus").textContent=(atlasMapEntry?"Archipelago atlas focus. ":"")+
+      (pairTransition?pairTransition.description:"Select an island and partner to compare their pulses.");
+    document.getElementById("pairMapFocusStatus").textContent=(atlasMapEntry?"Archipelago atlas focus. ":"")+
+      (pairMapFocus?pairMapFocus.description:"Select an island and partner to highlight a pair on the map.");
     var textMap=textMapModel(),textMapEl=document.getElementById("textMap");
     textMapEl.innerHTML='<p class="small">'+esc(textMap.summary)+'</p><ul>'+textMap.islands.map(function(row){return '<li>'+esc(row.text)+'</li>'}).join("")+'</ul>';
     var gb=document.getElementById("germinateBtn"),germStatus=document.getElementById("germinateStatus");
@@ -2415,6 +2495,20 @@ function archipelagoChangeAtlas(rows, previousTransfers, cycle) {
     renderUI(); // changed-pair navigation is UI-only: no save or focus cost.
     return true;
   }
+  document.getElementById("archipelagoDrillCategory").addEventListener("change",function(e){
+    atlasDrillCategory=e.target.value;atlasDrillPairKey="";atlasMapPairKey="";renderUI(); // session-only.
+  });
+  document.getElementById("archipelagoDrillPair").addEventListener("change",function(e){
+    atlasDrillPairKey=e.target.value;renderUI(); // no world mutation.
+  });
+  document.getElementById("archipelagoDrillFocusBtn").addEventListener("click",function(){
+    if(!document.getElementById("archipelagoDrillPair").disabled){
+      atlasMapPairKey=atlasDrillPairKey;renderUI(); // map-only, no save.
+    }
+  });
+  document.getElementById("archipelagoDrillClearBtn").addEventListener("click",function(){
+    atlasMapPairKey="";renderUI(); // restore selected island pair.
+  });
   document.getElementById("pairNextMapBtn").addEventListener("click",function(){pairTimelineView="next";renderUI()});
    document.getElementById("pairLastMapBtn").addEventListener("click",function(){
      if(lastCycleReport&&Array.isArray(lastCycleReport.transfers)){pairTimelineView="last";renderUI()}
