@@ -107,7 +107,7 @@
         <span class="chip" id="phenomenonChip">Phenomenon · dormant</span>
         <span class="chip hud-secondary" id="motionChip">Motion · standard</span>
         <span class="chip hud-secondary" id="contrastChip">Contrast · custom</span>
-        <span class="chip hud-secondary" id="versionChip">v0.65 · save 7</span>
+        <span class="chip hud-secondary" id="versionChip">v0.66 · save 7</span>
       </div>
     </section>
 
@@ -186,6 +186,11 @@
             <button id="nextActivePairBtn" disabled aria-keyshortcuts="K" aria-describedby="pairQuickStatus">Next active pair →</button>
           </div>
           <div id="pairQuickStatus" class="small" style="margin-top:6px">Select an island to inspect active pairs. J previous · K next.</div>
+          <div class="actions" role="group" aria-label="Changed relationship navigation" style="margin-top:8px">
+            <button id="prevChangedPairBtn" disabled aria-keyshortcuts="Shift+J" aria-describedby="pairChangeStatus">← Previous changed pair</button>
+            <button id="nextChangedPairBtn" disabled aria-keyshortcuts="Shift+K" aria-describedby="pairChangeStatus">Next changed pair →</button>
+          </div>
+          <div id="pairChangeStatus" class="small" role="region" aria-label="Changed island relationships" style="margin-top:6px">Select an island and complete a pulse to inspect changes. Shift+J previous · Shift+K next.</div>
           <div id="pairReciprocityInspector" class="small" role="region" aria-label="Selected island pair reciprocity inspector" style="margin-top:8px;overflow-wrap:anywhere">Select an island to inspect a pair.</div>
           <div class="actions" role="group" aria-label="Pair map timeline" style="margin-top:8px">
              <button id="pairNextMapBtn" aria-pressed="true" aria-describedby="pairMapFocusStatus">Next forecast on map</button>
@@ -310,7 +315,7 @@
 (function(){
   "use strict";
   var canvas=document.getElementById("garden"),ctx=canvas.getContext("2d");
-  var APP_VERSION="0.65",SAVE_SCHEMA=7;
+  var APP_VERSION="0.66",SAVE_SCHEMA=7;
   var KEY="agent03-signal-garden-v1";
   var seedParam=new URLSearchParams(location.search).get("seed"),bootSaved=null,bootParseError=false;
   try{
@@ -352,7 +357,7 @@
     });
   }
   var state=fresh(),bootNotice="";
-  var inspectedPartnerId=null,pairOptionsKey="",activePairIds=[],pairMapFocus=null,pairTransition=null,pairTimelineView="next"; // UI-only; never serialized.
+  var inspectedPartnerId=null,pairOptionsKey="",activePairIds=[],changedPairIds=[],pairMapFocus=null,pairTransition=null,pairTimelineView="next"; // UI-only; never serialized.
   if(bootParseError)bootNotice="Could not read the local garden save, so a fresh seed state was used.";
   else if(bootSaved){
     if(validSavedState(bootSaved)){
@@ -1875,6 +1880,26 @@ function renderIncomingRadar(rows) {
     var compass=researchCompassModel();
     return {title:"Open research",text:compass.next?"The garden is now yours. Research Compass: "+compass.next.text+" Hint: "+compass.nextHint:"Every Field Question is observed. Keep reshaping the garden, export a specimen, or invent your own experiment."};
   }
+/**
+ * Signal Garden v0.66: changed relationships for a selected island.
+ * Reuses the canonical pair models and transition badge. Read-only, sorted,
+ * and unavailable until an actual completed pulse exists; schema 7 unchanged.
+ */
+function changedPairPartners(rows, previousTransfers, selectedId) {
+  if (!Array.isArray(rows) || !Array.isArray(previousTransfers) ||
+      !Number.isInteger(selectedId)) return [];
+  const ids = [...new Set(rows.filter(row => row && Number.isInteger(row.id))
+    .map(row => row.id))].sort((a, b) => a - b);
+  if (!ids.includes(selectedId)) return [];
+  return ids.filter(partnerId => {
+    if (partnerId === selectedId) return false;
+    const next = pairMapHighlight(rows, selectedId, partnerId);
+    const last = pairTimelineHighlight(rows, previousTransfers, selectedId, partnerId, 'last');
+    const badge = pairTransitionBadge(next, last);
+    return !!badge && !['quiet', 'steady', 'unavailable'].includes(badge.kind);
+  });
+}
+
   function renderUI(){
     document.getElementById("seasonChip").textContent="Cycle "+state.cycle+" · "+state.mode;
     document.getElementById("focusChip").textContent="Focus "+state.focus+"/8";
@@ -1940,6 +1965,16 @@ function renderIncomingRadar(rows) {
       :activePairIds.length
         ?activePairIds.length+" active forecast "+(activePairIds.length===1?"partner":"partners")+". J previous · K next; wraps through active pairs only."
         :"No active forecast partners; use the selector to inspect quiet pairs.";
+    changedPairIds=changedPairPartners(radarRows,lastCycleReport&&lastCycleReport.transfers,state.selected);
+    document.getElementById("prevChangedPairBtn").disabled=!changedPairIds.length;
+    document.getElementById("nextChangedPairBtn").disabled=!changedPairIds.length;
+    document.getElementById("pairChangeStatus").textContent=!Number.isInteger(state.selected)
+      ?"Select an island and complete a pulse to inspect changes. Shift+J previous · Shift+K next."
+      :!(lastCycleReport&&Array.isArray(lastCycleReport.transfers))
+        ?"Complete a pulse to compare changed relationships. Shift+J previous · Shift+K next."
+        :changedPairIds.length
+          ?changedPairIds.length+" changed "+(changedPairIds.length===1?"relationship":"relationships")+". Shift+J previous · Shift+K next; includes ended exchanges."
+          :"No changed relationships for this island; manual pair inspection remains available.";
     document.getElementById("pairReciprocityInspector").textContent=pairReciprocityInspector(radarRows,lastCycleReport&&lastCycleReport.transfers,state.selected,inspectedPartnerId,forecast.cycle);
     var lastMapAvailable=!!(lastCycleReport&&Array.isArray(lastCycleReport.transfers));
     if(!lastMapAvailable&&pairTimelineView==="last")pairTimelineView="next";
@@ -2269,12 +2304,21 @@ function renderIncomingRadar(rows) {
     renderUI(); // navigation is UI-only: no save, no focus cost.
     return true;
   }
+  function jumpChangedPair(direction){
+    var next=stepActivePairPartner(changedPairIds,inspectedPartnerId,direction);
+    if(next===null)return false;
+    inspectedPartnerId=next;
+    renderUI(); // changed-pair navigation is UI-only: no save or focus cost.
+    return true;
+  }
   document.getElementById("pairNextMapBtn").addEventListener("click",function(){pairTimelineView="next";renderUI()});
    document.getElementById("pairLastMapBtn").addEventListener("click",function(){
      if(lastCycleReport&&Array.isArray(lastCycleReport.transfers)){pairTimelineView="last";renderUI()}
    });
    document.getElementById("prevActivePairBtn").addEventListener("click",function(){jumpActivePair(-1)});
   document.getElementById("nextActivePairBtn").addEventListener("click",function(){jumpActivePair(1)});
+  document.getElementById("prevChangedPairBtn").addEventListener("click",function(){jumpChangedPair(-1)});
+  document.getElementById("nextChangedPairBtn").addEventListener("click",function(){jumpChangedPair(1)});
   document.getElementById("pairPartnerSelect").addEventListener("change",function(){
     var candidate=Number(this.value);
     inspectedPartnerId=state.islands.some(function(x){return x.id===candidate&&x.id!==state.selected})?candidate:null;
@@ -2316,7 +2360,8 @@ function renderIncomingRadar(rows) {
     if(tag==="BUTTON"||tag==="INPUT"||tag==="TEXTAREA"||tag==="SELECT"||(e.target&&e.target.isContentEditable))return;
     var key=e.key.toLowerCase(),m={n:"nurture",o:"observe",c:"connect",d:"distort"};
     if(!e.altKey&&!e.ctrlKey&&!e.metaKey&&(key==="j"||key==="k")){
-      if(jumpActivePair(key==="j"?-1:1))e.preventDefault();
+      var pairJump=e.shiftKey?jumpChangedPair:jumpActivePair;
+      if(pairJump(key==="j"?-1:1))e.preventDefault();
       return;
     }
     if(key==="u"){if(undoSnapshot){e.preventDefault();undoLastAction()}return}

@@ -22,6 +22,9 @@ assert.ok(html.includes('id="pairReciprocityInspector" class="small" role="regio
 assert.ok(html.includes('id="prevActivePairBtn" disabled aria-keyshortcuts="J" aria-describedby="pairQuickStatus"'),"v0.62 previous-active-pair button must be keyboard-accessible and initially disabled");
 assert.ok(html.includes('id="nextActivePairBtn" disabled aria-keyshortcuts="K" aria-describedby="pairQuickStatus"'),"v0.62 next-active-pair button must be keyboard-accessible and initially disabled");
 assert.ok(html.includes('id="pairQuickStatus" class="small"'),"v0.62 active-pair navigation must explain quiet state and shortcuts");
+assert.ok(html.includes('id="prevChangedPairBtn" disabled aria-keyshortcuts="Shift+J"'),"v0.66 previous-changed button must be keyboard accessible");
+assert.ok(html.includes('id="nextChangedPairBtn" disabled aria-keyshortcuts="Shift+K"'),"v0.66 next-changed button must be keyboard accessible");
+assert.ok(html.includes('id="pairChangeStatus" class="small" role="region"'),"v0.66 change navigation needs an accessible text equivalent");
 assert.ok(html.includes('id="pairMapFocusStatus" class="small" role="region" aria-label="Map pair focus textual equivalent"'),"v0.63 must expose a nonvisual map-pair description");
 assert.ok(html.includes('id="pairTransitionStatus" class="small" role="region" aria-label="Pair timeline transition"'),"v0.65 must expose a nonvisual transition description");
 assert.ok(html.includes('id="pairNextMapBtn" aria-pressed="true"'),"v0.64 should default to next forecast on the map");
@@ -68,6 +71,8 @@ assert.ok(source.includes('document.getElementById("networkReciprocityAtlas").te
 assert.ok(source.includes('document.getElementById("reciprocityMomentum").textContent=reciprocityMomentum('),"v0.60 momentum must render imported names with textContent");
 assert.ok(source.includes('document.getElementById("pairReciprocityInspector").textContent=pairReciprocityInspector('),"v0.61 pair inspector must render imported names with textContent");
 assert.ok(source.includes('activePairIds=activePairPartners(radarRows,state.selected)'),"v0.62 active partners must derive from the existing radar");
+assert.ok(source.includes('changedPairIds=changedPairPartners(radarRows,lastCycleReport&&lastCycleReport.transfers,state.selected)'),"v0.66 changed partners must use canonical radar and completed history");
+assert.ok(source.includes('renderUI(); // changed-pair navigation is UI-only: no save or focus cost.'),"v0.66 change navigation must remain session-only");
 assert.ok(source.includes('pairTimelineHighlight(radarRows,lastCycleReport.transfers,state.selected,inspectedPartnerId,"last")'),"v0.64 last map must use completed migrations, not invented forecasts");
 assert.ok(source.includes('document.getElementById("pairMapFocusStatus").textContent=pairMapFocus?'),"v0.64 map descriptions must render imported names as text");
 assert.ok(source.includes('document.getElementById("pairTransitionStatus").textContent=pairTransition?'),"v0.65 transition descriptions must use textContent");
@@ -198,6 +203,7 @@ source = source.replace(
     pairReciprocityInspector:pairReciprocityInspector,
     pairTimelineHighlight:pairTimelineHighlight,
     pairTransitionBadge:pairTransitionBadge,
+    changedPairPartners:changedPairPartners,
     activePairPartners:activePairPartners,
     stepActivePairPartner:stepActivePairPartner,
     edgeSignalCounts:edgeSignalCounts,
@@ -323,6 +329,9 @@ assert.equal(api.pairTimelineHighlight(timelineRows,null,0,1,"last"),null,"v0.64
 assert.match(api.pairTimelineHighlight(timelineRows,[{from:1,to:0,type:"memory"}],0,1,"last").description,/Incoming-only last pulse: receive memory/,"v0.64 inline timeline should use actual completed migration direction");
 assert.equal(api.pairTransitionBadge({source:0,target:1,forward:["life"],backward:["memory"]},{source:0,target:1,forward:["life"],backward:[]}).kind,"mutual","v0.65 inline badge should detect becoming mutual");
 assert.equal(api.pairTransitionBadge({source:0,target:1,forward:[],backward:[]},null).kind,"unavailable","v0.65 inline badge must not invent history");
+assert.deepEqual(Array.from(api.changedPairPartners(timelineRows,null,0)),[],"v0.66 must not invent changed pairs without history");
+assert.deepEqual(Array.from(api.changedPairPartners(timelineRows,[],0)),[1],"v0.66 inline projection should find new traffic");
+assert.deepEqual(Array.from(api.changedPairPartners(timelineRows,[{from:0,to:1,type:"life"}],0)),[],"v0.66 inline projection should skip steady traffic");
 assert.equal(typeof windowListeners.hashchange,"function","game should register one hashchange listener for quick-nav current state");
 assert.equal(quickNavLinks.filter(x=>x.getAttribute("aria-current")).length,0,"no hash should leave all quick-nav links without aria-current");
 sandbox.location.hash="#researchSection";
