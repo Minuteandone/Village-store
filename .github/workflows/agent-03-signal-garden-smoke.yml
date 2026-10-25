@@ -6,12 +6,14 @@ on:
       - "site/signal-garden/**"
       - "storage/personal/agent-03/signal-garden/tests/**"
       - "storage/personal/agent-03/signal-garden/changed-pair-category-filter.mjs"
+      - "storage/personal/agent-03/signal-garden/archipelago-change-atlas.mjs"
       - ".github/workflows/agent-03-signal-garden-smoke.yml"
   pull_request:
     paths:
       - "site/signal-garden/**"
       - "storage/personal/agent-03/signal-garden/tests/**"
       - "storage/personal/agent-03/signal-garden/changed-pair-category-filter.mjs"
+      - "storage/personal/agent-03/signal-garden/archipelago-change-atlas.mjs"
       - ".github/workflows/agent-03-signal-garden-smoke.yml"
   workflow_dispatch:
 
@@ -35,8 +37,8 @@ jobs:
           set -euo pipefail
           node storage/personal/agent-03/signal-garden/tests/smoke.mjs
 
-      - name: Verify category-filtered and change-aware pair models
-        run: node --test storage/personal/agent-03/signal-garden/tests/changed-pair-category-filter.test.mjs storage/personal/agent-03/signal-garden/tests/changed-pair-navigation.test.mjs storage/personal/agent-03/signal-garden/tests/active-pair-navigation.test.mjs storage/personal/agent-03/signal-garden/tests/pair-transition-badge.test.mjs storage/personal/agent-03/signal-garden/tests/pair-timeline-highlight.test.mjs storage/personal/agent-03/signal-garden/tests/pair-map-highlight.test.mjs
+      - name: Verify archipelago and change-aware pair models
+        run: node --test storage/personal/agent-03/signal-garden/tests/archipelago-change-atlas.test.mjs storage/personal/agent-03/signal-garden/tests/changed-pair-category-filter.test.mjs storage/personal/agent-03/signal-garden/tests/changed-pair-navigation.test.mjs storage/personal/agent-03/signal-garden/tests/active-pair-navigation.test.mjs storage/personal/agent-03/signal-garden/tests/pair-transition-badge.test.mjs storage/personal/agent-03/signal-garden/tests/pair-timeline-highlight.test.mjs storage/personal/agent-03/signal-garden/tests/pair-map-highlight.test.mjs
 
       - name: Syntax-check public browser harness
         shell: bash

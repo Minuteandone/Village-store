@@ -17,6 +17,7 @@ assert.ok(html.includes('id="selectedFlowCompass" class="small" role="region" ar
 assert.ok(html.includes('id="selectedRouteReciprocity" class="small" role="region" aria-label="Selected island next-cycle route reciprocity"'),"v0.58 should expose a labelled selected-island route reciprocity region");
 assert.ok(html.includes('id="networkReciprocityAtlas" class="small" role="region" aria-label="Network-wide next-cycle reciprocity"'),"v0.59 should expose a labelled archipelago-wide reciprocity region");
 assert.ok(html.includes('id="reciprocityMomentum" class="small" role="region" aria-label="Reciprocity momentum since last cycle"'),"v0.60 should expose a labelled momentum region");
+assert.ok(html.includes('id="archipelagoChangeAtlas" class="small" role="region" aria-label="Archipelago-wide relationship changes"'),"v0.68 atlas should be accessible");
 assert.ok(html.includes('id="pairPartnerSelect" disabled aria-describedby="pairReciprocityInspector"'),"v0.61 should expose an accessible disabled-before-selection pair picker");
 assert.ok(html.includes('id="pairReciprocityInspector" class="small" role="region" aria-label="Selected island pair reciprocity inspector"'),"v0.61 should expose a labelled pair inspector");
 assert.ok(html.includes('id="prevActivePairBtn" disabled aria-keyshortcuts="J" aria-describedby="pairQuickStatus"'),"v0.62 previous-active-pair button must be keyboard-accessible and initially disabled");
@@ -71,6 +72,7 @@ assert.ok(source.includes('document.getElementById("selectedFlowCompass").textCo
 assert.ok(source.includes('document.getElementById("selectedRouteReciprocity").textContent=selectedRouteReciprocityLens('),"v0.58 reciprocity lens must render imported names with textContent");
 assert.ok(source.includes('document.getElementById("networkReciprocityAtlas").textContent=networkReciprocityAtlas('),"v0.59 atlas must render imported names with textContent");
 assert.ok(source.includes('document.getElementById("reciprocityMomentum").textContent=reciprocityMomentum('),"v0.60 momentum must render imported names with textContent");
+assert.ok(source.includes('document.getElementById("archipelagoChangeAtlas").textContent=archipelagoChangeAtlas('),"v0.68 atlas must render imported names with textContent");
 assert.ok(source.includes('document.getElementById("pairReciprocityInspector").textContent=pairReciprocityInspector('),"v0.61 pair inspector must render imported names with textContent");
 assert.ok(source.includes('activePairIds=activePairPartners(radarRows,state.selected)'),"v0.62 active partners must derive from the existing radar");
 assert.ok(source.includes('changedPairIds=changeOverview.partnerIds'),"v0.67 changed partners must use category-filtered canonical radar and completed history");
@@ -413,6 +415,7 @@ assert.match(ids.get("selectedDispatchBrief").textContent,/Select an island to p
 assert.match(ids.get("selectedRouteReciprocity").textContent,/Select an island to preview next-cycle route reciprocity/,"unselected route lens should explain how to start");
 assert.match(api.selectedRouteReciprocityLens(emptyRadar,0,3),/no planned traffic involving this island/,"unlinked selected island should have quiet reciprocity");
 assert.match(ids.get("reciprocityMomentum").textContent,/advance one cycle to compare/,"fresh garden should not invent prior pulse data");
+assert.match(ids.get("archipelagoChangeAtlas").textContent,/complete a pulse to compare/,"fresh archipelago atlas must not invent history");
 assert.equal(ids.get("prevActivePairBtn").disabled,true,"quiet island should not offer active pair navigation");
 assert.equal(ids.get("nextActivePairBtn").disabled,true,"quiet island should not offer active pair navigation");
 assert.match(ids.get("cycleForecast").innerHTML,/Cycle 3 · Quiet/,"rendered forecast should expose the next cycle and mode");
@@ -1035,6 +1038,7 @@ setGraph([
 ]);
 api.nextCycle();
 const cycleReport=api.getLastCycleReport();
+assert.match(ids.get("archipelagoChangeAtlas").textContent,/archipelago change atlas \(last pulse → next forecast\)/,"completed pulse must enable archipelago atlas");
 assert.ok(cycleReport,"advancing a cycle should produce a Last Cycle Report");
 assert.match(ids.get("reciprocityMomentum").textContent,/reciprocity momentum \(last pulse → next forecast\)/,"after a cycle, momentum must compare the completed pulse with the next forecast");
 assert.equal(cycleReport.cycle,3);

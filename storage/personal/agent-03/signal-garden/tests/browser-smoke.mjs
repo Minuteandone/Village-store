@@ -130,6 +130,8 @@ try{
   const initialMomentum=await evaluate("document.getElementById('reciprocityMomentum').textContent");
   assert.match(initialMomentum,/advance one cycle to compare/,"fresh garden must not invent prior pulse traffic");
   assert.equal(await evaluate("document.getElementById('reciprocityMomentum').getAttribute('aria-live')"),null,"momentum must not repeatedly announce");
+  assert.match(await evaluate("document.getElementById('archipelagoChangeAtlas').textContent"),/complete a pulse to compare/,"fresh archipelago atlas must not invent history");
+  assert.equal(await evaluate("document.getElementById('archipelagoChangeAtlas').getAttribute('aria-live')"),null,"atlas must not repeatedly announce");
   assert.equal(await evaluate("document.getElementById('pairPartnerSelect').disabled"),true,"pair inspector must wait for an island selection");
   assert.match(await evaluate("document.getElementById('pairReciprocityInspector').textContent"),/Select an island to inspect a pair/);
   assert.equal(await evaluate("document.getElementById('pairReciprocityInspector').getAttribute('aria-live')"),null,"pair inspector should not repeatedly announce forecasts");
@@ -560,6 +562,9 @@ try{
   const afterCycleMomentum=await evaluate("document.getElementById('reciprocityMomentum').textContent");
   assert.match(afterCycleMomentum,/Cycle 3 reciprocity momentum \(last pulse → next forecast\)/,"momentum should compare actual last cycle with upcoming forecast");
   assert.doesNotMatch(afterCycleMomentum,/advance one cycle to compare/,"completed pulse should replace the initial invitation");
+  const atlasAfterCycle=await evaluate("document.getElementById('archipelagoChangeAtlas').textContent");
+  assert.match(atlasAfterCycle,/Cycle 3 archipelago change atlas \(last pulse → next forecast\): \d+ changed of 6 island pairs/,"whole archipelago should count unordered pairs after a pulse");
+  assert.match(atlasAfterCycle,/new exchanges \d+, ended exchanges \d+/,"atlas must classify relationship changes");
   const afterCyclePair=await evaluate("document.getElementById('pairReciprocityInspector').textContent");
   assert.match(afterCyclePair,/Cycle 3 pair inspector/,"pair inspector should follow the next cycle");
   assert.doesNotMatch(afterCyclePair,/Last pulse: unavailable/,"pair inspector should show completed-cycle history");
