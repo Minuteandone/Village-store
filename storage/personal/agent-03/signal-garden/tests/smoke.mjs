@@ -215,6 +215,7 @@ source = source.replace(
     changedPairPartners:changedPairPartners,
     activePairPartners:activePairPartners,
     stepActivePairPartner:stepActivePairPartner,
+    stepArchipelagoPair:stepArchipelagoPair,
     edgeSignalCounts:edgeSignalCounts,
     bondForEdgeKey:bondForEdgeKey,
     routeBonds:routeBonds,
@@ -345,6 +346,8 @@ assert.ok(api, "test API should be exposed");
 assert.match(api.pairReciprocityInspector([{id:0,name:"A",incoming:[]},{id:1,name:"B",incoming:[{from:0,type:"life"}]}],null,0,1,2),/Last pulse: unavailable.*Next forecast: A → B: life/,"v0.61 inline pair inspector should work in the canonical game script");
 assert.deepEqual(Array.from(api.activePairPartners([{id:0,incoming:[]},{id:1,incoming:[{from:0,type:"life"}]}],0)),[1],"v0.62 inline partner projection should find outgoing traffic");
 assert.equal(api.stepActivePairPartner([1,3],1,-1),3,"v0.62 inline navigation should wrap backwards");
+assert.equal(api.stepArchipelagoPair([{firstId:0,secondId:1,key:"0:1"},{firstId:0,secondId:2,key:"0:2"}],"0:2",1),"0:1","v0.70 inline atlas navigation should wrap");
+assert.equal(api.stepArchipelagoPair([],"",1),null,"v0.70 inline atlas navigation must not invent pairs");
 const timelineRows=[{id:0,name:"A",incoming:[]},{id:1,name:"B",incoming:[{from:0,type:"life"}]}];
 assert.equal(api.pairTimelineHighlight(timelineRows,null,0,1,"last"),null,"v0.64 must not fabricate last-pulse history");
 assert.match(api.pairTimelineHighlight(timelineRows,[{from:1,to:0,type:"memory"}],0,1,"last").description,/Incoming-only last pulse: receive memory/,"v0.64 inline timeline should use actual completed migration direction");

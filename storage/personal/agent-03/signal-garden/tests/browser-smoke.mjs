@@ -103,6 +103,8 @@ try{
   const version=await evaluate("document.getElementById('versionChip').textContent");
   assert.ok(version.includes("v"+expectedVersion),"deployed app version should match checked-out index");
   assert.ok(version.includes("save "+expectedSchema),"deployed save schema should match checked-out index");
+  assert.equal(await evaluate("document.getElementById('archipelagoDrillPrevBtn').disabled"),true,"no history must disable atlas stepping");
+  assert.equal(await evaluate("document.getElementById('archipelagoDrillNextBtn').disabled"),true,"no history must disable atlas stepping");
   const initialForecast=await evaluate("document.getElementById('cycleForecast').textContent");
   assert.match(initialForecast,/Cycle 2 · Quiet/,"fresh garden should forecast cycle 2 Quiet");
   assert.match(initialForecast,/Focus would recover to 8\/8/);
@@ -576,11 +578,26 @@ try{
   assert.match(await evaluate("document.getElementById('archipelagoDrillStatus').textContent"),/No ended changed pairs|Cycle 3 pair inspector/,"empty and populated categories have truthful detail");
   await evaluate("(()=>{const e=document.getElementById('archipelagoDrillCategory');e.value='all';e.dispatchEvent(new Event('change',{bubbles:true}))})()");
   const atlasPairCount=await evaluate("document.getElementById('archipelagoDrillPair').options.length");
+  assert.equal(await evaluate("document.getElementById('archipelagoDrillNextBtn').disabled"),atlasPairCount===0,"atlas step availability must reflect filtered entries");
   if(atlasPairCount){
+    const atlasKeys=await evaluate("Array.from(document.getElementById('archipelagoDrillPair').options).map(o=>o.value)");
+    await evaluate("document.getElementById('archipelagoDrillNextBtn').click()");
+    assert.equal(await evaluate("document.getElementById('archipelagoDrillPair').value"),atlasKeys[1%atlasKeys.length],"next atlas pair should wrap in filter order");
+    await evaluate("document.getElementById('archipelagoDrillPrevBtn').click()");
+    assert.equal(await evaluate("document.getElementById('archipelagoDrillPair').value"),atlasKeys[0],"previous atlas pair should reverse");
+    await evaluate("document.getElementById('worldSection').focus()");
+    await key("]","BracketRight",221,"]");
+    assert.equal(await evaluate("document.getElementById('archipelagoDrillPair').value"),atlasKeys[1%atlasKeys.length],"] shortcut should advance atlas pair");
+    await key("[","BracketLeft",219,"[");
+    assert.equal(await evaluate("document.getElementById('archipelagoDrillPair').value"),atlasKeys[0],"[ shortcut should reverse atlas pair");
+    assert.match(await evaluate("document.getElementById('archipelagoDrillStatus').textContent"),/Pair 1 of \d+.*\[ previous/,"atlas navigator should expose accessible position");
     assert.equal(await evaluate("document.getElementById('archipelagoDrillFocusBtn').disabled"),false,"changed pairs are inspectable");
     assert.match(await evaluate("document.getElementById('archipelagoDrillStatus').textContent"),/Cycle 3 pair inspector/,"drill-down exposes last and next traffic");
     await evaluate("document.getElementById('archipelagoDrillFocusBtn').click()");
     assert.match(await evaluate("document.getElementById('pairMapFocusStatus').textContent"),/Archipelago atlas focus/,"atlas pair is highlighted on map");
+    await evaluate("document.getElementById('archipelagoDrillNextBtn').click()");
+    assert.equal(await evaluate("document.getElementById('archipelagoDrillPair').value"),atlasKeys[1%atlasKeys.length],"focused atlas stepping should update selected pair");
+    assert.match(await evaluate("document.getElementById('archipelagoDrillStatus').textContent"),/Focused on map/,"focused stepping should synchronize map and inspector");
     assert.equal(await evaluate("document.getElementById('archipelagoDrillClearBtn').disabled"),false,"atlas focus can be cleared");
     await evaluate("document.getElementById('archipelagoDrillClearBtn').click()");
     assert.doesNotMatch(await evaluate("document.getElementById('pairMapFocusStatus').textContent"),/Archipelago atlas focus/,"clear restores selected island pair");
